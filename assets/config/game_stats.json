@@ -1,0 +1,78 @@
+{
+  "game": {
+    "baseHP": 200,
+    "explosionRadius": 100,
+    "explosionDamage": 50
+  },
+  "waves": [
+    { "delay": 3.0, "enemies": { "normal": 5 } },
+    { "delay": 5.0, "enemies": { "normal": 8, "fast": 2 } },
+    { "delay": 5.0, "enemies": { "normal": 10, "fast": 5, "tank": 1 } },
+    { "delay": 5.0, "enemies": { "normal": 15, "fast": 8, "tank": 3 } }
+  ],
+  "enemies": {
+    "normal": {
+      "hp": 50,
+      "speed": 80,
+      "damage": 10,
+      "score": 10,
+      "color": "0xFF4CAF50",
+      "width": 30,
+      "height": 30
+    },
+    "fast": {
+      "hp": 25,
+      "speed": 160,
+      "damage": 5,
+      "score": 5,
+      "color": "0xFFF44336",
+      "width": 25,
+      "height": 25
+    },
+    "tank": {
+      "hp": 200,
+      "speed": 40,
+      "damage": 20,
+      "score": 25,
+      "color": "0xFF9E9E9E",
+      "width": 40,
+      "height": 40
+    }
+  },
+  "skills": {
+    "lightning": {
+      "initialCount": 5,
+      "countPerLevel": 1,
+      "initialCooldown": 8.0,
+      "cooldownReductionPerLevel": 0.5,
+      "upgradeCost": 100,
+      "maxLevel": 3
+    },
+    "freeze": {
+      "initialSpeedMultiplier": 0.5,
+      "speedMultiplierPerLevel": 0.05,
+      "initialDuration": 5.0,
+      "durationPerLevel": 0.5,
+      "initialCooldown": 10.0,
+      "cooldownReductionPerLevel": 0.5,
+      "upgradeCost": 150,
+      "maxLevel": 3
+    },
+    "heal": {
+      "initialAmount": 30,
+      "amountPerLevel": 10,
+      "initialCooldown": 12.0,
+      "cooldownReductionPerLevel": 0.5,
+      "upgradeCost": 120,
+      "maxLevel": 3
+    }
+  },
+  "ui": {
+    "baseSize": {
+      "width": 80,
+      "height": 20
+    },
+    "skillButtonSize": 60,
+    "skillButtonSpacing": 10
+  }
+}
