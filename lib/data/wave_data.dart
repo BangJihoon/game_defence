@@ -1,7 +1,3 @@
-
-import 'dart:ui';
-import 'package:flutter/material.dart';
-
 /// Represents a group of enemies to be spawned within a wave.
 class SpawnGroup {
   final String enemyId;
@@ -29,7 +25,8 @@ class WaveDefinition {
   final String titleLocaleKey; // Optional: for wave titles/messages
   final String descriptionLocaleKey; // Optional: for wave descriptions/hints
   final List<SpawnGroup> spawnGroups;
-  final double delayBeforeNextWave; // Time after this wave ends before next starts
+  final double
+  delayBeforeNextWave; // Time after this wave ends before next starts
 
   // Optional: events or modifiers that apply to this wave
   final Map<String, dynamic>? waveEvents;
@@ -40,7 +37,7 @@ class WaveDefinition {
     this.titleLocaleKey = '',
     this.descriptionLocaleKey = '',
     required this.spawnGroups,
-    this.delayBeforeNextWave = 5.0,
+    this.delayBeforeNextWave = 0.0,
     this.waveEvents,
     this.waveModifiers,
   });
@@ -58,9 +55,13 @@ class WaveDefinition {
       titleLocaleKey: json['titleLocaleKey'] ?? '',
       descriptionLocaleKey: json['descriptionLocaleKey'] ?? '',
       spawnGroups: spawnGroupsList,
-      delayBeforeNextWave: json['delayBeforeNextWave']?.toDouble() ?? 5.0,
-      waveEvents: json['waveEvents'] != null ? Map<String, dynamic>.from(json['waveEvents']) : null,
-      waveModifiers: json['waveModifiers'] != null ? Map<String, dynamic>.from(json['waveModifiers']) : null,
+      delayBeforeNextWave: json['delayBeforeNextWave']?.toDouble() ?? 0.0,
+      waveEvents: json['waveEvents'] != null
+          ? Map<String, dynamic>.from(json['waveEvents'])
+          : null,
+      waveModifiers: json['waveModifiers'] != null
+          ? Map<String, dynamic>.from(json['waveModifiers'])
+          : null,
     );
   }
 }

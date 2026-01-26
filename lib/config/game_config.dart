@@ -3,7 +3,6 @@ import 'package:game_defence/data/skill_data.dart';
 import 'package:game_defence/data/enemy_data.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class GameStats {
@@ -43,12 +42,12 @@ class GameStats {
   });
 
   factory GameStats.fromJson(
-      Map<String, dynamic> json,
-      List<CardDefinition> loadedCards,
-      Map<String, EnemyDefinition> loadedEnemyDefinitions,
-      Map<String, SkillDefinition> loadedSkillDefinitions,
-      List<WaveDefinition> loadedWaveDefinitions) {
-
+    Map<String, dynamic> json,
+    List<CardDefinition> loadedCards,
+    Map<String, EnemyDefinition> loadedEnemyDefinitions,
+    Map<String, SkillDefinition> loadedSkillDefinitions,
+    List<WaveDefinition> loadedWaveDefinitions,
+  ) {
     return GameStats(
       baseHP: json['game']['baseHP'],
       explosionRadius: json['game']['explosionRadius'].toDouble(),
@@ -64,39 +63,52 @@ class GameStats {
   }
 
   static Future<GameStats> load() async {
-    final gameStatsJsonString =
-        await rootBundle.loadString('assets/config/game_stats.json');
+    final gameStatsJsonString = await rootBundle.loadString(
+      'assets/config/game_stats.json',
+    );
     final gameStatsJsonMap = json.decode(gameStatsJsonString);
 
-    final cardsJsonString =
-        await rootBundle.loadString('assets/data/cards.json');
+    final cardsJsonString = await rootBundle.loadString(
+      'assets/data/cards.json',
+    );
     final List<dynamic> cardsJsonList = json.decode(cardsJsonString);
-    final List<CardDefinition> loadedCards =
-        cardsJsonList.map((json) => CardDefinition.fromJson(json)).toList();
+    final List<CardDefinition> loadedCards = cardsJsonList
+        .map((json) => CardDefinition.fromJson(json))
+        .toList();
 
-    final enemiesJsonString =
-        await rootBundle.loadString('assets/data/enemies.json');
+    final enemiesJsonString = await rootBundle.loadString(
+      'assets/data/enemies.json',
+    );
     final List<dynamic> enemiesJsonList = json.decode(enemiesJsonString);
     final Map<String, EnemyDefinition> loadedEnemyDefinitions = {
       for (var json in enemiesJsonList)
-        json['enemyId'] as String: EnemyDefinition.fromJson(json)
+        json['enemyId'] as String: EnemyDefinition.fromJson(json),
     };
 
-    final skillsJsonString =
-        await rootBundle.loadString('assets/data/skills.json');
+    final skillsJsonString = await rootBundle.loadString(
+      'assets/data/skills.json',
+    );
     final List<dynamic> skillsJsonList = json.decode(skillsJsonString);
     final Map<String, SkillDefinition> loadedSkillDefinitions = {
       for (var json in skillsJsonList)
-        json['skillId'] as String: SkillDefinition.fromJson(json)
+        json['skillId'] as String: SkillDefinition.fromJson(json),
     };
 
-    final wavesJsonString =
-        await rootBundle.loadString('assets/data/waves.json');
+    final wavesJsonString = await rootBundle.loadString(
+      'assets/data/waves.json',
+    );
     final List<dynamic> wavesJsonList = json.decode(wavesJsonString);
-    final List<WaveDefinition> loadedWaveDefinitions =
-        wavesJsonList.map((json) => WaveDefinition.fromJson(json)).toList();
+    final List<WaveDefinition> loadedWaveDefinitions = wavesJsonList
+        .map((json) => WaveDefinition.fromJson(json))
+        .toList();
 
-    return GameStats.fromJson(gameStatsJsonMap, loadedCards, loadedEnemyDefinitions, loadedSkillDefinitions, loadedWaveDefinitions);
+    return GameStats.fromJson(
+      gameStatsJsonMap,
+      loadedCards,
+      loadedEnemyDefinitions,
+      loadedSkillDefinitions,
+      loadedWaveDefinitions,
+    );
   }
 }
 
@@ -104,15 +116,9 @@ class UiSizeStats {
   final int width;
   final int height;
 
-  UiSizeStats({
-    required this.width,
-    required this.height,
-  });
+  UiSizeStats({required this.width, required this.height});
 
   factory UiSizeStats.fromJson(Map<String, dynamic> json) {
-    return UiSizeStats(
-      width: json['width'],
-      height: json['height'],
-    );
+    return UiSizeStats(width: json['width'], height: json['height']);
   }
 }

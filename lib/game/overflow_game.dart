@@ -2,9 +2,10 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flame/components.dart'; // Added
+import 'package:flame/effects.dart';   // Added
 
 import 'player_base.dart';
-import 'enemy.dart';
 import 'enemy_system.dart';
 import 'input/tap_input_layer.dart';
 import 'ui/game_over_overlay.dart';
@@ -52,416 +53,248 @@ class OverflowDefenseGame extends FlameGame {
 
   OverflowDefenseGame({this.locale = const Locale('ko')});
 
-      @override
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
 
-      Future<void> onLoad() async {
+    gameStats = await GameStats.load();
 
-        await super.onLoad();
+    _initializeSounds();
 
-    
+    modifierManager = ModifierManager(); // Initialize ModifierManager
 
-        gameStats = await GameStats.load();
-
-        
-
-        _initializeSounds();
-
-    
-
-        modifierManager = ModifierManager(); // Initialize ModifierManager
-
-    
-
-        playerBase = PlayerBase(
-
-          hp: gameStats.baseHP,
-
-          height: gameStats.baseSize.height,
-
-        )
-
+    playerBase =
+        PlayerBase(hp: gameStats.baseHP, height: gameStats.baseSize.height)
           ..position = Vector2(0, size.y - gameStats.baseSize.height)
-
           ..onDestroyed = _onBaseDestroyed
-
           ..onHit = playBaseHitSound;
 
-    
+    enemySystem = EnemySystem(
+      playerBase,
 
-        enemySystem = EnemySystem(
+      gameStats.enemyDefinitions,
 
-          playerBase,
+      onEnemyKilled: _onEnemyKilled,
+    );
 
-          gameStats.enemyDefinitions,
+    tapInputLayer = TapInputLayer();
 
-          onEnemyKilled: _onEnemyKilled,
+    scoreDisplay = ScoreDisplay(locale: locale);
 
-        );
+    skillSystem = SkillSystem(
+      locale: locale,
 
-    
+      gameStats: gameStats,
 
-        tapInputLayer = TapInputLayer();
+      skillDefinitions: gameStats.skillDefinitions,
+    );
 
-        scoreDisplay = ScoreDisplay(locale: locale);
+    skillUI = SkillUI(skillSystem, locale: locale, gameStats: gameStats);
 
-        skillSystem = SkillSystem(
+    waveManager = WaveManager();
 
-            locale: locale,
+    waveDisplay = WaveDisplay(locale: locale);
 
-            gameStats: gameStats,
+    cardManager = CardManager();
 
-            skillDefinitions: gameStats.skillDefinitions);
+    drawCardButton = DrawCardButton();
 
-          
+    add(GameBackground());
 
-        skillUI = SkillUI(skillSystem, locale: locale, gameStats: gameStats);
+    add(playerBase);
 
-        waveManager = WaveManager();
+    add(enemySystem);
 
-        waveDisplay = WaveDisplay(locale: locale);
+    add(tapInputLayer);
 
-        cardManager = CardManager();
+    add(scoreDisplay);
 
-        drawCardButton = DrawCardButton();
+    add(skillSystem);
 
-    
+    add(skillUI);
 
-        add(GameBackground());
+    add(waveManager);
 
-        add(playerBase);
+    add(waveDisplay);
 
-        add(enemySystem);
+    add(cardManager);
 
-        add(tapInputLayer);
+    add(drawCardButton);
 
-        add(scoreDisplay);
+    add(modifierManager); // Add ModifierManager to the game
+  }
 
-        add(skillSystem);
+  void showCardSelection() {
+    if (paused) return; // Don't show if already paused
 
-        add(skillUI);
+    if (_cardPoints >= _cardDrawCost) {
+      _cardPoints -= _cardDrawCost;
 
-        add(waveManager);
+      _cardDrawCost = (_cardDrawCost * 1.1).round();
 
-        add(waveDisplay);
+      paused = true;
 
-        add(cardManager);
+      final hand = cardManager.drawHand();
 
-        add(drawCardButton);
-
-        add(modifierManager); // Add ModifierManager to the game
-
+      if (hand.isNotEmpty) {
+        add(CardSelectionOverlay(cards: hand));
+      } else {
+        paused = false; // Resume if no cards to show
       }
+    } else {
+      showMessage("카드 포인트 부족!");
+    }
+  }
 
-    
+  void selectCard(CardDefinition card) {
+    cardManager.applyCard(card);
 
-        void showCardSelection() {
+    // Remove the overlay
 
-    
+    remove(children.whereType<CardSelectionOverlay>().first);
 
-          if (paused) return; // Don't show if already paused
+    paused = false;
+  }
 
-    
+  @override
+  void update(double dt) {
+    super.update(dt);
+    // print("Game update loop active."); // For debugging
 
-      
+    if (_isGameOver) return;
 
-    
+    if (playerBase.hp <= 0 && !_isGameOver) {
+      _gameOver();
+    }
+  }
 
-          if (_cardPoints >= _cardDrawCost) {
+  void _onEnemyKilled(int score) {
+    if (modifierManager.isCoinGainDisabled) {
+      print("Coin gain disabled. Skipping score update.");
 
-    
-
-            _cardPoints -= _cardDrawCost;
-
-    
-
-            _cardDrawCost = (_cardDrawCost * 1.1).round();
-
-    
-
-      
-
-    
-
-            paused = true;
-
-    
-
-            final hand = cardManager.drawHand();
-
-    
-
-            if (hand.isNotEmpty) {
-
-    
-
-              add(CardSelectionOverlay(cards: hand));
-
-    
-
-            } else {
-
-    
-
-              paused = false; // Resume if no cards to show
-
-    
-
-            }
-
-    
-
-          } else {
-
-    
-
-            print("Not enough card points to draw a card.");
-
-    
-
-          }
-
-    
-
-        }
-
-    
-
-      void selectCard(CardDefinition card) {
-
-        cardManager.applyCard(card);
-
-        // Remove the overlay
-
-        remove(children.whereType<CardSelectionOverlay>().first);
-
-        paused = false;
-
-      }
-
-    
-
-      @override
-
-      void update(double dt) {
-
-        super.update(dt);
-
-    
-
-        if (_isGameOver) return;
-
-    
-
-        if (playerBase.hp <= 0 && !_isGameOver) {
-
-          _gameOver();
-
-        }
-
-      }
-
-    
-
-        void _onEnemyKilled(int score) {
-
-    
-
-          if (modifierManager.isCoinGainDisabled) {
-
-    
-
-            print("Coin gain disabled. Skipping score update.");
-
-    
-
-            return;
-
-    
-
-          }
-
-    
-
-          _score += score;
-
-    
-
-          _cardPoints += 1;
-
-    
-
-          scoreDisplay.updateScore(_score);
-
-    
-
-          playEnemyDeathSound();
-
-    
-
-        }
-
-    
-
-      void _onBaseDestroyed() {
-
-        if (!_isGameOver) {
-
-          _gameOver();
-
-        }
-
-      }
-
-    
-
-      void _gameOver() {
-
-        _isGameOver = true;
-
-        playGameOverSound();
-
-        add(GameOverOverlay(
-
-          score: _score,
-
-          onRestart: _restartGame,
-
-          locale: locale,
-
-        ));
-
-      }
-
-    
-
-      void _restartGame() {
-
-        _isGameOver = false;
-
-        _score = 0;
-
-    
-
-        removeAll(children.whereType<GameOverOverlay>());
-
-    
-
-        playerBase.hp = playerBase.maxHp.toDouble();
-
-        enemySystem.clearEnemies();
-
-        scoreDisplay.updateScore(0);
-
-        waveManager.reset();
-
-      }
-
-    
-
-      Future<void> _initializeSounds() async {
-
-        try {
-
-          await FlameAudio.audioCache.loadAll([
-
-            'explosion.mp3',
-
-            'enemy_death.mp3',
-
-            'base_hit.mp3',
-
-            'game_over.mp3',
-
-          ]);
-
-          _soundEnabled = true;
-
-        } catch (e) {
-
-          _soundEnabled = false;
-
-          debugPrint('Could not load sound files: $e');
-
-        }
-
-      }
-
-    
-
-      void playExplosionSound() {
-
-        if (!_soundEnabled) return;
-
-        try {
-
-          FlameAudio.play('explosion.mp3', volume: 0.3).ignore();
-
-        } catch (e) {
-
-          // Ignore
-
-        }
-
-      }
-
-    
-
-      void playEnemyDeathSound() {
-
-        if (!_soundEnabled) return;
-
-        try {
-
-          FlameAudio.play('enemy_death.mp3', volume: 0.2).ignore();
-
-        } catch (e) {
-
-          // Ignore
-
-        }
-
-      }
-
-    
-
-      void playBaseHitSound() {
-
-        if (!_soundEnabled) return;
-
-        try {
-
-          FlameAudio.play('base_hit.mp3', volume: 0.4).ignore();
-
-        } catch (e) {
-
-          // Ignore
-
-        }
-
-      }
-
-    
-
-      void playGameOverSound() {
-
-        if (!_soundEnabled) return;
-
-        try {
-
-          FlameAudio.play('game_over.mp3', volume: 0.5).ignore();
-
-        } catch (e) {
-
-          // Ignore
-
-        }
-
-      }
-
+      return;
     }
 
-    
+    _score += score;
 
-  
+    _cardPoints += 1;
 
-  
+    scoreDisplay.updateScore(_score);
+
+    playEnemyDeathSound();
+  }
+
+  void _onBaseDestroyed() {
+    if (!_isGameOver) {
+      _gameOver();
+    }
+  }
+
+  void _gameOver() {
+    _isGameOver = true;
+
+    playGameOverSound();
+
+    add(
+      GameOverOverlay(score: _score, onRestart: _restartGame, locale: locale),
+    );
+  }
+
+  void _restartGame() {
+    _isGameOver = false;
+
+    _score = 0;
+
+    removeAll(children.whereType<GameOverOverlay>());
+
+    playerBase.hp = playerBase.maxHp.toDouble();
+
+    enemySystem.clearEnemies();
+
+    scoreDisplay.updateScore(0);
+
+    waveManager.reset();
+  }
+
+  void showMessage(String message) {
+    final textComponent = TextComponent(
+      text: message,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontSize: 24,
+          color: Colors.red,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      anchor: Anchor.center,
+      position: Vector2(size.x / 2, size.y / 2),
+    );
+
+    add(textComponent);
+
+    textComponent.add(SequenceEffect([
+      OpacityEffect.fadeOut(EffectController(duration: 1.5)),
+      RemoveEffect(),
+    ]));
+  }
+
+  Future<void> _initializeSounds() async {
+    try {
+      await FlameAudio.audioCache.loadAll([
+        'explosion.mp3',
+
+        'enemy_death.mp3',
+
+        'base_hit.mp3',
+
+        'game_over.mp3',
+      ]);
+
+      _soundEnabled = true;
+    } catch (e) {
+      _soundEnabled = false;
+
+      debugPrint('Could not load sound files: $e');
+    }
+  }
+
+  void playExplosionSound() {
+    if (!_soundEnabled) return;
+
+    try {
+      FlameAudio.play('explosion.mp3', volume: 0.3).ignore();
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  void playEnemyDeathSound() {
+    if (!_soundEnabled) return;
+
+    try {
+      FlameAudio.play('enemy_death.mp3', volume: 0.2).ignore();
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  void playBaseHitSound() {
+    if (!_soundEnabled) return;
+
+    try {
+      FlameAudio.play('base_hit.mp3', volume: 0.4).ignore();
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  void playGameOverSound() {
+    if (!_soundEnabled) return;
+
+    try {
+      FlameAudio.play('game_over.mp3', volume: 0.5).ignore();
+    } catch (e) {
+      // Ignore
+    }
+  }
+}

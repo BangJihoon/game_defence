@@ -21,8 +21,8 @@ class GameApp extends StatefulWidget {
 }
 
 class _GameAppState extends State<GameApp> {
-  OverflowDefenseGame? game;
-  bool showMenu = true;
+  OverflowDefenseGame? game = OverflowDefenseGame(locale: const Locale('ko')); // Directly start game for testing
+  bool showMenu = false;
   Locale _locale = const Locale('ko'); // 기본값은 한국어
 
   void startGame() {

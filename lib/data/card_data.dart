@@ -1,24 +1,6 @@
+enum CardType { stat, skillUpgrade, skillVariant, utility, ruleBreak, cursed }
 
-import 'package:flutter/material.dart';
-
-enum CardType {
-  stat,
-  skillUpgrade,
-  skillVariant,
-  utility,
-  ruleBreak,
-  cursed,
-}
-
-enum CardRank {
-  normal,
-  bronze,
-  silver,
-  gold,
-  platinum,
-  diamond,
-  master,
-}
+enum CardRank { normal, bronze, silver, gold, platinum, diamond, master }
 
 /// Represents a single card definition loaded from JSON.
 class CardDefinition {
@@ -51,13 +33,21 @@ class CardDefinition {
   factory CardDefinition.fromJson(Map<String, dynamic> json) {
     return CardDefinition(
       cardId: json['cardId'],
-      rank: CardRank.values.firstWhere((e) => e.toString().split('.').last == json['rank']),
-      type: CardType.values.firstWhere((e) => e.toString().split('.').last == json['type']),
+      rank: CardRank.values.firstWhere(
+        (e) => e.toString().split('.').last == json['rank'],
+      ),
+      type: CardType.values.firstWhere(
+        (e) => e.toString().split('.').last == json['type'],
+      ),
       titleLocaleKey: json['titleLocaleKey'],
       descriptionLocaleKey: json['descriptionLocaleKey'],
       effect: Map<String, dynamic>.from(json['effect']),
-      condition: json['condition'] != null ? Map<String, dynamic>.from(json['condition']) : null,
-      risk: json['risk'] != null ? Map<String, dynamic>.from(json['risk']) : null,
+      condition: json['condition'] != null
+          ? Map<String, dynamic>.from(json['condition'])
+          : null,
+      risk: json['risk'] != null
+          ? Map<String, dynamic>.from(json['risk'])
+          : null,
     );
   }
 }

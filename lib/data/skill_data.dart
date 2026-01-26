@@ -1,6 +1,3 @@
-
-import 'package:flutter/material.dart';
-
 /// Represents a single skill variant definition.
 class SkillVariantDefinition {
   final String variantId;

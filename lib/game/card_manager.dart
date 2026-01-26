@@ -8,6 +8,13 @@ import 'package:game_defence/game/overflow_game.dart';
 class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
   final List<CardDefinition> _cardDeck = [];
   final Random _random = Random();
+  int rerolls = 1;
+
+  void addRerolls(int amount) {
+    rerolls += amount;
+    // Here you might want to update a UI element to show the new reroll count
+    print("Rerolls remaining: $rerolls");
+  }
 
   @override
   Future<void> onLoad() async {
@@ -63,6 +70,17 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
       case 'instant_heal_wall_percent':
         // Heal the wall
         _healWall(effect);
+        break;
+      case 'add_shield_percent':
+        final double shieldPercent = effect['value'];
+        game.playerBase.addShield(game.playerBase.maxHp * shieldPercent);
+        break;
+      case 'gain_rerolls':
+        final int amount = effect['value'];
+        addRerolls(amount);
+        break;
+      case 'unlock_skill_slot':
+        game.skillSystem.addRandomSkill();
         break;
       case 'disable_coin_gain':
         game.modifierManager.disableCoinGain();

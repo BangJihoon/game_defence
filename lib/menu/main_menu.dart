@@ -1,7 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import '../l10n/app_localizations.dart';
 
 class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
@@ -52,11 +51,7 @@ class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
           fontSize: 48,
           fontWeight: FontWeight.bold,
           shadows: [
-            Shadow(
-              color: Colors.blue,
-              blurRadius: 10,
-              offset: Offset(2, 2),
-            ),
+            Shadow(color: Colors.blue, blurRadius: 10, offset: Offset(2, 2)),
           ],
         ),
       ),
@@ -65,10 +60,7 @@ class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
     titlePainter.layout();
     titlePainter.paint(
       canvas,
-      Offset(
-        (gameRef.size.x - titlePainter.width) / 2,
-        gameRef.size.y * 0.25,
-      ),
+      Offset((gameRef.size.x - titlePainter.width) / 2, gameRef.size.y * 0.25),
     );
 
     // 게임 시작 버튼
@@ -122,21 +114,13 @@ class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
     final descPainter = TextPainter(
       text: TextSpan(
         text: l10n.gameDescription,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 18,
-        ),
+        style: const TextStyle(color: Colors.white70, fontSize: 18),
       ),
       textDirection: TextDirection.ltr,
     );
 
     // 언어 전환 버튼 (우측 상단)
-    final langButtonRect = Rect.fromLTWH(
-      gameRef.size.x - 80,
-      20,
-      60,
-      30,
-    );
+    final langButtonRect = Rect.fromLTWH(gameRef.size.x - 80, 20, 60, 30);
     final langButtonPaint = Paint()
       ..color = Colors.grey.withOpacity(0.7)
       ..style = PaintingStyle.fill;
@@ -166,10 +150,7 @@ class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
     descPainter.layout();
     descPainter.paint(
       canvas,
-      Offset(
-        (gameRef.size.x - descPainter.width) / 2,
-        gameRef.size.y * 0.75,
-      ),
+      Offset((gameRef.size.x - descPainter.width) / 2, gameRef.size.y * 0.75),
     );
   }
 
@@ -181,12 +162,7 @@ class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
       width: 200,
       height: 60,
     );
-    final langButtonRect = Rect.fromLTWH(
-      gameRef.size.x - 80,
-      20,
-      60,
-      30,
-    );
+    final langButtonRect = Rect.fromLTWH(gameRef.size.x - 80, 20, 60, 30);
 
     if (langButtonRect.contains(Offset(tapPos.x, tapPos.y))) {
       onToggleLocale();

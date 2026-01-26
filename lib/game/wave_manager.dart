@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'overflow_game.dart';
-import '../data/wave_data.dart'; // Import the new WaveDefinition
+// Import the new WaveDefinition
 
 class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   int _currentWaveIndex = 0;
@@ -9,11 +9,16 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
   int get currentWaveNumber => _currentWaveIndex + 1;
   bool get isSpawning => _isSpawning;
-  bool get currentWaveEnemiesCleared => !_isSpawning && game.enemySystem.enemies.isEmpty;
-  
+  bool get currentWaveEnemiesCleared =>
+      !_isSpawning && game.enemySystem.enemies.isEmpty;
+
   double get nextWaveCountdown {
     if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) return 0;
-    return game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave - _waveTimer;
+    return game
+            .gameStats
+            .waveDefinitions[_currentWaveIndex]
+            .delayBeforeNextWave -
+        _waveTimer;
   }
 
   WaveManager();
@@ -30,7 +35,11 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
         return;
       }
       _waveTimer += dt;
-      if (_waveTimer >= game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave) {
+      if (_waveTimer >=
+          game
+              .gameStats
+              .waveDefinitions[_currentWaveIndex]
+              .delayBeforeNextWave) {
         _startWave();
         _waveTimer = 0;
       }
@@ -40,7 +49,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   void _startWave() {
     _isSpawning = true;
     final wave = game.gameStats.waveDefinitions[_currentWaveIndex];
-    
+
     // Use a single TimerComponent for the entire wave's spawning
     double spawnDelayAccumulator = 0;
 
@@ -58,25 +67,34 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
     }
 
     // Set a timer for when all enemies from this wave should have spawned
-    add(TimerComponent(
-      period: spawnDelayAccumulator, // Total time for all enemies in this wave to spawn
-      onTick: () {
-        _isSpawning = false; // All enemies for this wave are now released
-        _currentWaveIndex++;
-      },
-      removeOnFinish: true,
-    ));
+    add(
+      TimerComponent(
+        period:
+            spawnDelayAccumulator, // Total time for all enemies in this wave to spawn
+        onTick: () {
+          _isSpawning = false; // All enemies for this wave are now released
+          _currentWaveIndex++;
+        },
+        removeOnFinish: true,
+      ),
+    );
   }
 
-  void _spawnEnemy(String enemyId) { // Changed to String enemyId
+  void _spawnEnemy(String enemyId) {
+    // Changed to String enemyId
     final enemyDefinition = game.gameStats.enemyDefinitions[enemyId];
     if (enemyDefinition == null) {
       print('Error: Could not find definition for enemy ID $enemyId');
       return;
     }
-    
-    final randomX = game.random.nextDouble() * (game.size.x - enemyDefinition.width) + (enemyDefinition.width / 2);
-    game.enemySystem.spawnEnemy(Vector2(randomX, -enemyDefinition.height), enemyId); // Pass enemyId
+
+    final randomX =
+        game.random.nextDouble() * (game.size.x - enemyDefinition.width) +
+        (enemyDefinition.width / 2);
+    game.enemySystem.spawnEnemy(
+      Vector2(randomX, -enemyDefinition.height),
+      enemyId,
+    ); // Pass enemyId
   }
 
   void reset() {

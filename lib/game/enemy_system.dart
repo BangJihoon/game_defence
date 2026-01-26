@@ -1,20 +1,20 @@
 import 'package:flame/components.dart';
-import 'dart:ui';
 import 'enemy.dart';
 import 'player_base.dart';
 import 'overflow_game.dart';
-import '../config/game_config.dart';
 import '../data/enemy_data.dart'; // Import the new EnemyDefinition
 
 class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   final PlayerBase base;
   final List<Enemy> enemies = [];
   final void Function(int score) onEnemyKilled;
-  final Map<String, EnemyDefinition> enemyDefinitions; // The new map of enemy definitions
+  final Map<String, EnemyDefinition>
+  enemyDefinitions; // The new map of enemy definitions
 
   EnemySystem(this.base, this.enemyDefinitions, {required this.onEnemyKilled});
 
-  void spawnEnemy(Vector2 position, String enemyId) { // Changed EnemyType to String enemyId
+  void spawnEnemy(Vector2 position, String enemyId) {
+    // Changed EnemyType to String enemyId
     final enemyDefinition = enemyDefinitions[enemyId];
     if (enemyDefinition == null) {
       print('Error: Could not find definition for enemy ID $enemyId');
@@ -39,7 +39,7 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
     if (enemies.contains(enemy)) {
       final wasKilledByPlayer = enemy.hp <= 0;
       enemies.remove(enemy);
-      
+
       if (wasKilledByPlayer) {
         onEnemyKilled(enemy.score);
       }

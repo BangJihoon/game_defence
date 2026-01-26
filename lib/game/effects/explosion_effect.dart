@@ -1,6 +1,5 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'dart:math';
 
 class ExplosionEffect extends PositionComponent {
@@ -29,7 +28,7 @@ class ExplosionEffect extends PositionComponent {
     super.render(canvas);
 
     final opacity = life / 0.3;
-    
+
     // 외곽 원 - 빨간색
     final outerPaint = Paint()
       ..color = Colors.red.withOpacity(opacity * 0.8)
@@ -48,12 +47,13 @@ class ExplosionEffect extends PositionComponent {
     canvas.drawCircle(Offset.zero, size.x / 6, innerPaint);
 
     // 파티클 효과 (간단한 점들)
-    final particlePaint = Paint()
-      ..color = Colors.white.withOpacity(opacity);
+    final particlePaint = Paint()..color = Colors.white.withOpacity(opacity);
     for (int i = 0; i < 8; i++) {
       final angle = (i * pi * 2) / 8;
-      final x = (size.x / 2 * 0.7) * (1 - opacity) * (0.5 + opacity) * cos(angle);
-      final y = (size.x / 2 * 0.7) * (1 - opacity) * (0.5 + opacity) * sin(angle);
+      final x =
+          (size.x / 2 * 0.7) * (1 - opacity) * (0.5 + opacity) * cos(angle);
+      final y =
+          (size.x / 2 * 0.7) * (1 - opacity) * (0.5 + opacity) * sin(angle);
       canvas.drawCircle(Offset(x, y), 3, particlePaint);
     }
   }

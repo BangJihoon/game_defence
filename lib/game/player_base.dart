@@ -1,16 +1,19 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 import 'overflow_game.dart';
 
-class PlayerBase extends PositionComponent with HasGameRef<OverflowDefenseGame> {
+class PlayerBase extends PositionComponent
+    with HasGameRef<OverflowDefenseGame> {
   final int maxHp;
   double hp;
+  double shield = 0.0;
   VoidCallback? onDestroyed;
   VoidCallback? onHit;
 
-  PlayerBase({required int hp, required int height}) : maxHp = hp, hp = hp.toDouble() {
+  PlayerBase({required int hp, required int height})
+    : maxHp = hp,
+      hp = hp.toDouble() {
     size = Vector2(0, height.toDouble()); // Width will be set in onLoad
     anchor = Anchor.topLeft;
   }
@@ -30,10 +33,7 @@ class PlayerBase extends PositionComponent with HasGameRef<OverflowDefenseGame> 
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          const Color(0xFF4a90e2),
-          const Color(0xFF2c5aa0),
-        ],
+        colors: [const Color(0xFF4a90e2), const Color(0xFF2c5aa0)],
       ).createShader(size.toRect());
     canvas.drawRect(size.toRect(), gradientPaint);
 
@@ -46,9 +46,16 @@ class PlayerBase extends PositionComponent with HasGameRef<OverflowDefenseGame> 
         Colors.lightGreen.withOpacity(0.5),
       ],
     );
-    final hpPaint = Paint()
-      ..shader = hpGradient.createShader(hpRect);
+    final hpPaint = Paint()..shader = hpGradient.createShader(hpRect);
     canvas.drawRect(hpRect, hpPaint);
+
+    // Shield bar
+    if (shield > 0) {
+      final shieldRatio = shield / maxHp;
+      final shieldRect = Rect.fromLTWH(0, 0, size.x * shieldRatio, size.y);
+      final shieldPaint = Paint()..color = Colors.blue.withOpacity(0.5);
+      canvas.drawRect(shieldRect, shieldPaint);
+    }
 
     // Base border
     final borderPaint = Paint()
@@ -59,7 +66,19 @@ class PlayerBase extends PositionComponent with HasGameRef<OverflowDefenseGame> 
   }
 
   void takeDamage(int dmg) {
-    hp -= dmg;
+    final double damageToDeal = dmg.toDouble();
+
+    if (shield > 0) {
+      final double shieldDamage = shield.clamp(0, damageToDeal);
+      shield -= shieldDamage;
+      final remainingDamage = damageToDeal - shieldDamage;
+      if (remainingDamage > 0) {
+        hp -= remainingDamage;
+      }
+    } else {
+      hp -= damageToDeal;
+    }
+
     if (hp < 0) hp = 0;
 
     onHit?.call();
@@ -67,5 +86,9 @@ class PlayerBase extends PositionComponent with HasGameRef<OverflowDefenseGame> 
     if (hp <= 0) {
       onDestroyed?.call();
     }
+  }
+
+  void addShield(double amount) {
+    shield += amount;
   }
 }

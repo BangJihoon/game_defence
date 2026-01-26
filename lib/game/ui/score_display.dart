@@ -1,6 +1,5 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import '../../l10n/app_localizations.dart';
 
 class ScoreDisplay extends Component {
@@ -22,11 +21,7 @@ class ScoreDisplay extends Component {
           fontSize: 24,
           fontWeight: FontWeight.bold,
           shadows: [
-            Shadow(
-              color: Colors.black,
-              blurRadius: 4,
-              offset: Offset(2, 2),
-            ),
+            Shadow(color: Colors.black, blurRadius: 4, offset: Offset(2, 2)),
           ],
         ),
       ),

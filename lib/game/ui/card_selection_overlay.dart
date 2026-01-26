@@ -1,19 +1,34 @@
-
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'package:game_defence/game/overflow_game.dart';
 
-class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame>, TapCallbacks {
+class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final List<CardDefinition> cards;
+  late TimerComponent _autoSelectTimer;
 
-  CardSelectionOverlay({required this.cards});
+  CardSelectionOverlay({required this.cards}) : super(priority: 200);
 
   @override
   Future<void> onLoad() async {
-    size = game.size; // Cover the whole screen
     super.onLoad();
+    size = game.size; // Cover the whole screen
+    print('CardSelectionOverlay loaded. Own size: $size, Game size: ${game.size}');
+    
+    // Add auto-select timer
+    _autoSelectTimer = TimerComponent(
+      period: 3, // 3 seconds
+      onTick: () {
+        if (cards.isNotEmpty) {
+          game.selectCard(cards.first); // Select the first card by default
+        }
+        removeFromParent(); // Remove the overlay after selection
+      },
+      removeOnFinish: true,
+    );
+    add(_autoSelectTimer);
+
     // Add card components
     final cardWidth = size.x / 4;
     final cardHeight = size.y / 2;
@@ -34,14 +49,22 @@ class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDef
   void render(Canvas canvas) {
     super.render(canvas);
     // Darken the background
-    canvas.drawRect(size.toRect(), Paint()..color = Colors.black.withOpacity(0.7));
+    canvas.drawRect(
+      size.toRect(),
+      Paint()..color = Colors.black.withOpacity(0.7),
+    );
   }
 }
 
-class CardDisplay extends PositionComponent with TapCallbacks, HasGameRef<OverflowDefenseGame> {
+class CardDisplay extends PositionComponent
+    with TapCallbacks, HasGameRef<OverflowDefenseGame> {
   final CardDefinition card;
 
-  CardDisplay({required this.card, required Vector2 position, required Vector2 size}) {
+  CardDisplay({
+    required this.card,
+    required Vector2 position,
+    required Vector2 size,
+  }) {
     this.position = position;
     this.size = size;
   }
@@ -63,25 +86,30 @@ class CardDisplay extends PositionComponent with TapCallbacks, HasGameRef<Overfl
 
     // Card Title
     TextPainter(
-      text: TextSpan(
-        text: card.titleLocaleKey, // In a real game, you'd use l10n here
-        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    )
+        text: TextSpan(
+          text: card.titleLocaleKey, // In a real game, you'd use l10n here
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )
       ..layout(maxWidth: size.x - 20)
       ..paint(canvas, Offset(10, 20));
 
     // Card Description
     TextPainter(
-      text: TextSpan(
-        text: card.descriptionLocaleKey, // In a real game, you'd use l10n here
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    )
+        text: TextSpan(
+          text:
+              card.descriptionLocaleKey, // In a real game, you'd use l10n here
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )
       ..layout(maxWidth: size.x - 20)
       ..paint(canvas, Offset(10, 80));
   }
