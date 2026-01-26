@@ -1,25 +1,22 @@
 import 'package:flame/components.dart';
-import 'dart:math';
-
 import 'overflow_game.dart';
-import 'enemy.dart';
+import '../data/wave_data.dart'; // Import the new WaveDefinition
 
 class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   int _currentWaveIndex = 0;
-  final Random _random = Random();
   double _waveTimer = 0;
   bool _isSpawning = false;
 
   int get currentWaveNumber => _currentWaveIndex + 1;
   bool get isSpawning => _isSpawning;
   bool get currentWaveEnemiesCleared => !_isSpawning && game.enemySystem.enemies.isEmpty;
+  
   double get nextWaveCountdown {
-    if (_currentWaveIndex >= game.gameStats.waves.length) return 0;
-    return game.gameStats.waves[_currentWaveIndex].delay - _waveTimer;
+    if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) return 0;
+    return game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave - _waveTimer;
   }
 
-  WaveManager() {
-  }
+  WaveManager();
 
   @override
   void update(double dt) {
@@ -28,12 +25,12 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
     if (game.isGameOver) return;
 
     if (currentWaveEnemiesCleared) {
-      if (_currentWaveIndex >= game.gameStats.waves.length) {
+      if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) {
         // All waves cleared
         return;
       }
       _waveTimer += dt;
-      if (_waveTimer >= game.gameStats.waves[_currentWaveIndex].delay) {
+      if (_waveTimer >= game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave) {
         _startWave();
         _waveTimer = 0;
       }
@@ -42,41 +39,44 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
   void _startWave() {
     _isSpawning = true;
-    final wave = game.gameStats.waves[_currentWaveIndex];
+    final wave = game.gameStats.waveDefinitions[_currentWaveIndex];
     
-    final enemiesToSpawn = <EnemyType>[];
-    wave.enemies.forEach((enemyTypeName, count) {
-      final type = EnemyType.values.firstWhere((e) => e.name == enemyTypeName);
-      for (int i = 0; i < count; i++) {
-        enemiesToSpawn.add(type);
-      }
-    });
-    enemiesToSpawn.shuffle(_random);
+    // Use a single TimerComponent for the entire wave's spawning
+    double spawnDelayAccumulator = 0;
 
-    final spawnInterval = 0.5;
-    int spawnedCount = 0;
-    
+    for (final spawnGroup in wave.spawnGroups) {
+      for (int i = 0; i < spawnGroup.count; i++) {
+        add(
+          TimerComponent(
+            period: spawnDelayAccumulator,
+            onTick: () => _spawnEnemy(spawnGroup.enemyId),
+            removeOnFinish: true,
+          ),
+        );
+        spawnDelayAccumulator += spawnGroup.spawnIntervalSec;
+      }
+    }
+
+    // Set a timer for when all enemies from this wave should have spawned
     add(TimerComponent(
-      period: spawnInterval,
-      repeat: true,
+      period: spawnDelayAccumulator, // Total time for all enemies in this wave to spawn
       onTick: () {
-        if (spawnedCount < enemiesToSpawn.length) {
-          final type = enemiesToSpawn[spawnedCount];
-          _spawnEnemy(type);
-          spawnedCount++;
-        } else {
-          _isSpawning = false;
-          _currentWaveIndex++;
-          remove(children.whereType<TimerComponent>().first);
-        }
+        _isSpawning = false; // All enemies for this wave are now released
+        _currentWaveIndex++;
       },
+      removeOnFinish: true,
     ));
   }
 
-  void _spawnEnemy(EnemyType type) {
-    final enemyStats = game.gameStats.enemies[type.name]!;
-    final randomX = _random.nextDouble() * (game.size.x - enemyStats.width) + (enemyStats.width / 2);
-    game.enemySystem.spawnEnemy(Vector2(randomX, -enemyStats.height.toDouble()), type);
+  void _spawnEnemy(String enemyId) { // Changed to String enemyId
+    final enemyDefinition = game.gameStats.enemyDefinitions[enemyId];
+    if (enemyDefinition == null) {
+      print('Error: Could not find definition for enemy ID $enemyId');
+      return;
+    }
+    
+    final randomX = game.random.nextDouble() * (game.size.x - enemyDefinition.width) + (enemyDefinition.width / 2);
+    game.enemySystem.spawnEnemy(Vector2(randomX, -enemyDefinition.height), enemyId); // Pass enemyId
   }
 
   void reset() {

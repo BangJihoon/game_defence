@@ -1,11 +1,15 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:game_defence/config/game_config.dart'; // Import GameStats
+
 import 'l10n/app_localizations.dart';
 import 'game/overflow_game.dart';
 import 'menu/main_menu.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GameStats.load(); // Preload game stats
   runApp(const GameApp());
 }
 

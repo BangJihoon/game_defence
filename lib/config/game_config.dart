@@ -1,3 +1,7 @@
+import 'package:game_defence/data/wave_data.dart';
+import 'package:game_defence/data/skill_data.dart';
+import 'package:game_defence/data/enemy_data.dart';
+import 'package:game_defence/data/card_data.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,15 +13,16 @@ class GameStats {
   final int explosionDamage;
 
   // Wave definitions
-  final List<Wave> waves;
+  final List<WaveDefinition> waveDefinitions; // Changed from List<Wave> waves;
 
-  // Enemy stats
-  final Map<String, EnemyStats> enemies;
+  // Enemy definitions
+  final Map<String, EnemyDefinition> enemyDefinitions;
 
-  // Skill stats
-  final SkillStats lightning;
-  final SkillStats freeze;
-  final SkillStats heal;
+  // All Skill Definitions
+  final Map<String, SkillDefinition> skillDefinitions;
+
+  // All Card Definitions
+  final List<CardDefinition> cards;
 
   // UI stats
   final UiSizeStats baseSize;
@@ -28,36 +33,30 @@ class GameStats {
     required this.baseHP,
     required this.explosionRadius,
     required this.explosionDamage,
-    required this.waves,
-    required this.enemies,
-    required this.lightning,
-    required this.freeze,
-    required this.heal,
+    required this.waveDefinitions, // Changed
+    required this.enemyDefinitions,
+    required this.skillDefinitions, // Changed
+    required this.cards,
     required this.baseSize,
     required this.skillButtonSize,
     required this.skillButtonSpacing,
   });
 
-  factory GameStats.fromJson(Map<String, dynamic> json) {
-    var enemiesMap = <String, EnemyStats>{};
-    json['enemies'].forEach((key, value) {
-      enemiesMap[key] = EnemyStats.fromJson(value);
-    });
-
-    var wavesList = <Wave>[];
-    json['waves'].forEach((waveJson) {
-      wavesList.add(Wave.fromJson(waveJson));
-    });
+  factory GameStats.fromJson(
+      Map<String, dynamic> json,
+      List<CardDefinition> loadedCards,
+      Map<String, EnemyDefinition> loadedEnemyDefinitions,
+      Map<String, SkillDefinition> loadedSkillDefinitions,
+      List<WaveDefinition> loadedWaveDefinitions) {
 
     return GameStats(
       baseHP: json['game']['baseHP'],
       explosionRadius: json['game']['explosionRadius'].toDouble(),
       explosionDamage: json['game']['explosionDamage'],
-      waves: wavesList,
-      enemies: enemiesMap,
-      lightning: SkillStats.fromJson(json['skills']['lightning']),
-      freeze: SkillStats.fromJson(json['skills']['freeze']),
-      heal: SkillStats.fromJson(json['skills']['heal']),
+      waveDefinitions: loadedWaveDefinitions, // Use new wave definitions
+      enemyDefinitions: loadedEnemyDefinitions,
+      skillDefinitions: loadedSkillDefinitions,
+      cards: loadedCards,
       baseSize: UiSizeStats.fromJson(json['ui']['baseSize']),
       skillButtonSize: json['ui']['skillButtonSize'],
       skillButtonSpacing: json['ui']['skillButtonSpacing'],
@@ -65,111 +64,39 @@ class GameStats {
   }
 
   static Future<GameStats> load() async {
-    final jsonString =
+    final gameStatsJsonString =
         await rootBundle.loadString('assets/config/game_stats.json');
-    final jsonMap = json.decode(jsonString);
-    return GameStats.fromJson(jsonMap);
-  }
-}
+    final gameStatsJsonMap = json.decode(gameStatsJsonString);
 
-class Wave {
-  final double delay;
-  final Map<String, int> enemies;
+    final cardsJsonString =
+        await rootBundle.loadString('assets/data/cards.json');
+    final List<dynamic> cardsJsonList = json.decode(cardsJsonString);
+    final List<CardDefinition> loadedCards =
+        cardsJsonList.map((json) => CardDefinition.fromJson(json)).toList();
 
-  Wave({required this.delay, required this.enemies});
+    final enemiesJsonString =
+        await rootBundle.loadString('assets/data/enemies.json');
+    final List<dynamic> enemiesJsonList = json.decode(enemiesJsonString);
+    final Map<String, EnemyDefinition> loadedEnemyDefinitions = {
+      for (var json in enemiesJsonList)
+        json['enemyId'] as String: EnemyDefinition.fromJson(json)
+    };
 
-  factory Wave.fromJson(Map<String, dynamic> json) {
-    var enemiesMap = <String, int>{};
-    json['enemies'].forEach((key, value) {
-      enemiesMap[key] = value;
-    });
-    return Wave(delay: json['delay'].toDouble(), enemies: enemiesMap);
-  }
-}
+    final skillsJsonString =
+        await rootBundle.loadString('assets/data/skills.json');
+    final List<dynamic> skillsJsonList = json.decode(skillsJsonString);
+    final Map<String, SkillDefinition> loadedSkillDefinitions = {
+      for (var json in skillsJsonList)
+        json['skillId'] as String: SkillDefinition.fromJson(json)
+    };
 
-class EnemyStats {
-  final int hp;
-  final double speed;
-  final int damage;
-  final int score;
-  final Color color;
-  final int width;
-  final int height;
+    final wavesJsonString =
+        await rootBundle.loadString('assets/data/waves.json');
+    final List<dynamic> wavesJsonList = json.decode(wavesJsonString);
+    final List<WaveDefinition> loadedWaveDefinitions =
+        wavesJsonList.map((json) => WaveDefinition.fromJson(json)).toList();
 
-  EnemyStats({
-    required this.hp,
-    required this.speed,
-    required this.damage,
-    required this.score,
-    required this.color,
-    required this.width,
-    required this.height,
-  });
-
-  factory EnemyStats.fromJson(Map<String, dynamic> json) {
-    return EnemyStats(
-      hp: json['hp'],
-      speed: json['speed'].toDouble(),
-      damage: json['damage'],
-      score: json['score'],
-      color: Color(int.parse(json['color'])),
-      width: json['width'],
-      height: json['height'],
-    );
-  }
-}
-
-class SkillStats {
-  // General skill properties
-  final double initialCooldown;
-  final double cooldownReductionPerLevel;
-  final int upgradeCost;
-  final int maxLevel;
-
-  // Lightning specific
-  final int? initialCount;
-  final int? countPerLevel;
-
-  // Freeze specific
-  final double? initialSpeedMultiplier;
-  final double? speedMultiplierPerLevel;
-  final double? initialDuration;
-  final double? durationPerLevel;
-
-  // Heal specific
-  final int? initialAmount;
-  final int? amountPerLevel;
-
-  SkillStats({
-    required this.initialCooldown,
-    required this.cooldownReductionPerLevel,
-    required this.upgradeCost,
-    required this.maxLevel,
-    this.initialCount,
-    this.countPerLevel,
-    this.initialSpeedMultiplier,
-    this.speedMultiplierPerLevel,
-    this.initialDuration,
-    this.durationPerLevel,
-    this.initialAmount,
-    this.amountPerLevel,
-  });
-
-  factory SkillStats.fromJson(Map<String, dynamic> json) {
-    return SkillStats(
-      initialCooldown: json['initialCooldown'].toDouble(),
-      cooldownReductionPerLevel: json['cooldownReductionPerLevel'].toDouble(),
-      upgradeCost: json['upgradeCost'],
-      maxLevel: json['maxLevel'],
-      initialCount: json['initialCount'],
-      countPerLevel: json['countPerLevel'],
-      initialSpeedMultiplier: json['initialSpeedMultiplier']?.toDouble(),
-      speedMultiplierPerLevel: json['speedMultiplierPerLevel']?.toDouble(),
-      initialDuration: json['initialDuration']?.toDouble(),
-      durationPerLevel: json['durationPerLevel']?.toDouble(),
-      initialAmount: json['initialAmount'],
-      amountPerLevel: json['amountPerLevel'],
-    );
+    return GameStats.fromJson(gameStatsJsonMap, loadedCards, loadedEnemyDefinitions, loadedSkillDefinitions, loadedWaveDefinitions);
   }
 }
 

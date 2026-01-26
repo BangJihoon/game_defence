@@ -1,0 +1,140 @@
+[
+  {
+    "cardId": "STAT_GLOBAL_DMG_1",
+    "rank": "normal",
+    "type": "stat",
+    "titleLocaleKey": "card.stat_global_dmg_1.title",
+    "descriptionLocaleKey": "card.stat_global_dmg_1.desc",
+    "effect": { "type": "add_modifier", "target": "global", "stat": "damage", "value": 0.05 }
+  },
+  {
+    "cardId": "STAT_GLOBAL_CD_1",
+    "rank": "normal",
+    "type": "stat",
+    "titleLocaleKey": "card.stat_global_cd_1.title",
+    "descriptionLocaleKey": "card.stat_global_cd_1.desc",
+    "effect": { "type": "add_modifier", "target": "global", "stat": "cooldown", "value": -0.03 }
+  },
+  {
+    "cardId": "STAT_WALL_HP_1",
+    "rank": "bronze",
+    "type": "stat",
+    "titleLocaleKey": "card.stat_wall_hp_1.title",
+    "descriptionLocaleKey": "card.stat_wall_hp_1.desc",
+    "effect": { "type": "add_modifier", "target": "wall", "stat": "max_hp", "value": 0.10 }
+  },
+  {
+    "cardId": "STAT_COIN_GAIN_1",
+    "rank": "bronze",
+    "type": "stat",
+    "titleLocaleKey": "card.stat_coin_gain_1.title",
+    "descriptionLocaleKey": "card.stat_coin_gain_1.desc",
+    "effect": { "type": "add_modifier", "target": "global", "stat": "coin_gain", "value": 0.10 }
+  },
+  {
+    "cardId": "UPG_FIREBALL_DMG_1",
+    "rank": "silver",
+    "type": "skillUpgrade",
+    "titleLocaleKey": "card.upg_fireball_dmg_1.title",
+    "descriptionLocaleKey": "card.upg_fireball_dmg_1.desc",
+    "effect": { "type": "skill_modifier", "skillId": "fireball", "stat": "damage", "value": 0.20 }
+  },
+  {
+    "cardId": "UPG_FIREBALL_CD_1",
+    "rank": "silver",
+    "type": "skillUpgrade",
+    "titleLocaleKey": "card.upg_fireball_cd_1.title",
+    "descriptionLocaleKey": "card.upg_fireball_cd_1.desc",
+    "effect": { "type": "skill_modifier", "skillId": "fireball", "stat": "cooldown", "value": -0.10 }
+  },
+  {
+    "cardId": "UPG_CHAIN_LIGHTNING_DMG_1",
+    "rank": "silver",
+    "type": "skillUpgrade",
+    "titleLocaleKey": "card.upg_chain_lightning_dmg_1.title",
+    "descriptionLocaleKey": "card.upg_chain_lightning_dmg_1.desc",
+    "effect": { "type": "skill_modifier", "skillId": "chain_lightning", "stat": "damage", "value": 0.25 }
+  },
+  {
+    "cardId": "UPG_CHAIN_LIGHTNING_CHAINS_1",
+    "rank": "gold",
+    "type": "skillUpgrade",
+    "titleLocaleKey": "card.upg_chain_lightning_chains_1.title",
+    "descriptionLocaleKey": "card.upg_chain_lightning_chains_1.desc",
+    "effect": { "type": "skill_modifier", "skillId": "chain_lightning", "stat": "chains", "value": 1 }
+  },
+  {
+    "cardId": "UPG_ICE_WALL_HP_1",
+    "rank": "silver",
+    "type": "skillUpgrade",
+    "titleLocaleKey": "card.upg_ice_wall_hp_1.title",
+    "descriptionLocaleKey": "card.upg_ice_wall_hp_1.desc",
+    "effect": { "type": "skill_modifier", "skillId": "ice_wall", "stat": "hp", "value": 0.30 }
+  },
+  {
+    "cardId": "UPG_ICE_WALL_DURATION_1",
+    "rank": "gold",
+    "type": "skillUpgrade",
+    "titleLocaleKey": "card.upg_ice_wall_duration_1.title",
+    "descriptionLocaleKey": "card.upg_ice_wall_duration_1.desc",
+    "effect": { "type": "skill_modifier", "skillId": "ice_wall", "stat": "duration", "value": 2.0 }
+  },
+  {
+    "cardId": "VAR_FIREBALL_METEOR",
+    "rank": "platinum",
+    "type": "skillVariant",
+    "titleLocaleKey": "card.var_fireball_meteor.title",
+    "descriptionLocaleKey": "card.var_fireball_meteor.desc",
+    "effect": { "type": "apply_variant", "skillId": "fireball", "variantId": "fireball_meteor" }
+  },
+  {
+    "cardId": "UTIL_WALL_REPAIR_1",
+    "rank": "bronze",
+    "type": "utility",
+    "titleLocaleKey": "card.util_wall_repair_1.title",
+    "descriptionLocaleKey": "card.util_wall_repair_1.desc",
+    "effect": { "type": "instant_heal_wall_percent", "value": 0.20 }
+  },
+  {
+    "cardId": "UTIL_SHIELD_1",
+    "rank": "silver",
+    "type": "utility",
+    "titleLocaleKey": "card.util_shield_1.title",
+    "descriptionLocaleKey": "card.util_shield_1.desc",
+    "effect": { "type": "add_shield_percent", "value": 0.25 }
+  },
+  {
+    "cardId": "UTIL_REROLL_1",
+    "rank": "gold",
+    "type": "utility",
+    "titleLocaleKey": "card.util_reroll_1.title",
+    "descriptionLocaleKey": "card.util_reroll_1.desc",
+    "effect": { "type": "gain_rerolls", "value": 1 }
+  },
+  {
+    "cardId": "RULE_SIXTH_SLOT",
+    "rank": "master",
+    "type": "ruleBreak",
+    "titleLocaleKey": "card.rule_sixth_slot.title",
+    "descriptionLocaleKey": "card.rule_sixth_slot.desc",
+    "effect": { "type": "unlock_skill_slot" }
+  },
+  {
+    "cardId": "CURSED_GLASS_CANNON_1",
+    "rank": "gold",
+    "type": "cursed",
+    "titleLocaleKey": "card.cursed_glass_cannon_1.title",
+    "descriptionLocaleKey": "card.cursed_glass_cannon_1.desc",
+    "effect": { "type": "add_modifier", "target": "global", "stat": "damage", "value": 0.80 },
+    "risk": { "type": "reduce_modifier", "target": "wall", "stat": "max_hp", "value": 0.40 }
+  },
+  {
+    "cardId": "CURSED_OVERCHARGE_1",
+    "rank": "platinum",
+    "type": "cursed",
+    "titleLocaleKey": "card.cursed_overcharge_1.title",
+    "descriptionLocaleKey": "card.cursed_overcharge_1.desc",
+    "effect": { "type": "add_modifier", "target": "global", "stat": "cooldown", "value": -0.40 },
+    "risk": { "type": "disable_coin_gain" }
+  }
+]

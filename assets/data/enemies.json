@@ -1,0 +1,75 @@
+
+[
+  {
+    "enemyId": "normal_slime",
+    "type": "normal",
+    "hp": 50,
+    "speed": 80.0,
+    "damage": 10,
+    "coinReward": 10,
+    "colorHex": "0xFF4CAF50",
+    "width": 30.0,
+    "height": 30.0,
+    "abilities": []
+  },
+  {
+    "enemyId": "fast_bat",
+    "type": "fast",
+    "hp": 25,
+    "speed": 160.0,
+    "damage": 5,
+    "coinReward": 5,
+    "colorHex": "0xFFF44336",
+    "width": 25.0,
+    "height": 25.0,
+    "abilities": []
+  },
+  {
+    "enemyId": "tank_golem",
+    "type": "tank",
+    "hp": 200,
+    "speed": 40.0,
+    "damage": 20,
+    "coinReward": 25,
+    "colorHex": "0xFF9E9E9E",
+    "width": 40.0,
+    "height": 40.0,
+    "abilities": []
+  },
+  {
+    "enemyId": "splitter_beast",
+    "type": "splitter",
+    "hp": 120,
+    "speed": 60.0,
+    "damage": 15,
+    "coinReward": 20,
+    "colorHex": "0xFF795548",
+    "width": 35.0,
+    "height": 35.0,
+    "abilities": ["split_on_death"]
+  },
+  {
+    "enemyId": "ranged_imp",
+    "type": "ranged",
+    "hp": 40,
+    "speed": 70.0,
+    "damage": 15,
+    "coinReward": 15,
+    "colorHex": "0xFF9C27B0",
+    "width": 28.0,
+    "height": 28.0,
+    "abilities": ["ranged_attack"]
+  },
+  {
+    "enemyId": "chapter1_boss",
+    "type": "boss",
+    "hp": 2000,
+    "speed": 20.0,
+    "damage": 50,
+    "coinReward": 500,
+    "colorHex": "0xFF000000",
+    "width": 80.0,
+    "height": 80.0,
+    "abilities": ["summon_minions", "area_stomp"]
+  }
+]

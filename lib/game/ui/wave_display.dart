@@ -21,6 +21,7 @@ class WaveDisplay extends PositionComponent with HasGameRef<OverflowDefenseGame>
       text: '${l10n.wave} 1',
       textRenderer: TextPaint(
         style: TextStyle(
+          fontFamily: 'NanumGothic',
           color: Colors.white,
           fontSize: 24.0,
           shadows: [
@@ -40,6 +41,7 @@ class WaveDisplay extends PositionComponent with HasGameRef<OverflowDefenseGame>
       text: '',
       textRenderer: TextPaint(
         style: TextStyle(
+          fontFamily: 'NanumGothic',
           color: Colors.white,
           fontSize: 18.0,
           shadows: [

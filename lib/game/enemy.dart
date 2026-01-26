@@ -2,12 +2,13 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 
+import 'overflow_game.dart';
 import 'player_base.dart';
 import '../config/game_config.dart';
+import '../data/enemy_data.dart';
+import 'skills/skill_system.dart'; // Import EnemyDefinition
 
-enum EnemyType { normal, fast, tank }
-
-class Enemy extends PositionComponent {
+class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   double hp;
   double baseSpeed;
   double speed;
@@ -16,21 +17,24 @@ class Enemy extends PositionComponent {
   final int damage;
   final int score;
   final Color color;
+  final String enemyId; // Add enemyId
 
   double freezeTimer = 0;
   double freezeMultiplier = 1.0;
 
   Enemy({
     required this.base,
-    required EnemyStats stats,
+    required EnemyDefinition definition, // Use EnemyDefinition
     this.onDestroyed,
-  })  : hp = stats.hp.toDouble(),
-        baseSpeed = stats.speed,
-        speed = stats.speed,
-        damage = stats.damage,
-        score = stats.score,
-        color = stats.color {
-    size = Vector2(stats.width.toDouble(), stats.height.toDouble());
+  })  : hp = definition.hp.toDouble(),
+        baseSpeed = definition.speed,
+        speed = definition.speed,
+        damage = definition.damage,
+        score = definition.coinReward, // Use coinReward from definition
+        color = definition.color,
+        enemyId = definition.enemyId // Assign enemyId
+  {
+    size = Vector2(definition.width, definition.height);
     anchor = Anchor.center;
   }
 
@@ -47,8 +51,19 @@ class Enemy extends PositionComponent {
       freezeMultiplier = 1.0;
     }
 
-    // Move downwards
-    position.y += speed * dt;
+    final iceWall = game.children.whereType<IceWall>().firstOrNull;
+
+    if (iceWall != null) {
+      if (position.distanceTo(iceWall.position) < 20) {
+        iceWall.takeDamage(damage * dt);
+      } else {
+        final direction = (iceWall.position - position).normalized();
+        position += direction * speed * dt;
+      }
+    } else {
+      // Move downwards
+      position.y += speed * dt;
+    }
 
     // Damage base on contact
     if (position.y + size.y / 2 >= base.position.y) {

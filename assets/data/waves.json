@@ -1,0 +1,68 @@
+[
+  {
+    "waveNumber": 1,
+    "spawnGroups": [ { "enemyId": "normal_slime", "count": 5, "spawnIntervalSec": 1.0 } ]
+  },
+  {
+    "waveNumber": 2,
+    "spawnGroups": [ { "enemyId": "normal_slime", "count": 8, "spawnIntervalSec": 0.8 } ]
+  },
+  {
+    "waveNumber": 3,
+    "spawnGroups": [
+      { "enemyId": "normal_slime", "count": 10, "spawnIntervalSec": 0.7 },
+      { "enemyId": "fast_bat", "count": 3, "spawnIntervalSec": 1.5 }
+    ]
+  },
+  {
+    "waveNumber": 4,
+    "spawnGroups": [
+      { "enemyId": "normal_slime", "count": 12, "spawnIntervalSec": 0.6 },
+      { "enemyId": "fast_bat", "count": 5, "spawnIntervalSec": 1.2 }
+    ]
+  },
+  {
+    "waveNumber": 5,
+    "spawnGroups": [
+      { "enemyId": "tank_golem", "count": 2, "spawnIntervalSec": 3.0 },
+      { "enemyId": "normal_slime", "count": 5, "spawnIntervalSec": 1.0 }
+    ]
+  },
+  {
+    "waveNumber": 6,
+    "spawnGroups": [
+      { "enemyId": "fast_bat", "count": 10, "spawnIntervalSec": 0.5 },
+      { "enemyId": "splitter_beast", "count": 3, "spawnIntervalSec": 2.0 }
+    ]
+  },
+  {
+    "waveNumber": 7,
+    "spawnGroups": [
+      { "enemyId": "ranged_imp", "count": 5, "spawnIntervalSec": 1.5 },
+      { "enemyId": "normal_slime", "count": 10, "spawnIntervalSec": 0.8 }
+    ]
+  },
+  {
+    "waveNumber": 8,
+    "spawnGroups": [
+      { "enemyId": "tank_golem", "count": 3, "spawnIntervalSec": 2.5 },
+      { "enemyId": "ranged_imp", "count": 5, "spawnIntervalSec": 1.8 }
+    ]
+  },
+  {
+    "waveNumber": 9,
+    "spawnGroups": [
+      { "enemyId": "fast_bat", "count": 15, "spawnIntervalSec": 0.4 },
+      { "enemyId": "splitter_beast", "count": 5, "spawnIntervalSec": 1.5 }
+    ]
+  },
+  {
+    "waveNumber": 10,
+    "spawnGroups": [
+      { "enemyId": "chapter1_boss", "count": 1, "spawnIntervalSec": 1.0 }
+    ],
+    "waveModifiers": {
+      "isBossWave": true
+    }
+  }
+]

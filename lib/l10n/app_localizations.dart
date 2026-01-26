@@ -34,6 +34,10 @@ class AppLocalizations {
   String get wave => _localizedValues[locale.languageCode]?['wave'] ?? 'Wave';
   String get nextWaveIn => _localizedValues[locale.languageCode]?['nextWaveIn'] ?? 'Next Wave In';
 
+  String translate(String key) {
+    return _localizedValues[locale.languageCode]?[key] ?? key;
+  }
+
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
       'gameTitle': 'Defense Game',
@@ -50,6 +54,9 @@ class AppLocalizations {
       'healSkillDesc': 'Restore 30 HP',
       'wave': 'Wave',
       'nextWaveIn': 'Next Wave In',
+      'skill.fireball.title': 'Fireball',
+      'skill.chain_lightning.title': 'Chain Lightning',
+      'skill.ice_wall.title': 'Ice Wall',
     },
     'ko': {
       'gameTitle': '디펜스 게임',
@@ -66,6 +73,9 @@ class AppLocalizations {
       'healSkillDesc': '기지 HP 30 회복',
       'wave': '웨이브',
       'nextWaveIn': '다음 웨이브까지',
+      'skill.fireball.title': '화염구',
+      'skill.chain_lightning.title': '연쇄 번개',
+      'skill.ice_wall.title': '얼음 벽',
     },
   };
 }

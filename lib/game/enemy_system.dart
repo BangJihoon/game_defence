@@ -4,25 +4,27 @@ import 'enemy.dart';
 import 'player_base.dart';
 import 'overflow_game.dart';
 import '../config/game_config.dart';
+import '../data/enemy_data.dart'; // Import the new EnemyDefinition
 
 class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   final PlayerBase base;
   final List<Enemy> enemies = [];
   final void Function(int score) onEnemyKilled;
+  final Map<String, EnemyDefinition> enemyDefinitions; // The new map of enemy definitions
 
-  EnemySystem(this.base, {required this.onEnemyKilled});
+  EnemySystem(this.base, this.enemyDefinitions, {required this.onEnemyKilled});
 
-  void spawnEnemy(Vector2 position, EnemyType type) {
-    final enemyStats = _getStatsForType(type);
-    if (enemyStats == null) {
-      print('Error: Could not find stats for enemy type $type');
+  void spawnEnemy(Vector2 position, String enemyId) { // Changed EnemyType to String enemyId
+    final enemyDefinition = enemyDefinitions[enemyId];
+    if (enemyDefinition == null) {
+      print('Error: Could not find definition for enemy ID $enemyId');
       return;
     }
 
     late Enemy enemy;
     enemy = Enemy(
       base: base,
-      stats: enemyStats,
+      definition: enemyDefinition, // Pass the new definition
       onDestroyed: () => _onEnemyDestroyed(enemy),
     )..position = position;
 
@@ -30,18 +32,8 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
     add(enemy);
   }
 
-  EnemyStats? _getStatsForType(EnemyType type) {
-    switch (type) {
-      case EnemyType.normal:
-        return game.gameStats.enemies['normal'];
-      case EnemyType.fast:
-        return game.gameStats.enemies['fast'];
-      case EnemyType.tank:
-        return game.gameStats.enemies['tank'];
-      default:
-        return null;
-    }
-  }
+  // _getStatsForType method is no longer needed as we use enemyDefinitions directly
+  // EnemyType enum is also no longer needed, will be removed from enemy.dart
 
   void _onEnemyDestroyed(Enemy enemy) {
     if (enemies.contains(enemy)) {

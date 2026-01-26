@@ -36,4 +36,10 @@ flutter:
     - assets/audio/
     - assets/images/
     - assets/config/
+    - assets/data/
     # 실제 파일이 추가되면 위 경로가 자동으로 인식됩니다
+
+  fonts:
+    - family: NanumGothic
+      fonts:
+        - asset: assets/fonts/NanumGothic-Regular.ttf

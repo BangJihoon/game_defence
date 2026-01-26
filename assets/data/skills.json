@@ -1,0 +1,65 @@
+[
+  {
+    "skillId": "fireball",
+    "titleLocaleKey": "skill.fireball.title",
+    "descriptionLocaleKey": "skill.fireball.desc",
+    "skillType": "projectile",
+    "baseCooldown": 3.0,
+    "baseDamage": 40.0,
+    "baseRange": 50.0,
+    "maxLevel": 10,
+    "variants": [
+      {
+        "variantId": "fireball_meteor",
+        "titleLocaleKey": "variant.fireball_meteor.title",
+        "descriptionLocaleKey": "variant.fireball_meteor.desc",
+        "effect": {
+          "type": "change_projectile",
+          "projectileId": "meteor"
+        }
+      }
+    ]
+  },
+  {
+    "skillId": "chain_lightning",
+    "titleLocaleKey": "skill.chain_lightning.title",
+    "descriptionLocaleKey": "skill.chain_lightning.desc",
+    "skillType": "chaining",
+    "baseCooldown": 4.0,
+    "baseDamage": 25.0,
+    "baseRange": 0.0, 
+    "maxLevel": 10,
+    "variants": [
+      {
+        "variantId": "chain_lightning_static_field",
+        "titleLocaleKey": "variant.chain_lightning_static_field.title",
+        "descriptionLocaleKey": "variant.chain_lightning_static_field.desc",
+        "effect": {
+          "type": "create_aoe",
+          "aoeId": "static_field"
+        }
+      }
+    ]
+  },
+  {
+    "skillId": "ice_wall",
+    "titleLocaleKey": "skill.ice_wall.title",
+    "descriptionLocaleKey": "skill.ice_wall.desc",
+    "skillType": "structure",
+    "baseCooldown": 15.0,
+    "baseDamage": 0.0,
+    "baseRange": 0.0, 
+    "maxLevel": 5,
+    "variants": [
+        {
+            "variantId": "ice_wall_shatter",
+            "titleLocaleKey": "variant.ice_wall_shatter.title",
+            "descriptionLocaleKey": "variant.ice_wall_shatter.desc",
+            "effect": {
+                "type": "add_shatter_effect",
+                "damage": 50.0
+            }
+        }
+    ]
+  }
+]
