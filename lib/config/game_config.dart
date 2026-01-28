@@ -28,6 +28,18 @@ class GameStats {
   final int skillButtonSize;
   final int skillButtonSpacing;
 
+  GameStats.empty()
+      : baseHP = 0,
+        explosionRadius = 0,
+        explosionDamage = 0,
+        waveDefinitions = [],
+        enemyDefinitions = {},
+        skillDefinitions = {},
+        cards = [],
+        baseSize = UiSizeStats(width: 0, height: 0),
+        skillButtonSize = 0,
+        skillButtonSpacing = 0;
+
   GameStats({
     required this.baseHP,
     required this.explosionRadius,

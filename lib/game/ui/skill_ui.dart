@@ -28,20 +28,21 @@ class SkillUI extends RectangleComponent
     upgradeButtonHeight = 20; // Height for the upgrade button
 
     const maxSkillsPerRow = 3;
-    final numRows = (skillSystem.skills.length / maxSkillsPerRow).ceil();
-    final numCols = (skillSystem.skills.length < maxSkillsPerRow)
-        ? skillSystem.skills.length
-        : maxSkillsPerRow;
+    final numSkills = skillSystem.skills.length;
+    final numCols = numSkills > 0 ? (numSkills < maxSkillsPerRow ? numSkills : maxSkillsPerRow) : 1;
+    final numRows = numSkills > 0 ? (numSkills / maxSkillsPerRow).ceil() : 1;
 
     size = Vector2(
       (buttonSize + spacing) * numCols - spacing,
       (buttonSize + spacing + upgradeButtonHeight) * numRows - spacing,
     );
-    position = Vector2(
-      gameRef.size.x - size.x - 20,
-      gameRef.size.y - size.y - 20,
-    );
+    // Ensure minimum size
+    if (size.x < buttonSize) size.x = buttonSize;
+    if (size.y < buttonSize) size.y = buttonSize;
+
+    position = gameRef.size - Vector2(20, 20);
     paint = Paint()..color = Colors.transparent;
+    print('SkillUI position: $position, size: $size, gameSize: ${gameRef.size}');
   }
 
   @override
@@ -283,22 +284,28 @@ class SkillUI extends RectangleComponent
   String _getSkillIcon(String skillId) {
     switch (skillId) {
       case "lightning_strike":
-        return '⚡';
+        return 'LTN';
 
       case "freeze_nova":
-        return '❄';
+        return 'FRZ';
 
       case "healing_aura":
-        return '💚';
+        return 'HEAL';
 
       case "fireball":
-        return '🔥';
+        return 'FBL';
 
       case "chain_lightning":
-        return '🔗';
+        return 'CHN';
 
-      case "ice_wall":
-        return '🧱';
+      case "arcane_missile":
+        return 'AMS';
+
+      case "frost_nova":
+        return 'FRN';
+
+      case "poison_cloud":
+        return 'PSN';
 
       default:
         return '?';

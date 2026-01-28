@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'overflow_game.dart';
 import 'player_base.dart';
 import '../data/enemy_data.dart';
-import 'skills/skill_system.dart'; // Import EnemyDefinition
 import 'effects/damage_text_effect.dart';
 import 'package:flame/effects.dart';
 
@@ -22,6 +21,7 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
 
   double freezeTimer = 0;
   double freezeMultiplier = 1.0;
+  bool isDying = false;
 
   Enemy({
     required this.base,
@@ -46,6 +46,10 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   void update(double dt) {
     super.update(dt);
 
+    if (isDying) {
+      return;
+    }
+
     // Update freeze effect
     if (freezeTimer > 0) {
       freezeTimer -= dt;
@@ -55,19 +59,8 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
       freezeMultiplier = 1.0;
     }
 
-    final iceWall = game.children.whereType<IceWall>().firstOrNull;
-
-    if (iceWall != null) {
-      if (position.distanceTo(iceWall.position) < 20) {
-        iceWall.takeDamage(damage * dt);
-      } else {
-        final direction = (iceWall.position - position).normalized();
-        position += direction * speed * dt;
-      }
-    } else {
-      // Move downwards
-      position.y += speed * dt;
-    }
+    // Move downwards
+    position.y += speed * dt;
 
     // Damage base on contact
     if (position.y + size.y / 2 >= base.position.y) {
@@ -77,6 +70,7 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   }
 
   void takeDamage(int dmg) {
+    if (isDying) return;
     hp -= dmg;
 
     // Show damage text
@@ -93,13 +87,29 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
     );
 
     if (hp <= 0) {
-      _destroy();
+      isDying = true;
+      // Start death animation
+      add(
+        SequenceEffect([
+          ScaleEffect.to(Vector2.all(0), EffectController(duration: 0.5)),
+          RemoveEffect(),
+        ]),
+      );
+      onDestroyed?.call();
     }
   }
 
   void kill() {
+    if (isDying) return;
     hp = 0;
-    _destroy();
+    isDying = true;
+    add(
+      SequenceEffect([
+        ScaleEffect.to(Vector2.all(0), EffectController(duration: 0.5)),
+        RemoveEffect(),
+      ]),
+    );
+    onDestroyed?.call();
   }
 
   void applyFreeze(double multiplier, double duration) {
@@ -117,7 +127,7 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
     // Enemy body with gradient
     final gradientPaint = Paint()
       ..shader = RadialGradient(
-        colors: [baseColor, baseColor.withOpacity(0.7)],
+        colors: [baseColor, baseColor.withValues(alpha: .7)],
       ).createShader(size.toRect());
     canvas.drawCircle(
       Offset(size.x / 2, size.y / 2),
@@ -127,7 +137,7 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
 
     // Enemy border
     final borderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawCircle(Offset(size.x / 2, size.y / 2), size.x / 2, borderPaint);
@@ -135,45 +145,46 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
     // Sparkles for freeze effect
     if (freezeTimer > 0) {
       final sparklePaint = Paint()
-        ..color = Colors.white.withOpacity(0.5)
+        ..color = Colors.white.withValues(alpha: 0.5)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(size.x * 0.3, size.y * 0.3), 3, sparklePaint);
       canvas.drawCircle(Offset(size.x * 0.7, size.y * 0.7), 3, sparklePaint);
     }
 
     // Health bar
-    final healthBarWidth = size.x * 1.2;
-    final healthBarHeight = 5.0;
-    final healthBarOffset = Offset(-size.x * 0.1, -healthBarHeight * 2);
+    if (!isDying) {
+      final healthBarWidth = size.x * 1.2;
+      final healthBarHeight = 5.0;
+      final healthBarOffset = Offset(-size.x * 0.1, -healthBarHeight * 2);
 
-    // Health bar background
-    final backgroundPaint = Paint()..color = Colors.red;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        healthBarOffset.dx,
-        healthBarOffset.dy,
-        healthBarWidth,
-        healthBarHeight,
-      ),
-      backgroundPaint,
-    );
+      // Health bar background
+      final backgroundPaint = Paint()..color = Colors.red;
+      canvas.drawRect(
+        Rect.fromLTWH(
+          healthBarOffset.dx,
+          healthBarOffset.dy,
+          healthBarWidth,
+          healthBarHeight,
+        ),
+        backgroundPaint,
+      );
 
-    // Current health
-    final healthPaint = Paint()..color = Colors.green;
-    final currentHealthWidth = (hp / maxHp) * healthBarWidth;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        healthBarOffset.dx,
-        healthBarOffset.dy,
-        currentHealthWidth,
-        healthBarHeight,
-      ),
-      healthPaint,
-    );
+      // Current health
+      final healthPaint = Paint()..color = Colors.green;
+      final currentHealthWidth = (hp / maxHp) * healthBarWidth;
+      canvas.drawRect(
+        Rect.fromLTWH(
+          healthBarOffset.dx,
+          healthBarOffset.dy,
+          currentHealthWidth,
+          healthBarHeight,
+        ),
+        healthPaint,
+      );
+    }
   }
 
   void _destroy() {
-    onDestroyed?.call();
-    removeFromParent();
+    // This is now handled by the death animation
   }
 }

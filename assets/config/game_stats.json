@@ -1,6 +1,6 @@
 {
   "game": {
-    "baseHP": 200,
+    "baseHP": 500,
     "explosionRadius": 100,
     "explosionDamage": 50
   },
@@ -30,7 +30,7 @@
       "height": 25
     },
     "tank": {
-      "hp": 200,
+      "hp": 150,
       "speed": 40,
       "damage": 20,
       "score": 25,

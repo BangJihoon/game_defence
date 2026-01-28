@@ -27,7 +27,7 @@
     "skillType": "chaining",
     "baseCooldown": 4.0,
     "baseDamage": 25.0,
-    "baseRange": 0.0, 
+    "baseRange": 0.0,
     "maxLevel": 10,
     "variants": [
       {
@@ -42,24 +42,99 @@
     ]
   },
   {
-    "skillId": "ice_wall",
-    "titleLocaleKey": "skill.ice_wall.title",
-    "descriptionLocaleKey": "skill.ice_wall.desc",
-    "skillType": "structure",
-    "baseCooldown": 15.0,
-    "baseDamage": 0.0,
-    "baseRange": 0.0, 
+    "skillId": "arcane_missile",
+    "titleLocaleKey": "skill.arcane_missile.title",
+    "descriptionLocaleKey": "skill.arcane_missile.desc",
+    "skillType": "projectile",
+    "baseCooldown": 2.0,
+    "baseDamage": 15.0,
+    "baseRange": 0.0,
+    "maxLevel": 10,
+    "variants": [
+      {
+        "variantId": "arcane_missile_homing",
+        "titleLocaleKey": "variant.arcane_missile_homing.title",
+        "descriptionLocaleKey": "variant.arcane_missile_homing.desc",
+        "effect": {
+          "type": "add_homing"
+        }
+      }
+    ]
+  },
+  {
+    "skillId": "frost_nova",
+    "titleLocaleKey": "skill.frost_nova.title",
+    "descriptionLocaleKey": "skill.frost_nova.desc",
+    "skillType": "aoe",
+    "baseCooldown": 8.0,
+    "baseDamage": 30.0,
+    "baseRange": 150.0,
     "maxLevel": 5,
     "variants": [
-        {
-            "variantId": "ice_wall_shatter",
-            "titleLocaleKey": "variant.ice_wall_shatter.title",
-            "descriptionLocaleKey": "variant.ice_wall_shatter.desc",
-            "effect": {
-                "type": "add_shatter_effect",
-                "damage": 50.0
-            }
+      {
+        "variantId": "frost_nova_expanding",
+        "titleLocaleKey": "variant.frost_nova_expanding.title",
+        "descriptionLocaleKey": "variant.frost_nova_expanding.desc",
+        "effect": {
+          "type": "expanding_aoe"
         }
+      }
+    ]
+  },
+  {
+    "skillId": "poison_cloud",
+    "titleLocaleKey": "skill.poison_cloud.title",
+    "descriptionLocaleKey": "skill.poison_cloud.desc",
+    "skillType": "aoe",
+    "baseCooldown": 10.0,
+    "baseDamage": 5.0,
+    "baseRange": 100.0,
+    "maxLevel": 5,
+    "variants": []
+  },
+  {
+    "skillId": "healing_aura",
+    "titleLocaleKey": "skill.healing_aura.title",
+    "descriptionLocaleKey": "skill.healing_aura.desc",
+    "skillType": "utility",
+    "baseCooldown": 20.0,
+    "baseDamage": 0.0,
+    "amount": 50,
+    "maxLevel": 3,
+    "variants": []
+  },
+  {
+    "skillId": "shield_barrier",
+    "titleLocaleKey": "skill.shield_barrier.title",
+    "descriptionLocaleKey": "skill.shield_barrier.desc",
+    "skillType": "utility",
+    "baseCooldown": 15.0,
+    "baseDamage": 0.0,
+    "duration": 5.0,
+    "amount": 100,
+    "maxLevel": 3,
+    "variants": []
+  },
+  {
+    "skillId": "berserk_rage",
+    "titleLocaleKey": "skill.berserk_rage.title",
+    "descriptionLocaleKey": "skill.berserk_rage.desc",
+    "skillType": "utility",
+    "baseCooldown": 30.0,
+    "baseDamage": 0.0,
+    "duration": 7.0,
+    "maxLevel": 1,
+    "variants": [
+      {
+        "variantId": "berserk_rage_unleashed",
+        "titleLocaleKey": "variant.berserk_rage_unleashed.title",
+        "descriptionLocaleKey": "variant.berserk_rage_unleashed.desc",
+        "effect": {
+          "type": "add_global_modifier",
+          "damage_multiplier": 0.5,
+          "cooldown_multiplier": -0.3
+        }
+      }
     ]
   }
 ]

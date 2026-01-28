@@ -5,27 +5,30 @@ import 'package:flutter/material.dart';
 import 'package:game_defence/game/overflow_game.dart';
 
 class DrawCardButton extends PositionComponent with TapCallbacks, HasGameRef<OverflowDefenseGame> {
-
   DrawCardButton() {
     anchor = Anchor.bottomCenter;
   }
-  
+
   @override
   Future<void> onLoad() async {
     super.onLoad();
     position = Vector2(game.size.x / 2, game.size.y - 20);
     size = Vector2(120, 40);
+    print('DrawCardButton position: $position, size: $size, gameSize: ${game.size}');
   }
 
   @override
   void onTapUp(TapUpEvent event) {
-    game.showCardSelection();
+    if (game.cardManager.isDeckInitialized) {
+      game.showCardSelection();
+    }
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    final paint = Paint()..color = Colors.blue.withAlpha(200);
+    final isEnabled = game.cardManager.isDeckInitialized;
+    final paint = Paint()..color = isEnabled ? Colors.blue.withAlpha(200) : Colors.grey.withAlpha(150);
     canvas.drawRRect(
       RRect.fromRectAndRadius(size.toRect(), const Radius.circular(8)),
       paint,

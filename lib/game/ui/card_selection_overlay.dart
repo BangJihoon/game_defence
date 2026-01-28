@@ -3,6 +3,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'package:game_defence/game/overflow_game.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 
 class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final List<CardDefinition> cards;
@@ -84,10 +85,12 @@ class CardDisplay extends PositionComponent
       paint,
     );
 
+    final appLocalizations = AppLocalizations.of(game.buildContext!)!;
+
     // Card Title
     TextPainter(
         text: TextSpan(
-          text: card.titleLocaleKey, // In a real game, you'd use l10n here
+          text: appLocalizations.translate(card.titleLocaleKey),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -103,8 +106,7 @@ class CardDisplay extends PositionComponent
     // Card Description
     TextPainter(
         text: TextSpan(
-          text:
-              card.descriptionLocaleKey, // In a real game, you'd use l10n here
+          text: appLocalizations.translate(card.descriptionLocaleKey),
           style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
         textAlign: TextAlign.center,

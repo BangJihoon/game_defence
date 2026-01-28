@@ -3,7 +3,8 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flame/components.dart'; // Added
-import 'package:flame/effects.dart';   // Added
+import 'package:flame/effects.dart'
+    show SequenceEffect, OpacityEffect, EffectController, RemoveEffect;
 
 import 'player_base.dart';
 import 'enemy_system.dart';
@@ -20,9 +21,10 @@ import 'ui/draw_card_button.dart';
 import 'ui/card_selection_overlay.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'modifier_manager.dart';
+import 'package:game_defence/game/ui/attack_power_display.dart';
 import 'wave_manager.dart'; // Import ModifierManager
 
-class OverflowDefenseGame extends FlameGame {
+class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late PlayerBase playerBase;
   late EnemySystem enemySystem;
   late TapInputLayer tapInputLayer;
@@ -34,6 +36,7 @@ class OverflowDefenseGame extends FlameGame {
   late CardManager cardManager;
   late DrawCardButton drawCardButton;
   late ModifierManager modifierManager; // Add ModifierManager instance
+  late AttackPowerDisplay attackPowerDisplay;
 
   final Random _random = Random();
   final Locale locale;
@@ -43,7 +46,7 @@ class OverflowDefenseGame extends FlameGame {
   int _score = 0;
   int _cardPoints = 50;
   int _cardDrawCost = 10;
-  bool _soundEnabled = false;
+  bool _soundEnabled;
 
   bool get isGameOver => _isGameOver;
   int get score => _score;
@@ -51,7 +54,10 @@ class OverflowDefenseGame extends FlameGame {
   int get cardDrawCost => _cardDrawCost;
   Random get random => _random;
 
-  OverflowDefenseGame({this.locale = const Locale('ko')});
+  OverflowDefenseGame({
+    this.locale = const Locale('ko'),
+    bool soundEnabled = true,
+  }) : _soundEnabled = soundEnabled;
 
   @override
   Future<void> onLoad() async {
@@ -59,7 +65,9 @@ class OverflowDefenseGame extends FlameGame {
 
     gameStats = await GameStats.load();
 
-    _initializeSounds();
+    if (_soundEnabled) {
+      _initializeSounds();
+    }
 
     modifierManager = ModifierManager(); // Initialize ModifierManager
 
@@ -71,9 +79,7 @@ class OverflowDefenseGame extends FlameGame {
 
     enemySystem = EnemySystem(
       playerBase,
-
       gameStats.enemyDefinitions,
-
       onEnemyKilled: _onEnemyKilled,
     );
 
@@ -83,9 +89,7 @@ class OverflowDefenseGame extends FlameGame {
 
     skillSystem = SkillSystem(
       locale: locale,
-
       gameStats: gameStats,
-
       skillDefinitions: gameStats.skillDefinitions,
     );
 
@@ -96,46 +100,35 @@ class OverflowDefenseGame extends FlameGame {
     waveDisplay = WaveDisplay(locale: locale);
 
     cardManager = CardManager();
-
     drawCardButton = DrawCardButton();
+    attackPowerDisplay = AttackPowerDisplay();
 
-    add(GameBackground());
-
-    add(playerBase);
-
-    add(enemySystem);
-
-    add(tapInputLayer);
-
-    add(scoreDisplay);
-
-    add(skillSystem);
-
-    add(skillUI);
-
-    add(waveManager);
-
-    add(waveDisplay);
-
-    add(cardManager);
-
-    add(drawCardButton);
-
-    add(modifierManager); // Add ModifierManager to the game
+    addAll([
+      GameBackground(),
+      playerBase,
+      enemySystem,
+      tapInputLayer,
+      skillSystem,
+      waveManager,
+      modifierManager,
+      scoreDisplay,
+      waveDisplay,
+      skillUI,
+      drawCardButton,
+      attackPowerDisplay,
+    ]);
   }
 
   void showCardSelection() {
     if (paused) return; // Don't show if already paused
 
     if (_cardPoints >= _cardDrawCost) {
+      print('Card draw clicked');
       _cardPoints -= _cardDrawCost;
-
       _cardDrawCost = (_cardDrawCost * 1.1).round();
-
       paused = true;
-
       final hand = cardManager.drawHand();
-
+      print('Drawn cards: ${hand.map((c) => c.cardId).join(', ')}');
       if (hand.isNotEmpty) {
         add(CardSelectionOverlay(cards: hand));
       } else {
@@ -147,12 +140,11 @@ class OverflowDefenseGame extends FlameGame {
   }
 
   void selectCard(CardDefinition card) {
+    print('Selected card: ${card.cardId}');
     cardManager.applyCard(card);
 
     // Remove the overlay
-
     remove(children.whereType<CardSelectionOverlay>().first);
-
     paused = false;
   }
 
@@ -171,16 +163,12 @@ class OverflowDefenseGame extends FlameGame {
   void _onEnemyKilled(int score) {
     if (modifierManager.isCoinGainDisabled) {
       print("Coin gain disabled. Skipping score update.");
-
       return;
     }
 
     _score += score;
-
     _cardPoints += 1;
-
     scoreDisplay.updateScore(_score);
-
     playEnemyDeathSound();
   }
 
@@ -192,9 +180,7 @@ class OverflowDefenseGame extends FlameGame {
 
   void _gameOver() {
     _isGameOver = true;
-
     playGameOverSound();
-
     add(
       GameOverOverlay(score: _score, onRestart: _restartGame, locale: locale),
     );
@@ -202,21 +188,19 @@ class OverflowDefenseGame extends FlameGame {
 
   void _restartGame() {
     _isGameOver = false;
-
     _score = 0;
-
     removeAll(children.whereType<GameOverOverlay>());
-
     playerBase.hp = playerBase.maxHp.toDouble();
-
     enemySystem.clearEnemies();
-
     scoreDisplay.updateScore(0);
-
     waveManager.reset();
   }
 
   void showMessage(String message) {
+    final wrapper = PositionComponent(
+      anchor: Anchor.center,
+      position: size / 2,
+    );
     final textComponent = TextComponent(
       text: message,
       textRenderer: TextPaint(
@@ -227,15 +211,27 @@ class OverflowDefenseGame extends FlameGame {
         ),
       ),
       anchor: Anchor.center,
-      position: Vector2(size.x / 2, size.y / 2),
     );
 
-    add(textComponent);
+    wrapper.add(textComponent);
+    add(wrapper);
 
-    textComponent.add(SequenceEffect([
-      OpacityEffect.fadeOut(EffectController(duration: 1.5)),
-      RemoveEffect(),
-    ]));
+    wrapper.add(
+      TimerComponent(
+        period: 1.0,
+        onTick: () {
+          wrapper.add(
+            OpacityEffect.fadeOut(
+              EffectController(duration: 0.5),
+              onComplete: () {
+                wrapper.removeFromParent();
+              },
+            ),
+          );
+        },
+        removeOnFinish: true,
+      ),
+    );
   }
 
   Future<void> _initializeSounds() async {

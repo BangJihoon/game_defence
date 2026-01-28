@@ -47,7 +47,7 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void damageEnemies(int damage) {
-    for (final enemy in enemies) {
+    for (final enemy in List<Enemy>.from(enemies)) {
       enemy.takeDamage(damage);
     }
   }
@@ -64,7 +64,7 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void freezeEnemies(double multiplier, double duration) {
-    for (final enemy in enemies) {
+    for (final enemy in List<Enemy>.from(enemies)) {
       enemy.applyFreeze(multiplier, duration);
     }
   }

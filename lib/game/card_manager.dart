@@ -1,55 +1,104 @@
-
 import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:game_defence/data/card_data.dart';
+import 'package:flutter/foundation.dart';
 import 'package:game_defence/game/overflow_game.dart';
 
 class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
-  final List<CardDefinition> _cardDeck = [];
+  final List<CardDefinition> cardDeck = [];
   final Random _random = Random();
   int rerolls = 1;
+  bool _isDeckInitialized = false;
+
+  CardManager() {
+    // For now, add all cards from GameStats. In a real game, this might be
+    // filtered by player level, unlocked cards, etc.
+    // This is called before onLoad, so game.gameStats might not be fully loaded.
+    // We need to defer this until game.gameStats is available.
+  }
+
+  void _initializeDeck() {
+    cardDeck.addAll(game.gameStats.cards);
+  }
+
+  bool get isDeckInitialized => _isDeckInitialized;
 
   void addRerolls(int amount) {
     rerolls += amount;
     // Here you might want to update a UI element to show the new reroll count
-    print("Rerolls remaining: $rerolls");
+    debugPrint("Rerolls remaining: $rerolls");
   }
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
     _initializeDeck();
-  }
-
-  void _initializeDeck() {
-    // For now, add all cards from GameStats. In a real game, this might be
-    // filtered by player level, unlocked cards, etc.
-    _cardDeck.addAll(game.gameStats.cards);
+    _isDeckInitialized = true;
   }
 
   /// Draws 3 unique cards to present as a choice to the player.
   List<CardDefinition> drawHand() {
-    if (_cardDeck.isEmpty) {
+    if (!_isDeckInitialized || cardDeck.isEmpty) {
       return [];
     }
 
-    _cardDeck.shuffle(_random);
-    
-    // In a real game, you would add more complex logic here to ensure
-    // a good variety of choices, based on player's current build, etc.
-    // For MVP, just take the first 3.
-    return _cardDeck.take(3).toList();
+    final hand = <CardDefinition>{}; // Use a Set to ensure unique cards
+    while (hand.length < 3 && hand.length < cardDeck.length) {
+      final card = weightedRandomDraw();
+      hand.add(card);
+    }
+
+    return hand.toList();
+  }
+
+  @visibleForTesting
+  CardDefinition weightedRandomDraw() {
+    final totalWeight = cardDeck
+        .map((card) => getRankWeight(card.rank))
+        .reduce((a, b) => a + b);
+    final randomValue = _random.nextDouble() * totalWeight;
+
+    var cumulativeWeight = 0.0;
+    for (final card in cardDeck) {
+      cumulativeWeight += getRankWeight(card.rank);
+      if (randomValue <= cumulativeWeight) {
+        return card;
+      }
+    }
+
+    // Fallback, should not be reached
+    return cardDeck.last;
+  }
+
+  @visibleForTesting
+  double getRankWeight(CardRank rank) {
+    switch (rank) {
+      case CardRank.normal:
+        return 20.0;
+      case CardRank.bronze:
+        return 15.0;
+      case CardRank.silver:
+        return 10.0;
+      case CardRank.gold:
+        return 7.0;
+      case CardRank.platinum:
+        return 4.0;
+      case CardRank.diamond:
+        return 2.0;
+      case CardRank.master:
+        return 1.0;
+    }
   }
 
   /// Applies the effect of the chosen card.
   /// This is the core of the game's progression system.
   void applyCard(CardDefinition card) {
-    print("Applying card: ${card.cardId}");
+    debugPrint("Applying card: ${card.cardId}");
 
     // This is where the logic from "Core Systems Implementation Plan" will go.
     // It will parse the card.effect map and dispatch actions.
-    
+
     // Example dispatcher logic (to be built out)
     final effect = card.effect;
     final type = effect['type'];
@@ -87,7 +136,7 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
         break;
       // ... other cases for each effect type ...
       default:
-        print("Unhandled card effect type: $type");
+        debugPrint("Unhandled card effect type: $type");
     }
 
     // Handle risks for cursed cards
@@ -109,7 +158,7 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
         game.modifierManager.applyWallModifier(stat, value);
         break;
       default:
-        print("Unhandled stat modifier target: $target");
+        debugPrint("Unhandled stat modifier target: $target");
     }
   }
 
@@ -123,14 +172,19 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
   void _applySkillVariant(Map<String, dynamic> effect) {
     final String skillId = effect['skillId'];
     final String variantId = effect['variantId'];
-    game.skillSystem.skills.firstWhere((skill) => skill.skillId == skillId).applyVariant(variantId);
-    print("Applying Skill Variant: $skillId with variant $variantId");
+    game.skillSystem.skills
+        .firstWhere((skill) => skill.skillId == skillId)
+        .applyVariant(variantId);
+    debugPrint("Applying Skill Variant: $skillId with variant $variantId");
   }
 
   void _healWall(Map<String, dynamic> effect) {
     final double healPercent = effect['value'];
-    game.playerBase.hp = (game.playerBase.hp + (game.playerBase.maxHp * healPercent)).clamp(0, game.playerBase.maxHp).toDouble();
-    print("Healed wall for ${healPercent * 100}%");
+    game.playerBase.hp =
+        (game.playerBase.hp + (game.playerBase.maxHp * healPercent))
+            .clamp(0, game.playerBase.maxHp)
+            .toDouble();
+    debugPrint("Healed wall for ${healPercent * 100}%");
   }
 
   void _applyRisk(Map<String, dynamic> risk) {
@@ -144,7 +198,7 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
         game.modifierManager.disableCoinGain();
         break;
       default:
-        print("Unhandled risk type: $type");
+        debugPrint("Unhandled risk type: $type");
     }
   }
 

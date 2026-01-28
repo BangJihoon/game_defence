@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:game_defence/config/game_config.dart'; // Import GameStats
 
@@ -9,6 +10,10 @@ import 'menu/main_menu.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   await GameStats.load(); // Preload game stats
   runApp(const GameApp());
 }
@@ -21,8 +26,8 @@ class GameApp extends StatefulWidget {
 }
 
 class _GameAppState extends State<GameApp> {
-  OverflowDefenseGame? game = OverflowDefenseGame(locale: const Locale('ko')); // Directly start game for testing
-  bool showMenu = false;
+  OverflowDefenseGame? game;
+  bool showMenu = true;
   Locale _locale = const Locale('ko'); // 기본값은 한국어
 
   void startGame() {

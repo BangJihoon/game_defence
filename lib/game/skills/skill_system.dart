@@ -6,6 +6,9 @@ import 'dart:ui';
 import '../overflow_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../config/game_config.dart';
+import 'package:game_defence/game/skills/arcane_missile.dart';
+import 'package:game_defence/game/skills/frost_nova.dart';
+import 'package:game_defence/game/skills/poison_cloud.dart';
 import '../enemy.dart';
 import '../../data/skill_data.dart'; // Import SkillDefinition
 
@@ -91,9 +94,9 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   final Random _random = Random();
   final Locale locale;
   final GameStats
-  gameStats; // Still needed for other game stats, not just skill stats
+      gameStats; // Still needed for other game stats, not just skill stats
   final Map<String, SkillDefinition>
-  skillDefinitions; // New field for loaded skill definitions
+      skillDefinitions; // New field for loaded skill definitions
   late AppLocalizations l10n;
 
   SkillSystem({
@@ -146,6 +149,12 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
         case 'add_shatter_effect':
           _applyAddShatterEffect(skill, skill.variantEffect!);
           break;
+        case 'add_homing':
+          // Handled in the skill itself
+          break;
+        case 'expanding_aoe':
+          // Handled in the skill itself
+          break;
         default:
           print("Unhandled variant effect type: $effectType");
           break;
@@ -169,8 +178,14 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
       case "chain_lightning":
         _useChainLightning(skill);
         break;
-      case "ice_wall":
-        _useIceWall(skill);
+      case "arcane_missile":
+        _useArcaneMissile(skill);
+        break;
+      case "frost_nova":
+        _useFrostNova(skill);
+        break;
+      case "poison_cloud":
+        _usePoisonCloud(skill);
         break;
       default:
         print("Unhandled skill use: $skillId");
@@ -238,7 +253,8 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _useLightning(Skill skill) {
-    final activeEnemies = List<Enemy>.from(game.enemySystem.enemies);
+    final activeEnemies =
+        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
 
     if (activeEnemies.isEmpty) return;
 
@@ -276,7 +292,8 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _useFireball(Skill skill) {
-    final activeEnemies = List<Enemy>.from(game.enemySystem.enemies);
+    final activeEnemies =
+        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
 
     if (activeEnemies.isEmpty) return;
 
@@ -288,9 +305,7 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
         skill.variantEffect?['projectileId'] == 'meteor') {
       final projectile = MeteorProjectile(
         target: target.position,
-
         damage: skill.damage.toInt(),
-
         radius: 50.0, // Example radius for meteor
       )..position = Vector2(target.position.x, 0); // Start from top of screen
 
@@ -298,7 +313,6 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
     } else {
       final projectile = FireballProjectile(
         target: target,
-
         damage: skill.damage.toInt(),
       )..position = game.playerBase.center; // Start from player base
 
@@ -308,7 +322,7 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
 
   void _useChainLightning(Skill skill) {
     final activeEnemies = List<Enemy>.from(
-      game.enemySystem.enemies.where((e) => e.isMounted),
+      game.enemySystem.enemies.where((e) => e.isMounted && !e.isDying),
     );
 
     if (activeEnemies.isEmpty) return;
@@ -363,11 +377,8 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
 
       final aoe = StaticField(
         position: lastTarget.position,
-
         damage: 10, // Example damage
-
         duration: 5, // Example duration
-
         radius: 100, // Example radius
       );
 
@@ -375,75 +386,46 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
     }
   }
 
-  void _useIceWall(Skill skill) {
-    final wall = IceWall(skill: skill)
-      ..position = Vector2(
-        game.size.x / 2,
-        game.size.y - 200,
-      ); // Example position
+  void _useArcaneMissile(Skill skill) {
+    final activeEnemies =
+        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
+    if (activeEnemies.isEmpty) return;
 
-    add(wall);
-  }
-}
+    activeEnemies.shuffle(_random);
+    final target = activeEnemies.first;
 
-class IceWall extends PositionComponent with HasGameRef<OverflowDefenseGame> {
-  final Skill skill;
+    final projectile = ArcaneMissileProjectile(
+      target: target,
+      damage: skill.damage.toInt(),
+      isHoming: skill.variantEffect?['type'] == 'add_homing',
+    )..position = game.playerBase.center;
 
-  late double _hp;
-
-  double _duration = 10; // Example duration
-
-  IceWall({required this.skill}) {
-    _hp = skill.damage; // Use damage as HP for the wall
+    add(projectile);
   }
 
-  @override
-  void update(double dt) {
-    super.update(dt);
-
-    _duration -= dt;
-
-    if (_duration <= 0) {
-      _destroy();
-    }
-  }
-
-  void takeDamage(double damage) {
-    _hp -= damage;
-
-    if (_hp <= 0) {
-      _destroy();
-    }
-  }
-
-  void _destroy() {
-    if (skill.variantEffect?['type'] == 'add_shatter_effect') {
-      final damage = skill.variantEffect!['damage'] as double;
-
-      game.enemySystem.damageInRadius(
-        position,
-        100,
-        damage.toInt(),
-      ); // Example radius
-
-      game.add(
-        ExplosionEffect(position: position, radius: 100),
-      ); // Reuse explosion effect for visual
-    }
-
-    removeFromParent();
-  }
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-
-    final paint = Paint()..color = Colors.lightBlueAccent.withOpacity(0.5);
-
-    canvas.drawRect(
-      Rect.fromCenter(center: Offset.zero, width: 200, height: 20),
-      paint,
+  void _useFrostNova(Skill skill) {
+    final effect = FrostNovaEffect(
+      damage: skill.damage.toInt(),
+      radius: skill.range,
+      isExpanding: skill.variantEffect?['type'] == 'expanding_aoe',
     );
+    add(effect);
+  }
+
+  void _usePoisonCloud(Skill skill) {
+    final activeEnemies =
+        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
+    if (activeEnemies.isEmpty) return;
+    activeEnemies.shuffle(_random);
+    final target = activeEnemies.first;
+
+    final cloud = PoisonCloudComponent(
+      damage: skill.damage.toInt(),
+      radius: skill.range,
+      duration: 5, // Example duration
+    )..position = target.position;
+
+    add(cloud);
   }
 }
 
