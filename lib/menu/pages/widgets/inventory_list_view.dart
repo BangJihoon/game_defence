@@ -21,12 +21,12 @@ class InventoryListView extends StatelessWidget {
       ),
       itemCount: inventoryItems.length,
       itemBuilder: (context, index) {
-        return _buildInventoryItem(inventoryItems[index]);
+        return _buildInventoryItem(context, inventoryItems[index], playerDataManager);
       },
     );
   }
 
-  Widget _buildInventoryItem(InventoryItem item) {
+  Widget _buildInventoryItem(BuildContext context, InventoryItem item, PlayerDataManager playerDataManager) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.5),
@@ -53,8 +53,53 @@ class InventoryListView extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             onPressed: () {
-              // TODO: Implement equipping logic
-              print("Tapped item: ${item.name}");
+              if (item.equipmentType != null) {
+                playerDataManager.equipItem(item.id);
+              } else {
+                // For non-equippable items (scrolls), show a dialog to select target slot
+                showDialog(
+                  context: context,
+                  builder: (BuildContext dialogContext) {
+                    return AlertDialog(
+                      title: Text('${item.name}을(를) 사용할 슬롯 선택'),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: EquipmentType.values.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final type = EquipmentType.values[index];
+                            String typeName = type.name;
+                            switch(type) {
+                              case EquipmentType.hat: typeName = '모자'; break;
+                              case EquipmentType.armor: typeName = '갑옷'; break;
+                              case EquipmentType.weapon: typeName = '무기'; break;
+                              case EquipmentType.necklace: typeName = '목걸이'; break;
+                              case EquipmentType.ring: typeName = '반지'; break;
+                              case EquipmentType.shoe: typeName = '신발'; break;
+                            }
+                            return ListTile(
+                              title: Text(typeName),
+                              onTap: () {
+                                playerDataManager.useScroll(item.id, type);
+                                Navigator.of(dialogContext).pop(); // Close the dialog
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text('취소'),
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
             },
             child: Text(
               item.equipmentType != null ? '장착' : '사용',

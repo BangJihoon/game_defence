@@ -1,10 +1,12 @@
+import 'package:game_defence/player/player_data_manager.dart'; // Import PlayerDataManager
+import 'package:game_defence/data/character_data.dart'; // Import masterCharacterList
 import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flame/components.dart'; // Added
 import 'package:flame/effects.dart'
-    show SequenceEffect, OpacityEffect, EffectController, RemoveEffect;
+    show SequenceEffect, OpacityEffect, EffectController, RemoveEffect, MoveByEffect;
 
 import 'player_base.dart';
 import 'enemy_system.dart';
@@ -46,6 +48,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   final Random _random = Random();
   final Locale locale;
   late GameStats gameStats;
+  final PlayerDataManager _playerDataManager; // Declare PlayerDataManager
 
   bool _soundEnabled;
 
@@ -59,7 +62,9 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   OverflowDefenseGame({
     this.locale = const Locale('ko'),
     bool soundEnabled = true,
-  }) : _soundEnabled = soundEnabled;
+    required PlayerDataManager playerDataManager, // Require PlayerDataManager
+  }) : _soundEnabled = soundEnabled,
+       _playerDataManager = playerDataManager;
 
   @override
   Future<void> onLoad() async {
@@ -75,11 +80,18 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
     modifierManager = ModifierManager(); // Initialize ModifierManager
 
+    // Get the active character's stats
+    final activeCharacterId = _playerDataManager.playerData.activeCharacterId;
+    final activeCharacter = masterCharacterList.firstWhere(
+            (c) => c.id == activeCharacterId,
+        orElse: () => masterCharacterList.first // Default to the first character if not found
+    );
+
     playerBase =
-        PlayerBase(hp: gameStats.baseHP, height: gameStats.baseSize.height)
-          ..position = Vector2(0, size.y - gameStats.baseSize.height)
-          ..onDestroyed = _onBaseDestroyed
-          ..onHit = playBaseHitSound;
+    PlayerBase(hp: activeCharacter.baseHp, height: gameStats.baseSize.height)
+      ..position = Vector2(0, size.y - gameStats.baseSize.height)
+      ..onDestroyed = _onBaseDestroyed
+      ..onHit = playBaseHitSound;
 
     enemySystem = EnemySystem(
       playerBase,
@@ -95,6 +107,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       locale: locale,
       gameStats: gameStats,
       skillDefinitions: gameStats.skillDefinitions,
+      playerSkills: _playerDataManager.playerData.ownedSkills, // Pass owned skills
     );
 
     skillUI = SkillUI(skillSystem, locale: locale, gameStats: gameStats);
@@ -226,7 +239,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       final hand = cardManager.drawHand();
       print('Drawn cards: ${hand.map((c) => c.cardId).join(', ')}');
       if (hand.isNotEmpty) {
-        add(CardSelectionOverlay(cards: hand));
+        add(CardSelectionOverlay(cards: hand, l10n: skillSystem.l10n));
       } else {
         paused = false; // Resume if no cards to show
       }

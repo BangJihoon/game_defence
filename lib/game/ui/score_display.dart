@@ -40,7 +40,7 @@ class ScoreDisplay extends PositionComponent {
     _scoreText.text = l10n.score(_score);
 
     // Remove any existing scale effects to ensure the animation restarts correctly
-    children.whereType<ScaleEffect>().forEach(removeFromParent);
+    children.whereType<ScaleEffect>().forEach((effect) => effect.removeFromParent());
     
     // Add a "pop" animation
     add(

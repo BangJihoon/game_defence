@@ -107,7 +107,7 @@ class _GameAppState extends State<GameApp> {
         ],
         home: _showGame
             ? GameWidget(
-                game: OverflowDefenseGame(locale: _locale),
+                game: OverflowDefenseGame(locale: _locale, playerDataManager: _playerDataManager),
               )
             : Scaffold(
                 body: pages[_selectedIndex],

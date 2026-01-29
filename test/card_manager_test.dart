@@ -10,7 +10,13 @@ import 'package:game_defence/game/overflow_game.dart';
 import 'package:flame/game.dart';
 import 'package:game_defence/config/game_config.dart';
 
+import 'package:game_defence/player/player_data_manager.dart';
+
 // Mock classes
+class MockPlayerDataManager extends PlayerDataManager {
+  MockPlayerDataManager() : super();
+}
+
 class MockGameStats extends GameStats {
   MockGameStats() : super.empty() {
     final file = File('assets/data/cards.json');
@@ -23,7 +29,8 @@ class MockGameStats extends GameStats {
 }
 
 class MockOverflowDefenseGame extends OverflowDefenseGame {
-  MockOverflowDefenseGame() : super(soundEnabled: false) {
+  MockOverflowDefenseGame()
+      : super(soundEnabled: false, playerDataManager: MockPlayerDataManager()) {
     gameStats = MockGameStats();
   }
 }

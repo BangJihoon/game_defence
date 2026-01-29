@@ -1,8 +1,6 @@
-import 'dart:math';
 
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
-import 'package:flame/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/game/overflow_game.dart';
 
@@ -53,7 +51,7 @@ class PoisonCloudComponent extends PositionComponent
     _damageTimer -= dt;
     if (_damageTimer <= 0) {
       _damageTimer = 1.0; // Damage every 1 second
-      final enemies = game.enemySystem.enemies.where(
+      final enemies = game.enemySystem.enemies.toList().where(
         (enemy) => enemy.position.distanceTo(position) < radius,
       );
       for (final enemy in enemies) {

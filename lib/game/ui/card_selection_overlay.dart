@@ -7,9 +7,10 @@ import 'package:game_defence/l10n/app_localizations.dart';
 
 class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final List<CardDefinition> cards;
+  final AppLocalizations l10n; // Add l10n
   late TimerComponent _autoSelectTimer;
 
-  CardSelectionOverlay({required this.cards}) : super(priority: 200);
+  CardSelectionOverlay({required this.cards, required this.l10n}) : super(priority: 200);
 
   @override
   Future<void> onLoad() async {
@@ -19,7 +20,7 @@ class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDef
     
     // Add auto-select timer
     _autoSelectTimer = TimerComponent(
-      period: 3, // 3 seconds
+      period: 10, // 10 seconds
       onTick: () {
         if (cards.isNotEmpty) {
           game.selectCard(cards.first); // Select the first card by default
@@ -39,6 +40,7 @@ class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDef
       add(
         CardDisplay(
           card: cards[i],
+          l10n: l10n, // Pass l10n
           position: Vector2(spacing * (i + 1) + cardWidth * i, size.y / 4),
           size: Vector2(cardWidth, cardHeight),
         ),
@@ -60,9 +62,11 @@ class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDef
 class CardDisplay extends PositionComponent
     with TapCallbacks, HasGameRef<OverflowDefenseGame> {
   final CardDefinition card;
+  final AppLocalizations l10n; // Add l10n
 
   CardDisplay({
     required this.card,
+    required this.l10n, // Require l10n
     required Vector2 position,
     required Vector2 size,
   }) {
@@ -85,7 +89,8 @@ class CardDisplay extends PositionComponent
       paint,
     );
 
-    final appLocalizations = AppLocalizations.of(game.buildContext!)!;
+    // Use passed l10n
+    final appLocalizations = l10n;
 
     // Card Title
     TextPainter(

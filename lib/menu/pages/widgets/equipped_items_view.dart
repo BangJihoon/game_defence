@@ -36,13 +36,14 @@ class EquippedItemsView extends StatelessWidget {
             ...equipmentSlots.asMap().entries.map((entry) {
               final index = entry.key;
               final slot = entry.value;
+              final equippedItem = playerDataManager.playerData.equippedItems[slot.type]; // Get equipped item
               final angle = (2 * math.pi / equipmentSlots.length) * index - (math.pi / 2);
               final x = center.dx + radius * math.cos(angle) - constraints.maxWidth / 2;
               final y = center.dy + radius * math.sin(angle) - constraints.maxHeight / 2;
 
               return Transform.translate(
                 offset: Offset(x, y),
-                child: _buildEquipmentSlot(slot),
+                child: _buildEquipmentSlot(slot, equippedItem, playerDataManager),
               );
             }),
           ],
@@ -51,7 +52,8 @@ class EquippedItemsView extends StatelessWidget {
     );
   }
 
-  Widget _buildEquipmentSlot(EquipmentSlotState slot) {
+  Widget _buildEquipmentSlot(
+      EquipmentSlotState slot, InventoryItem? equippedItem, PlayerDataManager playerDataManager) {
     String name = slot.type.name;
     switch(slot.type) {
       case EquipmentType.hat: name = '모자'; break;
@@ -74,29 +76,64 @@ class EquippedItemsView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Slot Name and Level
-          Text(
-            '$name (Lv. ${slot.level})',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          // Sockets
-          Wrap(
-            spacing: 2,
-            runSpacing: 2,
-            children: List.generate(10, (index) {
-              final bool isUnlocked = index < slot.maxSockets;
-              return Container(
-                width: 15,
-                height: 15,
-                decoration: BoxDecoration(
-                  color: isUnlocked ? Colors.green.withOpacity(0.5) : Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: isUnlocked ? Colors.green : Colors.grey.shade700),
-                ),
-              );
-            }),
-          ),
+          // Item Icon or Slot Name
+          if (equippedItem != null)
+            Icon(equippedItem.icon, color: Colors.amber, size: 40)
+          else
+            Text(
+              name,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          
+          // Item Name or Slot Level
+          if (equippedItem != null)
+            Text(
+              equippedItem.name,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            )
+          else
+            Text(
+              '(Lv. ${slot.level})',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          
+          // Unequip Button or Socket Info
+          if (equippedItem != null)
+            ElevatedButton(
+              onPressed: () {
+                playerDataManager.unequipItem(slot.type);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade800,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                '해제',
+                style: TextStyle(fontSize: 10),
+              ),
+            )
+          else
+            Wrap(
+              spacing: 2,
+              runSpacing: 2,
+              children: List.generate(slot.maxSockets, (index) {
+                final bool isSocketed = slot.sockets[index] != null;
+                return Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: isSocketed ? Colors.purple.withOpacity(0.5) : Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: isSocketed ? Colors.purple : Colors.grey.shade700),
+                  ),
+                );
+              }),
+            ),
         ],
       ),
     );

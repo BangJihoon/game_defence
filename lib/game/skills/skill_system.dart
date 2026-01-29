@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/game/ui/skill_ui.dart';
-import 'dart:ui';
 import '../overflow_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../config/game_config.dart';
@@ -11,6 +10,7 @@ import 'package:game_defence/game/skills/frost_nova.dart';
 import 'package:game_defence/game/skills/poison_cloud.dart';
 import '../enemy.dart';
 import '../../data/skill_data.dart'; // Import SkillDefinition
+import '../../data/player_skill_data.dart'; // Import PlayerSkill
 
 class Skill {
   final OverflowDefenseGame game;
@@ -97,12 +97,14 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
       gameStats; // Still needed for other game stats, not just skill stats
   final Map<String, SkillDefinition>
       skillDefinitions; // New field for loaded skill definitions
+  final List<PlayerSkill> playerSkills; // Add playerSkills here
   late AppLocalizations l10n;
 
   SkillSystem({
     required this.locale,
     required this.gameStats,
     required this.skillDefinitions,
+    required this.playerSkills, // Require playerSkills in constructor
   }) {
     l10n = AppLocalizations(locale);
   }
@@ -110,9 +112,26 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // Initialize skills from skillDefinitions
+    // Initialize skills from skillDefinitions and playerSkills
     skillDefinitions.forEach((skillId, definition) {
-      skills.add(Skill(game: game, skillId: skillId, definition: definition));
+      final playerSkill = playerSkills.firstWhere(
+            (ps) => ps.skillId == skillId,
+        orElse: () => PlayerSkill(skillId: skillId), // Default if not found
+      );
+
+      final skill = Skill(
+        game: game,
+        skillId: skillId,
+        definition: definition,
+        currentLevel: playerSkill.level,
+        currentVariantId: playerSkill.selectedVariantId,
+      );
+      
+      // If a variant is already selected, apply it immediately
+      if (playerSkill.selectedVariantId != null) {
+        skill.applyVariant(playerSkill.selectedVariantId!);
+      }
+      skills.add(skill);
     });
   }
 

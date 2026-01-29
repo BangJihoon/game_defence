@@ -5,16 +5,60 @@ import 'package:game_defence/data/skill_data.dart';
 import 'package:game_defence/l10n/app_localizations.dart';
 import 'package:game_defence/player/player_data_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:game_defence/menu/pages/widgets/skill_variant_selection_dialog.dart';
 
-class SkillPage extends StatelessWidget {
+class SkillPage extends StatefulWidget {
   const SkillPage({super.key});
+
+  @override
+  State<SkillPage> createState() => _SkillPageState();
+}
+
+class _SkillPageState extends State<SkillPage> {
+  late PlayerDataManager _playerDataManager;
+  late AppLocalizations _l10n;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _playerDataManager = Provider.of<PlayerDataManager>(context, listen: false);
+      _l10n = AppLocalizations(Localizations.localeOf(context));
+      _playerDataManager.onVariantSelectionRequired = _showVariantSelectionDialog;
+      _isInitialized = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_isInitialized) {
+      _playerDataManager.onVariantSelectionRequired = null; // Clean up the listener
+    }
+    super.dispose();
+  }
+
+  void _showVariantSelectionDialog(String skillId, List<SkillVariantDefinition> variants) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return ChangeNotifierProvider.value(
+          value: _playerDataManager,
+          child: SkillVariantSelectionDialog(
+            skillId: skillId,
+            variants: variants,
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     // Access the master list of all skills
     final allSkills = GameStats.instance.skillDefinitions.values.toList();
-    final l10n = AppLocalizations(Localizations.localeOf(context));
-
+    // Use _l10n from state
+    
     return Scaffold(
       backgroundColor: const Color(0xFF16213e),
       appBar: AppBar(
@@ -43,7 +87,7 @@ class SkillPage extends StatelessWidget {
                     final playerSkill = playerDataManager.playerData.ownedSkills
                         .firstWhere((ps) => ps.skillId == skillDef.skillId,
                             orElse: () => PlayerSkill(skillId: skillDef.skillId));
-                    return _buildSkillTile(context, skillDef, playerSkill, l10n, playerDataManager);
+                    return _buildSkillTile(context, skillDef, playerSkill, _l10n, playerDataManager);
                   },
                 ),
               ),

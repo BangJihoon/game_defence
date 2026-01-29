@@ -1,9 +1,11 @@
 // lib/player/player_data_manager.dart
 import 'package:flutter/material.dart';
 import 'package:game_defence/config/game_config.dart'; // Import GameStats for skill definitions
-import 'package:game_defence/data/inventory_data.dart';
+import 'package:game_defence/data/inventory_data.dart'; // Also imports EquipmentType
 import 'package:game_defence/data/character_data.dart';
 import 'package:game_defence/data/player_skill_data.dart';
+import 'package:game_defence/data/skill_data.dart'; // Import for SkillVariantDefinition
+import 'package:game_defence/data/shop_data.dart'; // Import for ShopItem
 
 // --- Constants ---
 const int cardsNeededToUnlock = 50;
@@ -56,6 +58,8 @@ class PlayerData {
   List<PlayerCharacter> ownedCharacters;
   List<PlayerSkill> ownedSkills;
   int totalAttackPower;
+  Map<EquipmentType, InventoryItem?> equippedItems; // New field for equipped items
+  String? activeCharacterId; // New field for currently active character
 
   PlayerData({
     this.playerLevel = 1,
@@ -66,6 +70,8 @@ class PlayerData {
     required this.ownedCharacters,
     required this.ownedSkills,
     this.totalAttackPower = 0,
+    required this.equippedItems,
+    this.activeCharacterId, // Add activeCharacterId to constructor
   });
 }
 
@@ -73,11 +79,108 @@ class PlayerData {
 /// For now, it initializes a "test account" with mock data.
 class PlayerDataManager extends ChangeNotifier {
   late PlayerData _playerData;
+  late List<ShopItem> shopItems; // Add shopItems list
 
   PlayerData get playerData => _playerData;
 
+  // Callback for when a skill rank-up requires variant selection
+  Function(String skillId, List<SkillVariantDefinition> variants)? onVariantSelectionRequired;
+
   PlayerDataManager() {
     _loadTestAccount();
+    _initializeShop(); // Initialize shop items
+  }
+
+  void _initializeShop() {
+    shopItems = [
+      const ShopItem(
+        id: 'hercules_card_1',
+        name: '헤라클레스 카드',
+        description: '헤라클레스 캐릭터를 활성화하는 데 필요한 카드입니다.',
+        icon: Icons.person,
+        type: ShopItemType.characterCard,
+        targetId: 'hercules',
+        amount: 1,
+        cost: {'gold': 100},
+      ),
+      const ShopItem(
+        id: 'zeus_card_1',
+        name: '제우스 카드',
+        description: '제우스 캐릭터를 활성화하는 데 필요한 카드입니다.',
+        icon: Icons.person,
+        type: ShopItemType.characterCard,
+        targetId: 'zeus',
+        amount: 1,
+        cost: {'gold': 500},
+      ),
+      const ShopItem(
+        id: 'scroll_atk_pack',
+        name: '공격의 주문서 묶음',
+        description: '공격의 주문서 5개를 획득합니다.',
+        icon: Icons.article,
+        type: ShopItemType.scroll,
+        targetId: 'scroll_atk',
+        amount: 5,
+        cost: {'gold': 200},
+      ),
+      const ShopItem(
+        id: 'gold_1000',
+        name: '1000 골드',
+        description: '1000 골드를 즉시 획득합니다.',
+        icon: Icons.attach_money,
+        type: ShopItemType.currency,
+        targetId: 'gold',
+        amount: 1000,
+        cost: {'gems': 10},
+      ),
+    ];
+  }
+
+  bool canAfford(ShopItem item) {
+    for (var entry in item.cost.entries) {
+      if ((_playerData.currencies[entry.key] ?? 0) < entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void purchaseItem(ShopItem item) {
+    if (!canAfford(item)) {
+      debugPrint("Not enough currency to purchase ${item.name}.");
+      return;
+    }
+
+    // Deduct cost
+    item.cost.forEach((currency, amount) {
+      _playerData.currencies[currency] = (_playerData.currencies[currency] ?? 0) - amount;
+    });
+
+    // Add item
+    switch (item.type) {
+      case ShopItemType.characterCard:
+        final playerChar = _playerData.ownedCharacters.firstWhere((c) => c.characterId == item.targetId);
+        playerChar.cardCount += item.amount;
+        debugPrint("Purchased ${item.amount} of ${item.name}. New count: ${playerChar.cardCount}");
+        break;
+      case ShopItemType.scroll:
+        for (int i = 0; i < item.amount; i++) {
+          _playerData.inventory.add(InventoryItem(
+            id: '${item.targetId}_${DateTime.now().millisecondsSinceEpoch}_$i',
+            name: item.name,
+            description: item.description,
+            icon: item.icon,
+          ));
+        }
+        debugPrint("Purchased ${item.amount} of ${item.name}.");
+        break;
+      case ShopItemType.currency:
+        _playerData.currencies[item.targetId] = (_playerData.currencies[item.targetId] ?? 0) + item.amount;
+        debugPrint("Purchased ${item.amount} of ${item.targetId}.");
+        break;
+    }
+
+    notifyListeners();
   }
 
   void _loadTestAccount() {
@@ -158,6 +261,8 @@ class PlayerDataManager extends ChangeNotifier {
       ownedCharacters: ownedChars,
       ownedSkills: ownedSkills,
       totalAttackPower: 10, // Base attack power
+      equippedItems: {}, // Initialize as empty map
+      activeCharacterId: ownedChars.firstWhere((char) => char.isUnlocked).characterId, // Set initial active character
     );
 
     // Notify listeners that data has been loaded
@@ -287,13 +392,143 @@ class PlayerDataManager extends ChangeNotifier {
         playerSkill.rank++;
         playerSkill.level = 1; // Reset level after rank up
         debugPrint("Ranked up skill $skillId to rank ${playerSkill.rank}. Level reset to 1.");
-        // TODO: Apply variant logic here if a variant should be chosen/applied on rank up
+        
+        if (skillDef.variants.isNotEmpty) {
+          debugPrint("Skill $skillId has variants. Player needs to choose one.");
+          onVariantSelectionRequired?.call(skillId, skillDef.variants); // Trigger callback
+        }
         notifyListeners();
       } else {
         debugPrint("Not enough gems to rank up $skillId. Needs $cost, has ${_playerData.currencies['gems']}.");
       }
     } catch (e) {
       debugPrint("Error ranking up skill $skillId: $e");
+    }
+  }
+
+  void chooseSkillVariant(String skillId, String variantId) {
+    try {
+      final playerSkill = _playerData.ownedSkills.firstWhere((s) => s.skillId == skillId);
+      final skillDef = GameStats.instance.skillDefinitions[skillId];
+
+      if (skillDef == null) {
+        debugPrint("Skill definition for $skillId not found.");
+        return;
+      }
+
+      final variantExists = skillDef.variants.any((v) => v.variantId == variantId);
+      if (!variantExists) {
+        debugPrint("Variant $variantId not found for skill $skillId.");
+        return;
+      }
+
+      playerSkill.selectedVariantId = variantId;
+      debugPrint("Chosen variant $variantId for skill $skillId.");
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error choosing variant $variantId for skill $skillId: $e");
+    }
+  }
+
+  void setActiveCharacter(String characterId) {
+    try {
+      final character = _playerData.ownedCharacters.firstWhere((c) => c.characterId == characterId);
+      if (!character.isUnlocked) {
+        debugPrint("Character $characterId is not unlocked and cannot be set as active.");
+        return;
+      }
+      _playerData.activeCharacterId = characterId;
+      debugPrint("Active character set to $characterId.");
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error setting active character $characterId: $e");
+    }
+  }
+
+  void equipItem(String itemId) {
+    try {
+      final itemIndex = _playerData.inventory.indexWhere((item) => item.id == itemId);
+      if (itemIndex == -1) {
+        debugPrint("Item with ID $itemId not found in inventory.");
+        return;
+      }
+
+      final itemToEquip = _playerData.inventory[itemIndex];
+
+      if (itemToEquip.equipmentType == null) {
+        debugPrint("Item $itemId cannot be equipped as it is not an equipment type.");
+        return;
+      }
+
+      final equipmentType = itemToEquip.equipmentType!;
+
+      // If there's already an item equipped in this slot, unequip it first
+      if (_playerData.equippedItems.containsKey(equipmentType) &&
+          _playerData.equippedItems[equipmentType] != null) {
+        final currentlyEquippedItem = _playerData.equippedItems[equipmentType]!;
+        _playerData.inventory.add(currentlyEquippedItem); // Move to inventory
+        debugPrint("Unequipped ${currentlyEquippedItem.name} from ${equipmentType.name} slot.");
+      }
+
+      // Equip the new item
+      _playerData.equippedItems[equipmentType] = itemToEquip;
+      _playerData.inventory.removeAt(itemIndex); // Remove from inventory
+      debugPrint("Equipped ${itemToEquip.name} into ${equipmentType.name} slot.");
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error equipping item $itemId: $e");
+    }
+  }
+
+  void unequipItem(EquipmentType slotType) {
+    try {
+      if (!_playerData.equippedItems.containsKey(slotType) ||
+          _playerData.equippedItems[slotType] == null) {
+        debugPrint("No item equipped in ${slotType.name} slot to unequip.");
+        return;
+      }
+
+      final itemToUnequip = _playerData.equippedItems[slotType]!;
+      _playerData.inventory.add(itemToUnequip); // Move back to inventory
+      _playerData.equippedItems[slotType] = null; // Clear the slot
+      debugPrint("Unequipped ${itemToUnequip.name} from ${slotType.name} slot and moved to inventory.");
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error unequipping item from ${slotType.name} slot: $e");
+    }
+  }
+
+  void useScroll(String itemId, EquipmentType targetSlotType) {
+    try {
+      final itemIndex = _playerData.inventory.indexWhere((item) => item.id == itemId);
+      if (itemIndex == -1) {
+        debugPrint("Scroll with ID $itemId not found in inventory.");
+        return;
+      }
+
+      final scrollItem = _playerData.inventory[itemIndex];
+
+      // Assuming scrolls do not have an equipmentType, or have a specific ID pattern
+      // For now, we'll just check if it's not equippable
+      if (scrollItem.equipmentType != null) {
+        debugPrint("Item $itemId is an equippable item, not a scroll.");
+        return;
+      }
+
+      final targetSlot = _playerData.equipmentSlots.firstWhere(
+            (slot) => slot.type == targetSlotType,
+        orElse: () => throw Exception("Target equipment slot $targetSlotType not found."),
+      );
+
+      // Apply scroll effect: increase slot level
+      targetSlot.level++;
+      debugPrint("Applied scroll ${scrollItem.name} to ${targetSlotType.name} slot. New level: ${targetSlot.level}");
+
+      // Remove scroll from inventory
+      _playerData.inventory.removeAt(itemIndex);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error using scroll $itemId on slot $targetSlotType: $e");
     }
   }
 }
