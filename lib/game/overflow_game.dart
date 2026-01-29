@@ -22,7 +22,10 @@ import 'ui/card_selection_overlay.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'modifier_manager.dart';
 import 'package:game_defence/game/ui/attack_power_display.dart';
-import 'wave_manager.dart'; // Import ModifierManager
+import 'wave_manager.dart';
+import 'package:game_defence/game/events/event_bus.dart'; // Import EventBus
+import 'package:game_defence/game/events/game_events.dart'; // Import GameEvent
+import 'package:game_defence/game/game_state_manager.dart'; // Import GameStateManager
 
 class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late PlayerBase playerBase;
@@ -37,21 +40,20 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late DrawCardButton drawCardButton;
   late ModifierManager modifierManager; // Add ModifierManager instance
   late AttackPowerDisplay attackPowerDisplay;
+  late EventBus eventBus; // Declare EventBus
+  late GameStateManager gameStateManager; // Declare GameStateManager
 
   final Random _random = Random();
   final Locale locale;
   late GameStats gameStats;
 
-  bool _isGameOver = false;
-  int _score = 0;
-  int _cardPoints = 50;
-  int _cardDrawCost = 10;
   bool _soundEnabled;
 
-  bool get isGameOver => _isGameOver;
-  int get score => _score;
-  int get cardPoints => _cardPoints;
-  int get cardDrawCost => _cardDrawCost;
+  bool get isGameOver => gameStateManager.isGameOver;
+  int get score => gameStateManager.score;
+  int get cardPoints => gameStateManager.cardPoints;
+  int get cardDrawCost => gameStateManager.cardDrawCost;
+  int get rerolls => gameStateManager.rerolls;
   Random get random => _random;
 
   OverflowDefenseGame({
@@ -63,7 +65,9 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    gameStats = await GameStats.load();
+    gameStats = GameStats.instance; // Use singleton instance
+    eventBus = EventBus(); // Initialize EventBus
+    gameStateManager = GameStateManager(eventBus: eventBus); // Initialize GameStateManager
 
     if (_soundEnabled) {
       _initializeSounds();
@@ -80,7 +84,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     enemySystem = EnemySystem(
       playerBase,
       gameStats.enemyDefinitions,
-      onEnemyKilled: _onEnemyKilled,
+      eventBus: eventBus, // Pass eventBus
     );
 
     tapInputLayer = TapInputLayer();
@@ -99,7 +103,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
     waveDisplay = WaveDisplay(locale: locale);
 
-    cardManager = CardManager();
+    cardManager = CardManager(eventBus: eventBus);
     drawCardButton = DrawCardButton();
     attackPowerDisplay = AttackPowerDisplay();
 
@@ -113,19 +117,111 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       modifierManager,
       scoreDisplay,
       waveDisplay,
-      skillUI,
+      cardManager, // CardManager is a component
       drawCardButton,
       attackPowerDisplay,
+      gameStateManager, // Add GameStateManager to component tree
     ]);
+
+    // Listen for events
+    eventBus.on<CoinGainAttemptedEvent>((event) {
+      if (modifierManager.isCoinGainDisabled) {
+        print("Coin gain disabled. Skipping score update.");
+        return;
+      }
+      gameStateManager.addScore(event.scoreValue);
+      gameStateManager.addCardPoints(1);
+      playEnemyDeathSound();
+    });
+
+    eventBus.on<ScoreChangedEvent>((event) {
+      scoreDisplay.updateScore(event.newScore);
+    });
+
+    eventBus.on<GameOverChangedEvent>((event) {
+      if (event.isGameOver) {
+        _gameOver();
+      }
+    });
+
+    eventBus.on<GameStateResetEvent>((event) {
+      _restartGame();
+    });
+
+    eventBus.on<StatModifierAppliedEvent>((event) {
+      switch (event.target) {
+        case 'global':
+          modifierManager.applyGlobalModifier(event.stat, event.value);
+          break;
+        case 'wall':
+          modifierManager.applyWallModifier(event.stat, event.value);
+          break;
+        case 'skill':
+          if (event.skillId != null) {
+            modifierManager.applySkillModifier(
+                event.skillId!, event.stat, event.value);
+          }
+          break;
+        default:
+          debugPrint("Unhandled stat modifier target in listener: ${event.target}");
+      }
+    });
+
+    eventBus.on<ShieldGainedEvent>((event) {
+      playerBase.addShield(playerBase.maxHp * event.amount);
+    });
+
+    eventBus.on<WallHealedEvent>((event) {
+      playerBase.hp =
+          (playerBase.hp + (playerBase.maxHp * event.amount))
+              .clamp(0, playerBase.maxHp)
+              .toDouble();
+      debugPrint("Healed wall for ${event.amount * 100}%");
+    });
+
+    eventBus.on<SkillVariantAppliedEvent>((event) {
+      skillSystem.skills
+          .firstWhere((skill) => skill.skillId == event.skillId)
+          .applyVariant(event.variantId);
+      debugPrint("Applying Skill Variant: ${event.skillId} with variant ${event.variantId}");
+    });
+
+    eventBus.on<SkillSlotUnlockedEvent>((event) {
+      skillSystem.addRandomSkill();
+      debugPrint("New skill slot unlocked!");
+      // Potentially update UI here
+    });
+
+    eventBus.on<CoinGainDisabledEvent>((event) {
+      modifierManager.disableCoinGain();
+      debugPrint("Coin gain disabled!");
+      // Potentially update UI here
+    });
+
+    eventBus.on<RiskAppliedEvent>((event) {
+      debugPrint("Risk applied: ${event.riskDetails}");
+      // Add a screen shake effect
+      camera.viewfinder.add(
+        SequenceEffect([
+          MoveByEffect(Vector2(5, 0), EffectController(duration: 0.05)),
+          MoveByEffect(Vector2(-10, 0), EffectController(duration: 0.05)),
+          MoveByEffect(Vector2(5, 5), EffectController(duration: 0.05)),
+          MoveByEffect(Vector2(0, -5), EffectController(duration: 0.05)),
+        ]),
+      );
+      // Play a curse sound
+      playCurseSound();
+    });
   }
 
   void showCardSelection() {
     if (paused) return; // Don't show if already paused
 
-    if (_cardPoints >= _cardDrawCost) {
+    if (cardPoints >= cardDrawCost) {
       print('Card draw clicked');
-      _cardPoints -= _cardDrawCost;
-      _cardDrawCost = (_cardDrawCost * 1.1).round();
+      playCardDrawSound(); // Play card draw sound
+      gameStateManager.deductCardPoints(cardDrawCost);
+      gameStateManager.updateCardDrawCost((cardDrawCost * 1.1).round());
       paused = true;
       final hand = cardManager.drawHand();
       print('Drawn cards: ${hand.map((c) => c.cardId).join(', ')}');
@@ -141,6 +237,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
   void selectCard(CardDefinition card) {
     print('Selected card: ${card.cardId}');
+    playCardSelectSound(); // Play card select sound
     cardManager.applyCard(card);
 
     // Remove the overlay
@@ -151,48 +248,32 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   @override
   void update(double dt) {
     super.update(dt);
-    // print("Game update loop active."); // For debugging
 
-    if (_isGameOver) return;
+    if (isGameOver) return;
 
-    if (playerBase.hp <= 0 && !_isGameOver) {
-      _gameOver();
+    if (playerBase.hp <= 0 && !isGameOver) {
+      gameStateManager.setGameOver(true);
     }
-  }
-
-  void _onEnemyKilled(int score) {
-    if (modifierManager.isCoinGainDisabled) {
-      print("Coin gain disabled. Skipping score update.");
-      return;
-    }
-
-    _score += score;
-    _cardPoints += 1;
-    scoreDisplay.updateScore(_score);
-    playEnemyDeathSound();
   }
 
   void _onBaseDestroyed() {
-    if (!_isGameOver) {
-      _gameOver();
+    if (!isGameOver) {
+      gameStateManager.setGameOver(true);
     }
   }
 
   void _gameOver() {
-    _isGameOver = true;
     playGameOverSound();
     add(
-      GameOverOverlay(score: _score, onRestart: _restartGame, locale: locale),
+      GameOverOverlay(score: score, onRestart: () => gameStateManager.resetGameState(), locale: locale),
     );
   }
 
   void _restartGame() {
-    _isGameOver = false;
-    _score = 0;
     removeAll(children.whereType<GameOverOverlay>());
     playerBase.hp = playerBase.maxHp.toDouble();
     enemySystem.clearEnemies();
-    scoreDisplay.updateScore(0);
+    // scoreDisplay.updateScore(0); // This is now handled by ScoreChangedEvent
     waveManager.reset();
   }
 
@@ -293,4 +374,47 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       // Ignore
     }
   }
+
+  void playCurseSound() {
+    if (!_soundEnabled) return;
+
+    // TODO: Add a 'curse.mp3' sound file and uncomment below
+    // try {
+    //   FlameAudio.play('curse.mp3', volume: 0.4).ignore();
+    // } catch (e) {
+    //   // Ignore
+    // }
+  }
+
+  void playCardDrawSound() {
+    if (!_soundEnabled) return;
+
+    // TODO: Add a 'card_draw.mp3' sound file and uncomment below
+    // try {
+    //   FlameAudio.play('card_draw.mp3', volume: 0.3).ignore();
+    // } catch (e) {
+    //   // Ignore
+    // }
+  }
+
+  void playCardSelectSound() {
+    if (!_soundEnabled) return;
+
+    // TODO: Add a 'card_select.mp3' sound file and uncomment below
+    // try {
+    //   FlameAudio.play('card_select.mp3', volume: 0.3).ignore();
+    // } catch (e) {
+    //   // Ignore
+    // }
+  }
+
+  @override
+  void onRemove() {
+    eventBus.dispose(); // Dispose the event bus
+    super.onRemove();
+  }
 }
+
+
+
+

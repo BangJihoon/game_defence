@@ -3,18 +3,19 @@ import 'enemy.dart';
 import 'player_base.dart';
 import 'overflow_game.dart';
 import '../data/enemy_data.dart'; // Import the new EnemyDefinition
+import 'package:game_defence/game/events/event_bus.dart'; // Import EventBus
+import 'package:game_defence/game/events/game_events.dart'; // Import GameEvent
 
 class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   final PlayerBase base;
   final List<Enemy> enemies = [];
-  final void Function(int score) onEnemyKilled;
-  final Map<String, EnemyDefinition>
-  enemyDefinitions; // The new map of enemy definitions
+  final Map<String, EnemyDefinition> enemyDefinitions;
+  final EventBus _eventBus; // Add EventBus instance
 
-  EnemySystem(this.base, this.enemyDefinitions, {required this.onEnemyKilled});
+  EnemySystem(this.base, this.enemyDefinitions, {required EventBus eventBus})
+      : _eventBus = eventBus; // Initialize EventBus
 
   void spawnEnemy(Vector2 position, String enemyId) {
-    // Changed EnemyType to String enemyId
     final enemyDefinition = enemyDefinitions[enemyId];
     if (enemyDefinition == null) {
       print('Error: Could not find definition for enemy ID $enemyId');
@@ -24,7 +25,7 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
     late Enemy enemy;
     enemy = Enemy(
       base: base,
-      definition: enemyDefinition, // Pass the new definition
+      definition: enemyDefinition,
       onDestroyed: () => _onEnemyDestroyed(enemy),
     )..position = position;
 
@@ -32,16 +33,13 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
     add(enemy);
   }
 
-  // _getStatsForType method is no longer needed as we use enemyDefinitions directly
-  // EnemyType enum is also no longer needed, will be removed from enemy.dart
-
   void _onEnemyDestroyed(Enemy enemy) {
     if (enemies.contains(enemy)) {
       final wasKilledByPlayer = enemy.hp <= 0;
       enemies.remove(enemy);
 
       if (wasKilledByPlayer) {
-        onEnemyKilled(enemy.score);
+        _eventBus.fire(EnemyKilledEvent(enemy.score)); // Fire event
       }
     }
   }
@@ -76,3 +74,4 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
     enemies.clear();
   }
 }
+

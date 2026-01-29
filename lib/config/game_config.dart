@@ -6,13 +6,21 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 class GameStats {
+  static GameStats? _instance;
+  static GameStats get instance {
+    if (_instance == null) {
+      throw Exception("GameStats has not been initialized. Call GameStats.initialize() first.");
+    }
+    return _instance!;
+  }
+
   // Game base stats
   final int baseHP;
   final double explosionRadius;
   final int explosionDamage;
 
   // Wave definitions
-  final List<WaveDefinition> waveDefinitions; // Changed from List<Wave> waves;
+  final List<WaveDefinition> waveDefinitions;
 
   // Enemy definitions
   final Map<String, EnemyDefinition> enemyDefinitions;
@@ -28,43 +36,31 @@ class GameStats {
   final int skillButtonSize;
   final int skillButtonSpacing;
 
-  GameStats.empty()
-      : baseHP = 0,
-        explosionRadius = 0,
-        explosionDamage = 0,
-        waveDefinitions = [],
-        enemyDefinitions = {},
-        skillDefinitions = {},
-        cards = [],
-        baseSize = UiSizeStats(width: 0, height: 0),
-        skillButtonSize = 0,
-        skillButtonSpacing = 0;
-
-  GameStats({
+  GameStats._internal({
     required this.baseHP,
     required this.explosionRadius,
     required this.explosionDamage,
-    required this.waveDefinitions, // Changed
+    required this.waveDefinitions,
     required this.enemyDefinitions,
-    required this.skillDefinitions, // Changed
+    required this.skillDefinitions,
     required this.cards,
     required this.baseSize,
     required this.skillButtonSize,
     required this.skillButtonSpacing,
   });
 
-  factory GameStats.fromJson(
+  factory GameStats._fromJson(
     Map<String, dynamic> json,
     List<CardDefinition> loadedCards,
     Map<String, EnemyDefinition> loadedEnemyDefinitions,
     Map<String, SkillDefinition> loadedSkillDefinitions,
     List<WaveDefinition> loadedWaveDefinitions,
   ) {
-    return GameStats(
+    return GameStats._internal(
       baseHP: json['game']['baseHP'],
       explosionRadius: json['game']['explosionRadius'].toDouble(),
       explosionDamage: json['game']['explosionDamage'],
-      waveDefinitions: loadedWaveDefinitions, // Use new wave definitions
+      waveDefinitions: loadedWaveDefinitions,
       enemyDefinitions: loadedEnemyDefinitions,
       skillDefinitions: loadedSkillDefinitions,
       cards: loadedCards,
@@ -74,7 +70,15 @@ class GameStats {
     );
   }
 
-  static Future<GameStats> load() async {
+  static Future<void> initialize() async {
+    if (_instance != null) {
+      // Already initialized
+      return;
+    }
+    _instance = await _load();
+  }
+
+  static Future<GameStats> _load() async {
     final gameStatsJsonString = await rootBundle.loadString(
       'assets/config/game_stats.json',
     );
@@ -114,7 +118,7 @@ class GameStats {
         .map((json) => WaveDefinition.fromJson(json))
         .toList();
 
-    return GameStats.fromJson(
+    return GameStats._fromJson(
       gameStatsJsonMap,
       loadedCards,
       loadedEnemyDefinitions,

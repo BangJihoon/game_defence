@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:flame/effects.dart'; // Import effects
 
 import 'overflow_game.dart';
 
@@ -82,6 +83,7 @@ class PlayerBase extends PositionComponent
     if (hp < 0) hp = 0;
 
     onHit?.call();
+    shake(); // Call shake when hit
 
     if (hp <= 0) {
       onDestroyed?.call();
@@ -91,4 +93,16 @@ class PlayerBase extends PositionComponent
   void addShield(double amount) {
     shield += amount;
   }
+
+  void shake() {
+    add(
+      SequenceEffect([
+        MoveByEffect(Vector2(5, 0), EffectController(duration: 0.05)),
+        MoveByEffect(Vector2(-10, 0), EffectController(duration: 0.05)),
+        MoveByEffect(Vector2(5, 0), EffectController(duration: 0.05)),
+        MoveByEffect(Vector2(0, 0), EffectController(duration: 0.05)), // Return to original position
+      ]),
+    );
+  }
 }
+
