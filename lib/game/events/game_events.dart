@@ -52,9 +52,9 @@ class RiskAppliedEvent extends GameEvent {
 }
 
 // New events for GameStateManager state changes
-class ScoreChangedEvent extends GameEvent {
-  final int newScore;
-  ScoreChangedEvent(this.newScore);
+class GameScoreChangedEvent extends GameEvent {
+  final int newGameScore;
+  GameScoreChangedEvent(this.newGameScore);
 }
 
 class CardPointsChangedEvent extends GameEvent {
@@ -87,4 +87,9 @@ class EnemyKilledHandledEvent extends GameEvent {
 class CoinGainAttemptedEvent extends GameEvent {
   final int scoreValue;
   CoinGainAttemptedEvent(this.scoreValue);
+}
+
+class WaveClearedEvent extends GameEvent {
+  final int waveNumber;
+  WaveClearedEvent(this.waveNumber);
 }

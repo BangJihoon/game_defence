@@ -4,7 +4,12 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flame/components.dart'; // Added
 import 'package:flame/effects.dart'
-    show SequenceEffect, OpacityEffect, EffectController, RemoveEffect;
+    show
+        SequenceEffect,
+        OpacityEffect,
+        EffectController,
+        RemoveEffect,
+        MoveByEffect;
 
 import 'player_base.dart';
 import 'enemy_system.dart';
@@ -14,6 +19,7 @@ import 'ui/score_display.dart';
 import 'ui/skill_ui.dart';
 import 'skills/skill_system.dart';
 import 'background.dart';
+import '../../l10n/app_localizations.dart';
 import '../../config/game_config.dart';
 import 'ui/wave_display.dart';
 import 'card_manager.dart';
@@ -23,6 +29,8 @@ import 'package:game_defence/data/card_data.dart';
 import 'modifier_manager.dart';
 import 'package:game_defence/game/ui/attack_power_display.dart';
 import 'wave_manager.dart';
+import 'package:game_defence/data/character_data.dart';
+import 'package:game_defence/player/player_data_manager.dart';
 import 'package:game_defence/game/events/event_bus.dart'; // Import EventBus
 import 'package:game_defence/game/events/game_events.dart'; // Import GameEvent
 import 'package:game_defence/game/game_state_manager.dart'; // Import GameStateManager
@@ -40,17 +48,21 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late DrawCardButton drawCardButton;
   late ModifierManager modifierManager; // Add ModifierManager instance
   late AttackPowerDisplay attackPowerDisplay;
-  late EventBus eventBus; // Declare EventBus
   late GameStateManager gameStateManager; // Declare GameStateManager
+  late TimerComponent _cardSelectionTimer;
+  late AppLocalizations l10n;
 
   final Random _random = Random();
   final Locale locale;
   late GameStats gameStats;
+  final VoidCallback? onExit;
+  final PlayerDataManager playerDataManager;
+  late final EventBus eventBus;
 
   bool _soundEnabled;
 
   bool get isGameOver => gameStateManager.isGameOver;
-  int get score => gameStateManager.score;
+  int get gameScore => gameStateManager.gameScore;
   int get cardPoints => gameStateManager.cardPoints;
   int get cardDrawCost => gameStateManager.cardDrawCost;
   int get rerolls => gameStateManager.rerolls;
@@ -59,15 +71,20 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   OverflowDefenseGame({
     this.locale = const Locale('ko'),
     bool soundEnabled = true,
+    this.onExit,
+    required this.playerDataManager,
+    required this.eventBus,
   }) : _soundEnabled = soundEnabled;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
+    l10n = AppLocalizations(locale);
     gameStats = GameStats.instance; // Use singleton instance
-    eventBus = EventBus(); // Initialize EventBus
-    gameStateManager = GameStateManager(eventBus: eventBus); // Initialize GameStateManager
+    gameStateManager = GameStateManager(
+      eventBus: eventBus,
+    ); // Initialize GameStateManager
 
     if (_soundEnabled) {
       _initializeSounds();
@@ -75,8 +92,18 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
     modifierManager = ModifierManager(); // Initialize ModifierManager
 
+    // Get active character and apply stats
+    final activeCharacterId = playerDataManager.playerData.activeCharacterId;
+    final activeCharacter = masterCharacterList.firstWhere(
+      (c) => c.id == activeCharacterId,
+    );
+    final totalHpBonus = 0; // playerDataManager.playerData.totalHpBonus;
+
     playerBase =
-        PlayerBase(hp: gameStats.baseHP, height: gameStats.baseSize.height)
+        PlayerBase(
+            hp: activeCharacter.baseHp + totalHpBonus,
+            height: gameStats.baseSize.height,
+          )
           ..position = Vector2(0, size.y - gameStats.baseSize.height)
           ..onDestroyed = _onBaseDestroyed
           ..onHit = playBaseHitSound;
@@ -91,10 +118,12 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
     scoreDisplay = ScoreDisplay(locale: locale);
 
+    final totalAttackPower = playerDataManager.playerData.totalAttackPower;
     skillSystem = SkillSystem(
       locale: locale,
       gameStats: gameStats,
       skillDefinitions: gameStats.skillDefinitions,
+      baseAttackPower: activeCharacter.baseAttack + totalAttackPower,
     );
 
     skillUI = SkillUI(skillSystem, locale: locale, gameStats: gameStats);
@@ -129,13 +158,13 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
         print("Coin gain disabled. Skipping score update.");
         return;
       }
-      gameStateManager.addScore(event.scoreValue);
+      gameStateManager.addGameScore(event.scoreValue);
       gameStateManager.addCardPoints(1);
       playEnemyDeathSound();
     });
 
-    eventBus.on<ScoreChangedEvent>((event) {
-      scoreDisplay.updateScore(event.newScore);
+    eventBus.on<GameScoreChangedEvent>((event) {
+      scoreDisplay.updateScore(event.newGameScore);
     });
 
     eventBus.on<GameOverChangedEvent>((event) {
@@ -159,11 +188,16 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
         case 'skill':
           if (event.skillId != null) {
             modifierManager.applySkillModifier(
-                event.skillId!, event.stat, event.value);
+              event.skillId!,
+              event.stat,
+              event.value,
+            );
           }
           break;
         default:
-          debugPrint("Unhandled stat modifier target in listener: ${event.target}");
+          debugPrint(
+            "Unhandled stat modifier target in listener: ${event.target}",
+          );
       }
     });
 
@@ -172,10 +206,9 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     });
 
     eventBus.on<WallHealedEvent>((event) {
-      playerBase.hp =
-          (playerBase.hp + (playerBase.maxHp * event.amount))
-              .clamp(0, playerBase.maxHp)
-              .toDouble();
+      playerBase.hp = (playerBase.hp + (playerBase.maxHp * event.amount))
+          .clamp(0, playerBase.maxHp)
+          .toDouble();
       debugPrint("Healed wall for ${event.amount * 100}%");
     });
 
@@ -183,7 +216,9 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       skillSystem.skills
           .firstWhere((skill) => skill.skillId == event.skillId)
           .applyVariant(event.variantId);
-      debugPrint("Applying Skill Variant: ${event.skillId} with variant ${event.variantId}");
+      debugPrint(
+        "Applying Skill Variant: ${event.skillId} with variant ${event.variantId}",
+      );
     });
 
     eventBus.on<SkillSlotUnlockedEvent>((event) {
@@ -212,37 +247,97 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       // Play a curse sound
       playCurseSound();
     });
+
+    eventBus.on<WaveClearedEvent>((event) {
+      debugPrint("Wave ${event.waveNumber} cleared! Showing card selection.");
+      _showAutomaticCardSelection();
+    });
+
+    _cardSelectionTimer = TimerComponent(
+      period: 30.0,
+      repeat: true,
+      onTick: _showAutomaticCardSelection,
+    );
+    add(_cardSelectionTimer);
+  }
+
+  void _showAutomaticCardSelection() {
+    if (paused) return; // Don't show if already paused or showing
+
+    playCardDrawSound();
+    paused = true;
+    final hand = cardManager.drawHand();
+    print('Drawn cards automatically: ${hand.map((c) => c.cardId).join(', ')}');
+    if (hand.isNotEmpty) {
+      add(CardSelectionOverlay(cards: hand, l10n: l10n));
+    } else {
+      paused = false; // Resume if no cards to show
+    }
   }
 
   void showCardSelection() {
-    if (paused) return; // Don't show if already paused
-
-    if (cardPoints >= cardDrawCost) {
-      print('Card draw clicked');
-      playCardDrawSound(); // Play card draw sound
-      gameStateManager.deductCardPoints(cardDrawCost);
-      gameStateManager.updateCardDrawCost((cardDrawCost * 1.1).round());
-      paused = true;
-      final hand = cardManager.drawHand();
-      print('Drawn cards: ${hand.map((c) => c.cardId).join(', ')}');
-      if (hand.isNotEmpty) {
-        add(CardSelectionOverlay(cards: hand));
-      } else {
-        paused = false; // Resume if no cards to show
+    debugPrint("--- Attempting to show card selection ---");
+    try {
+      if (paused) {
+        debugPrint("[CARD DRAW] FAILED: Game is already paused.");
+        return;
       }
-    } else {
-      showMessage("카드 포인트 부족!");
+
+      debugPrint(
+        "[CARD DRAW] Current card points: $cardPoints, Cost: $cardDrawCost",
+      );
+
+      if (cardPoints >= cardDrawCost) {
+        debugPrint("[CARD DRAW] SUCCESS: Sufficient card points. Proceeding.");
+        playCardDrawSound();
+        gameStateManager.deductCardPoints(cardDrawCost);
+        gameStateManager.updateCardDrawCost((cardDrawCost * 1.1).round());
+        paused = true;
+        final hand = cardManager.drawHand();
+        debugPrint(
+          '[CARD DRAW] Drawn cards: ${hand.map((c) => c.cardId).join(', ')}',
+        );
+
+        if (hand.isNotEmpty) {
+          debugPrint("[CARD DRAW] Adding CardSelectionOverlay to the game.");
+          add(CardSelectionOverlay(cards: hand, l10n: l10n));
+        } else {
+          debugPrint("[CARD DRAW] WARNING: Drew an empty hand, resuming game.");
+          paused = false;
+        }
+      } else {
+        debugPrint("[CARD DRAW] FAILED: Insufficient card points.");
+        showMessage("카드 포인트 부족!");
+      }
+    } catch (e, st) {
+      debugPrint("[CARD DRAW] CRITICAL ERROR in showCardSelection: $e\n$st");
+      paused = false; // Attempt to resume game on error
     }
   }
 
   void selectCard(CardDefinition card) {
-    print('Selected card: ${card.cardId}');
-    playCardSelectSound(); // Play card select sound
-    cardManager.applyCard(card);
+    debugPrint("--- Attempting to select card ---");
+    try {
+      debugPrint("[CARD SELECT] Selected card ID: ${card.cardId}");
+      playCardSelectSound();
+      cardManager.applyCard(card);
 
-    // Remove the overlay
-    remove(children.whereType<CardSelectionOverlay>().first);
-    paused = false;
+      final overlay = children.whereType<CardSelectionOverlay>().firstOrNull;
+      if (overlay != null) {
+        debugPrint("[CARD SELECT] Removing CardSelectionOverlay.");
+        remove(overlay);
+      } else {
+        debugPrint(
+          "[CARD SELECT] WARNING: CardSelectionOverlay not found to remove.",
+        );
+      }
+
+      paused = false;
+      debugPrint("[CARD SELECT] Game resumed.");
+    } catch (e, st) {
+      debugPrint("[CARD SELECT] CRITICAL ERROR in selectCard: $e\n$st");
+      paused = false; // Attempt to resume game on error
+    }
   }
 
   @override
@@ -264,8 +359,14 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
   void _gameOver() {
     playGameOverSound();
+    _cardSelectionTimer.timer.pause();
     add(
-      GameOverOverlay(score: score, onRestart: () => gameStateManager.resetGameState(), locale: locale),
+      GameOverOverlay(
+        gameScore: gameScore,
+        onRestart: () => gameStateManager.resetGameState(),
+        locale: locale,
+        onExit: onExit,
+      ),
     );
   }
 
@@ -275,6 +376,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     enemySystem.clearEnemies();
     // scoreDisplay.updateScore(0); // This is now handled by ScoreChangedEvent
     waveManager.reset();
+    _cardSelectionTimer.timer.start();
   }
 
   void showMessage(String message) {
@@ -414,7 +516,3 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     super.onRemove();
   }
 }
-
-
-
-

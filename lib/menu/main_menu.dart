@@ -1,7 +1,15 @@
+// lib/menu/main_menu.dart
+//
+// The visual component for the main menu screen.
+// Responsibilities:
+// - Rendering the game title, description, and "Start Game" button.
+// - Handling touch interactions to start the game or toggle the language.
+// - Rendering a simple language toggle button.
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 
 class MainMenu extends RectangleComponent with HasGameRef, TapCallbacks {
   final VoidCallback onStartGame;

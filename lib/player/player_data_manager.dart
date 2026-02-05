@@ -1,9 +1,13 @@
 // lib/player/player_data_manager.dart
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:game_defence/config/game_config.dart'; // Import GameStats for skill definitions
 import 'package:game_defence/data/inventory_data.dart';
 import 'package:game_defence/data/character_data.dart';
 import 'package:game_defence/data/player_skill_data.dart';
+import 'package:game_defence/game/events/event_bus.dart';
+import 'package:game_defence/game/events/game_events.dart';
 
 // --- Constants ---
 const int cardsNeededToUnlock = 50;
@@ -53,9 +57,12 @@ class PlayerData {
   Map<String, int> currencies;
   List<InventoryItem> inventory;
   List<EquipmentSlotState> equipmentSlots;
+
   List<PlayerCharacter> ownedCharacters;
   List<PlayerSkill> ownedSkills;
   int totalAttackPower;
+  String activeCharacterId;
+  EventBus eventBus;
 
   PlayerData({
     this.playerLevel = 1,
@@ -66,108 +73,68 @@ class PlayerData {
     required this.ownedCharacters,
     required this.ownedSkills,
     this.totalAttackPower = 0,
+    required this.activeCharacterId,
+    required this.eventBus,
   });
 }
 
 /// Manages loading, saving, and providing access to player data.
 /// For now, it initializes a "test account" with mock data.
 class PlayerDataManager extends ChangeNotifier {
-  late PlayerData _playerData;
+  late final PlayerData _playerData;
+  PlayerSkill? _skillAwaitingVariantChoice;
 
-  PlayerData get playerData => _playerData;
-
-  PlayerDataManager() {
-    _loadTestAccount();
-  }
-
-  void _loadTestAccount() {
-    debugPrint("Loading test account with generous items, currency, and characters...");
-
-    // Initialize equipment slots
-    final slots = EquipmentType.values
-        .map((type) => EquipmentSlotState(type: type, level: 1))
+  PlayerDataManager({required EventBus eventBus}) {
+    // Mock Data
+    final inventory = <InventoryItem>[];
+    final slots = [
+      EquipmentSlotState(type: EquipmentType.weapon, level: 1),
+      EquipmentSlotState(type: EquipmentType.armor, level: 1),
+      EquipmentSlotState(type: EquipmentType.hat, level: 1),
+      EquipmentSlotState(type: EquipmentType.shoe, level: 1),
+      EquipmentSlotState(type: EquipmentType.ring, level: 1),
+      EquipmentSlotState(type: EquipmentType.necklace, level: 1),
+    ];
+    final ownedChars = masterCharacterList
+        .map(
+          (c) => PlayerCharacter(
+            characterId: c.id,
+            isUnlocked: c.id == 'hermes',
+            cardCount: 0,
+          ),
+        )
         .toList();
-
-    // Create a variety of mock inventory items
-    final inventory = [
-      InventoryItem(
-        id: 'weapon_1',
-        name: '초보자의 검',
-        description: '날이 무딘 기본적인 검입니다.',
-        icon: Icons.shield,
-        equipmentType: EquipmentType.weapon,
-      ),
-      InventoryItem(
-        id: 'hat_1',
-        name: '가죽 모자',
-        description: '기본적인 방어력을 제공합니다.',
-        icon: Icons.ac_unit, // Placeholder icon
-        equipmentType: EquipmentType.hat,
-      ),
-      ...List.generate(5, (i) => InventoryItem(
-        id: 'scroll_atk_${i+1}',
-        name: '공격의 주문서',
-        description: '무기 슬롯에 장착하여 공격력을 올립니다.',
-        icon: Icons.article,
-      )),
-      ...List.generate(5, (i) => InventoryItem(
-        id: 'scroll_def_${i+1}',
-        name: '방어의 주문서',
-        description: '방어구 슬롯에 장착하여 방어력을 올립니다.',
-        icon: Icons.article_outlined,
-      )),
-      ...List.generate(20, (i) => InventoryItem(
-        id: 'item_$i',
-        name: '기타 아이템 $i',
-        description: '설명 $i',
-        icon: Icons.widgets_outlined,
-      )),
-    ];
-    
-    // Initialize owned characters
-    final ownedChars = masterCharacterList.map((char) {
-      if (char.id == 'hermes') {
-        // Player starts with Hermes unlocked
-        return PlayerCharacter(characterId: char.id, isUnlocked: true, cardCount: 1);
-      }
-      if (char.id == 'hercules') {
-        // Give some cards for Hercules to test the unlock system
-        return PlayerCharacter(characterId: char.id, cardCount: cardsNeededToUnlock);
-      }
-      return PlayerCharacter(characterId: char.id);
-    }).toList();
-
-    // Initialize owned skills
-    // In a real app, this list would be built from a master skill list
-    final ownedSkills = [
-      PlayerSkill(skillId: 'fireball', isUnlocked: true, level: 1, rank: 1), // Rank 1
-      PlayerSkill(skillId: 'chain_lightning', isUnlocked: false, level: 0, rank: 1),
-      PlayerSkill(skillId: 'ice_wall', isUnlocked: false, level: 0, rank: 1),
-      PlayerSkill(skillId: 'frost_nova', isUnlocked: false, level: 0, rank: 1),
-      PlayerSkill(skillId: 'arcane_missile', isUnlocked: false, level: 0, rank: 1),
-    ];
+    final ownedSkills = GameStats.instance.skillDefinitions.keys
+        .map(
+          (id) => PlayerSkill(skillId: id, level: 1, rank: 1, isUnlocked: true),
+        )
+        .toList();
 
     _playerData = PlayerData(
       playerLevel: 15, // Start at level 15 for testing rank-up
-      currencies: {
-        'gold': 999999,
-        'gems': 9999,
-      },
+      currencies: {'gold': 999999, 'gems': 9999},
       inventory: inventory,
       equipmentSlots: slots,
       ownedCharacters: ownedChars,
       ownedSkills: ownedSkills,
       totalAttackPower: 10, // Base attack power
+      activeCharacterId: 'hermes', // Hermes is active by default
+      eventBus: eventBus,
     );
 
+    _recalculateStats();
     // Notify listeners that data has been loaded
     notifyListeners();
   }
 
+  PlayerData get playerData => _playerData;
+  PlayerSkill? get skillAwaitingVariantChoice => _skillAwaitingVariantChoice;
+
   void unlockCharacter(String characterId) {
     try {
-      final playerCharacter = _playerData.ownedCharacters
-          .firstWhere((pc) => pc.characterId == characterId);
+      final playerCharacter = _playerData.ownedCharacters.firstWhere(
+        (pc) => pc.characterId == characterId,
+      );
 
       if (playerCharacter.isUnlocked) {
         debugPrint("Character $characterId is already unlocked.");
@@ -180,19 +147,108 @@ class PlayerDataManager extends ChangeNotifier {
         debugPrint("Character $characterId unlocked!");
         notifyListeners();
       } else {
-        debugPrint("Not enough cards to unlock $characterId. Needs $cardsNeededToUnlock, has ${playerCharacter.cardCount}.");
+        debugPrint(
+          "Not enough cards to unlock $characterId. Needs $cardsNeededToUnlock, has ${playerCharacter.cardCount}.",
+        );
       }
     } catch (e) {
       debugPrint("Error unlocking character $characterId: $e");
     }
   }
 
+  void setActiveCharacter(String characterId) {
+    try {
+      final playerCharacter = _playerData.ownedCharacters.firstWhere(
+        (pc) => pc.characterId == characterId,
+      );
+
+      if (playerCharacter.isUnlocked) {
+        if (_playerData.activeCharacterId != characterId) {
+          _playerData.activeCharacterId = characterId;
+          debugPrint("Active character set to $characterId.");
+          notifyListeners();
+        }
+      } else {
+        debugPrint(
+          "Cannot set active character to $characterId: Character is not unlocked.",
+        );
+      }
+    } catch (e) {
+      debugPrint("Error setting active character $characterId: $e");
+    }
+  }
+
+  void equipItem(InventoryItem itemToEquip) {
+    if (itemToEquip.equipmentType == null) {
+      debugPrint(
+        "Attempted to equip an item with no equipment type: ${itemToEquip.name}",
+      );
+      return;
+    }
+
+    // Find the slot for the item's type
+    final slot = _playerData.equipmentSlots.firstWhere(
+      (s) => s.type == itemToEquip.equipmentType,
+    );
+    final previouslyEquippedItem = slot.equippedItem;
+
+    // Remove the new item from inventory first to handle swapping identical items
+    _playerData.inventory.removeWhere((item) => item.id == itemToEquip.id);
+
+    // If an item was already in the slot, add it back to inventory
+    if (previouslyEquippedItem != null) {
+      _playerData.inventory.add(previouslyEquippedItem);
+    }
+
+    // Equip the new item
+    slot.equippedItem = itemToEquip;
+
+    debugPrint("Equipped ${itemToEquip.name} in ${slot.type}.");
+    _recalculateStats();
+    notifyListeners();
+  }
+
+  void unequipItem(EquipmentType slotType) {
+    // Find the slot
+    final slot = _playerData.equipmentSlots.firstWhere(
+      (s) => s.type == slotType,
+    );
+
+    // If there's an item to unequip
+    if (slot.equippedItem != null) {
+      debugPrint("Unequipping ${slot.equippedItem!.name} from ${slot.type}.");
+      _playerData.inventory.add(slot.equippedItem!);
+      slot.equippedItem = null;
+      _recalculateStats();
+      notifyListeners();
+    }
+  }
+
+  void _recalculateStats() {
+    double totalAttack = 0;
+    // In the future, add other stats like HP, defense etc.
+
+    for (final slot in _playerData.equipmentSlots) {
+      if (slot.equippedItem != null && slot.equippedItem!.stats != null) {
+        totalAttack += slot.equippedItem!.stats!['baseAttack'] ?? 0;
+      }
+    }
+    _playerData.totalAttackPower = totalAttack.toInt();
+    debugPrint(
+      "Recalculated stats. Total Attack Power: ${_playerData.totalAttackPower}",
+    );
+  }
+
   int getSkillUpgradeCost(String skillId) {
     try {
-      final playerSkill = _playerData.ownedSkills.firstWhere((s) => s.skillId == skillId);
+      final playerSkill = _playerData.ownedSkills.firstWhere(
+        (s) => s.skillId == skillId,
+      );
       final skillDef = GameStats.instance.skillDefinitions[skillId];
 
-      if (!playerSkill.isUnlocked || skillDef == null || playerSkill.level >= skillDef.maxLevel) {
+      if (!playerSkill.isUnlocked ||
+          skillDef == null ||
+          playerSkill.level >= skillDef.maxLevel) {
         return 0; // Cannot upgrade
       }
       // Simple cost formula: level * 100 * rank
@@ -204,15 +260,21 @@ class PlayerDataManager extends ChangeNotifier {
 
   void upgradeSkill(String skillId) {
     try {
-      final playerSkill = _playerData.ownedSkills.firstWhere((s) => s.skillId == skillId);
+      final playerSkill = _playerData.ownedSkills.firstWhere(
+        (s) => s.skillId == skillId,
+      );
       final skillDef = GameStats.instance.skillDefinitions[skillId];
 
       if (!playerSkill.isUnlocked || skillDef == null) {
-        debugPrint("Cannot upgrade skill $skillId: Not unlocked or definition not found.");
+        debugPrint(
+          "Cannot upgrade skill $skillId: Not unlocked or definition not found.",
+        );
         return;
       }
       if (playerSkill.level >= skillDef.maxLevel) {
-        debugPrint("Skill $skillId is already at max level for its current rank (${playerSkill.level}/${skillDef.maxLevel}).");
+        debugPrint(
+          "Skill $skillId is already at max level for its current rank (${playerSkill.level}/${skillDef.maxLevel}).",
+        );
         return;
       }
 
@@ -220,12 +282,15 @@ class PlayerDataManager extends ChangeNotifier {
       if (cost == 0) return; // Should not happen if above checks pass
 
       if ((_playerData.currencies['gold'] ?? 0) >= cost) {
-        _playerData.currencies['gold'] = (_playerData.currencies['gold'] ?? 0) - cost;
+        _playerData.currencies['gold'] =
+            (_playerData.currencies['gold'] ?? 0) - cost;
         playerSkill.level++;
         debugPrint("Upgraded skill $skillId to level ${playerSkill.level}.");
         notifyListeners();
       } else {
-        debugPrint("Not enough gold to upgrade $skillId. Needs $cost, has ${_playerData.currencies['gold']}.");
+        debugPrint(
+          "Not enough gold to upgrade $skillId. Needs $cost, has ${_playerData.currencies['gold']}.",
+        );
       }
     } catch (e) {
       debugPrint("Error upgrading skill $skillId: $e");
@@ -234,10 +299,15 @@ class PlayerDataManager extends ChangeNotifier {
 
   int getSkillRankUpCost(String skillId) {
     try {
-      final playerSkill = _playerData.ownedSkills.firstWhere((s) => s.skillId == skillId);
+      final playerSkill = _playerData.ownedSkills.firstWhere(
+        (s) => s.skillId == skillId,
+      );
       final skillDef = GameStats.instance.skillDefinitions[skillId];
 
-      if (!playerSkill.isUnlocked || skillDef == null || playerSkill.rank >= 5) { // Max 5 ranks for now
+      if (!playerSkill.isUnlocked ||
+          skillDef == null ||
+          playerSkill.rank >= 5) {
+        // Max 5 ranks for now
         return 0; // Cannot rank up
       }
 
@@ -245,7 +315,7 @@ class PlayerDataManager extends ChangeNotifier {
       if (playerSkill.level < skillDef.maxLevel) {
         return 0;
       }
-      
+
       // Player level requirement (e.g., player level >= current rank * 10)
       if (_playerData.playerLevel < playerSkill.rank * 10) {
         return 0;
@@ -259,23 +329,34 @@ class PlayerDataManager extends ChangeNotifier {
 
   void rankUpSkill(String skillId) {
     try {
-      final playerSkill = _playerData.ownedSkills.firstWhere((s) => s.skillId == skillId);
+      final playerSkill = _playerData.ownedSkills.firstWhere(
+        (s) => s.skillId == skillId,
+      );
       final skillDef = GameStats.instance.skillDefinitions[skillId];
 
       if (!playerSkill.isUnlocked || skillDef == null) {
-        debugPrint("Cannot rank up skill $skillId: Not unlocked or definition not found.");
+        debugPrint(
+          "Cannot rank up skill $skillId: Not unlocked or definition not found.",
+        );
         return;
       }
-      if (playerSkill.rank >= 5) { // Max 5 ranks
-        debugPrint("Skill $skillId is already at max rank (${playerSkill.rank}).");
+      if (playerSkill.rank >= 5) {
+        // Max 5 ranks
+        debugPrint(
+          "Skill $skillId is already at max rank (${playerSkill.rank}).",
+        );
         return;
       }
       if (playerSkill.level < skillDef.maxLevel) {
-        debugPrint("Skill $skillId must be at max level (${skillDef.maxLevel}) to rank up.");
+        debugPrint(
+          "Skill $skillId must be at max level (${skillDef.maxLevel}) to rank up.",
+        );
         return;
       }
       if (_playerData.playerLevel < playerSkill.rank * 10) {
-        debugPrint("Player level ${_playerData.playerLevel} is too low to rank up $skillId. Requires player level ${playerSkill.rank * 10}.");
+        debugPrint(
+          "Player level ${_playerData.playerLevel} is too low to rank up $skillId. Requires player level ${playerSkill.rank * 10}.",
+        );
         return;
       }
 
@@ -283,17 +364,35 @@ class PlayerDataManager extends ChangeNotifier {
       if (cost == 0) return;
 
       if ((_playerData.currencies['gems'] ?? 0) >= cost) {
-        _playerData.currencies['gems'] = (_playerData.currencies['gems'] ?? 0) - cost;
+        _playerData.currencies['gems'] =
+            (_playerData.currencies['gems'] ?? 0) - cost;
         playerSkill.rank++;
         playerSkill.level = 1; // Reset level after rank up
-        debugPrint("Ranked up skill $skillId to rank ${playerSkill.rank}. Level reset to 1.");
-        // TODO: Apply variant logic here if a variant should be chosen/applied on rank up
+        debugPrint(
+          "Ranked up skill $skillId to rank ${playerSkill.rank}. Level reset to 1.",
+        );
+
+        final skillDef = GameStats.instance.skillDefinitions[skillId];
+        if (skillDef != null && skillDef.variants.isNotEmpty) {
+          _skillAwaitingVariantChoice = playerSkill;
+        }
+
         notifyListeners();
       } else {
-        debugPrint("Not enough gems to rank up $skillId. Needs $cost, has ${_playerData.currencies['gems']}.");
+        debugPrint(
+          "Not enough gems to rank up $skillId. Needs $cost, has ${_playerData.currencies['gems']}.",
+        );
       }
     } catch (e) {
       debugPrint("Error ranking up skill $skillId: $e");
     }
+  }
+
+  void selectSkillVariant(String skillId, String variantId) {
+    _skillAwaitingVariantChoice = null;
+    _playerData.eventBus.fire(
+      SkillVariantAppliedEvent(skillId: skillId, variantId: variantId),
+    );
+    notifyListeners();
   }
 }

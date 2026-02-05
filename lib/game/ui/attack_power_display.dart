@@ -1,3 +1,10 @@
+// lib/game/ui/attack_power_display.dart
+//
+// A debug/HUD component that displays the player's current global attack power multiplier.
+// Responsibilities:
+// - Reading the global damage multiplier from the `ModifierManager`.
+// - Updating and rendering the text every frame to reflect real-time changes.
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/game/overflow_game.dart';

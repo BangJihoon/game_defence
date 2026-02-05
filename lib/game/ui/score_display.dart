@@ -1,10 +1,18 @@
+// lib/game/ui/score_display.dart
+//
+// A HUD component that displays the player's current game score.
+// Responsibilities:
+// - Rendering the score text.
+// - Updating the displayed score when notified by the game loop.
+// - Adding visual feedback (pop effect) when the score changes.
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
-import '../../l10n/app_localizations.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 
 class ScoreDisplay extends PositionComponent {
-  int _score = 0;
+  int _gameScore = 0;
   final Locale locale;
   late AppLocalizations l10n;
   late TextComponent _scoreText;
@@ -20,7 +28,7 @@ class ScoreDisplay extends PositionComponent {
     anchor = Anchor.topLeft;
 
     _scoreText = TextComponent(
-      text: l10n.score(_score),
+      text: l10n.score(_gameScore),
       textRenderer: TextPaint(
         style: const TextStyle(
           color: Colors.white,
@@ -35,13 +43,13 @@ class ScoreDisplay extends PositionComponent {
     add(_scoreText);
   }
 
-  void updateScore(int newScore) {
-    _score = newScore;
-    _scoreText.text = l10n.score(_score);
+  void updateScore(int newGameScore) {
+    _gameScore = newGameScore;
+    _scoreText.text = l10n.score(_gameScore);
 
     // Remove any existing scale effects to ensure the animation restarts correctly
-    children.whereType<ScaleEffect>().forEach(removeFromParent);
-    
+    children.whereType<Effect>().toList().forEach((e) => e.removeFromParent());
+
     // Add a "pop" animation
     add(
       SequenceEffect([

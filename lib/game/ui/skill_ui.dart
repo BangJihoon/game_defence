@@ -1,10 +1,19 @@
+// lib/game/ui/skill_ui.dart
+//
+// A HUD component responsible for displaying player skills.
+// Responsibilities:
+// - Rendering skill icons and their current cooldown status.
+// - Showing skill levels and upgrade costs.
+// - Providing interactive "Upgrade" buttons that the player can tap.
+// - Handling input to trigger skill upgrades via the `SkillSystem`.
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
-import '../skills/skill_system.dart';
-import '../overflow_game.dart';
-import '../../config/game_config.dart';
-import '../../l10n/app_localizations.dart';
+import 'package:game_defence/game/skills/skill_system.dart';
+import 'package:game_defence/game/overflow_game.dart';
+import 'package:game_defence/config/game_config.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 
 class SkillUI extends RectangleComponent
     with HasGameRef<OverflowDefenseGame>, TapCallbacks {
@@ -29,7 +38,9 @@ class SkillUI extends RectangleComponent
 
     const maxSkillsPerRow = 3;
     final numSkills = skillSystem.skills.length;
-    final numCols = numSkills > 0 ? (numSkills < maxSkillsPerRow ? numSkills : maxSkillsPerRow) : 1;
+    final numCols = numSkills > 0
+        ? (numSkills < maxSkillsPerRow ? numSkills : maxSkillsPerRow)
+        : 1;
     final numRows = numSkills > 0 ? (numSkills / maxSkillsPerRow).ceil() : 1;
 
     size = Vector2(
@@ -42,7 +53,9 @@ class SkillUI extends RectangleComponent
 
     position = gameRef.size - Vector2(20, 20);
     paint = Paint()..color = Colors.transparent;
-    print('SkillUI position: $position, size: $size, gameSize: ${gameRef.size}');
+    print(
+      'SkillUI position: $position, size: $size, gameSize: ${gameRef.size}',
+    );
   }
 
   @override
@@ -230,7 +243,7 @@ class SkillUI extends RectangleComponent
 
       // Upgrade Button Background
 
-      final canAffordUpgrade = game.score >= skill.upgradeCost;
+      final canAffordUpgrade = game.gameScore >= skill.upgradeCost;
 
       final upgradeBgColor = skill.canUpgrade && canAffordUpgrade
           ? const Color(0xFF4CAF50) // Green if upgradable and affordable
@@ -343,7 +356,7 @@ class SkillUI extends RectangleComponent
 
       if (upgradeButtonRect.contains(Offset(tapPos.x, tapPos.y)) &&
           skill.canUpgrade &&
-          game.score >= skill.upgradeCost) {
+          game.gameScore >= skill.upgradeCost) {
         skillSystem.upgradeSkill(skill.skillId);
 
         return true;

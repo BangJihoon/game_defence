@@ -1,4 +1,12 @@
 
+// lib/game/ui/draw_card_button.dart
+//
+// A touchable UI component that allows the player to manually draw a card.
+// Responsibilities:
+// - Rendering the button with current cost and available card points.
+// - Handling touch input to trigger the `showCardSelection` method in the game.
+// - Visualizing the enabled/disabled state based on deck initialization.
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';

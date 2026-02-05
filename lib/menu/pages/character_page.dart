@@ -17,6 +17,7 @@ class CharacterPage extends StatelessWidget {
       ),
       body: Consumer<PlayerDataManager>(
         builder: (context, playerDataManager, child) {
+          final activeCharacterId = playerDataManager.playerData.activeCharacterId;
           return ListView.builder(
             itemCount: masterCharacterList.length,
             itemBuilder: (context, index) {
@@ -24,7 +25,7 @@ class CharacterPage extends StatelessWidget {
               // Find the corresponding player character data
               final playerCharacter = playerDataManager.playerData.ownedCharacters
                   .firstWhere((pc) => pc.characterId == character.id);
-              return _buildCharacterTile(context, character, playerCharacter);
+              return _buildCharacterTile(context, character, playerCharacter, activeCharacterId);
             },
           );
         },
@@ -36,8 +37,11 @@ class CharacterPage extends StatelessWidget {
     BuildContext context,
     Character character,
     PlayerCharacter playerCharacter,
+    String activeCharacterId, // Pass active character ID
   ) {
+    final playerDataManager = Provider.of<PlayerDataManager>(context, listen: false);
     final bool canUnlock = playerCharacter.cardCount >= cardsNeededToUnlock;
+    final bool isActive = character.id == activeCharacterId;
 
     String tierText;
     Color tierColor;
@@ -95,7 +99,10 @@ class CharacterPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   if (playerCharacter.isUnlocked)
-                    const Text('보유 중', style: TextStyle(color: Colors.greenAccent))
+                    Text(
+                      isActive ? '선택됨' : '보유 중', 
+                      style: TextStyle(color: isActive ? Colors.greenAccent : Colors.white)
+                    )
                   else
                     Text(
                       '카드: ${playerCharacter.cardCount} / $cardsNeededToUnlock',
@@ -107,17 +114,19 @@ class CharacterPage extends StatelessWidget {
             // Action Button
             if (playerCharacter.isUnlocked)
               ElevatedButton(
-                onPressed: () {}, // TODO: Implement character selection
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                child: const Text('선택됨'),
+                onPressed: isActive ? null : () {
+                  playerDataManager.setActiveCharacter(character.id);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isActive ? Colors.grey.shade800 : Colors.green.shade700,
+                ),
+                child: Text(isActive ? '선택됨' : '선택'),
               )
             else
               ElevatedButton(
-                onPressed: canUnlock 
+                onPressed: canUnlock
                     ? () {
-                        // Call the unlock method from the provider
-                        Provider.of<PlayerDataManager>(context, listen: false)
-                            .unlockCharacter(character.id);
+                        playerDataManager.unlockCharacter(character.id);
                       }
                     : null,
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700),

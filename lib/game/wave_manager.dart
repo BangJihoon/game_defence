@@ -1,11 +1,21 @@
+// lib/game/wave_manager.dart
+//
+// Controls the progression of enemy waves.
+// Responsibilities:
+// - Tracking the current wave index and timers.
+// - Spawning enemies based on the wave configuration defined in `GameStats`.
+// - Detecting when a wave is cleared and firing the `WaveClearedEvent`.
+// - Handling the delay between waves.
+
 import 'package:flame/components.dart';
-import 'overflow_game.dart';
-// Import the new WaveDefinition
+import 'package:game_defence/game/events/game_events.dart';
+import 'package:game_defence/game/overflow_game.dart';
 
 class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   int _currentWaveIndex = 0;
   double _waveTimer = 0;
   bool _isSpawning = false;
+  bool _waveClearEventFired = false;
 
   int get currentWaveNumber => _currentWaveIndex + 1;
   bool get isSpawning => _isSpawning;
@@ -14,10 +24,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
   double get nextWaveCountdown {
     if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) return 0;
-    return game
-            .gameStats
-            .waveDefinitions[_currentWaveIndex]
-            .delayBeforeNextWave -
+    return game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave -
         _waveTimer;
   }
 
@@ -30,16 +37,18 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
     if (game.isGameOver) return;
 
     if (currentWaveEnemiesCleared) {
+      if (!_waveClearEventFired) {
+        game.eventBus.fire(WaveClearedEvent(currentWaveNumber));
+        _waveClearEventFired = true;
+      }
+
       if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) {
         // All waves cleared
         return;
       }
       _waveTimer += dt;
       if (_waveTimer >=
-          game
-              .gameStats
-              .waveDefinitions[_currentWaveIndex]
-              .delayBeforeNextWave) {
+          game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave) {
         _startWave();
         _waveTimer = 0;
       }
@@ -48,6 +57,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
   void _startWave() {
     _isSpawning = true;
+    _waveClearEventFired = false;
     final wave = game.gameStats.waveDefinitions[_currentWaveIndex];
 
     // Use a single TimerComponent for the entire wave's spawning
@@ -101,6 +111,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
     _currentWaveIndex = 0;
     _waveTimer = 0;
     _isSpawning = false;
+    _waveClearEventFired = false;
     removeAll(children.whereType<TimerComponent>());
   }
 }

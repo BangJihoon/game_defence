@@ -21,6 +21,8 @@ class AppLocalizations {
   String score(int score) => (_localizedValues[locale.languageCode]?['score'] ?? 'Score: {score}').replaceAll('{score}', score.toString());
   String get gameOver => _localizedValues[locale.languageCode]?['gameOver'] ?? 'Game Over!';
   String get tapToRestart => _localizedValues[locale.languageCode]?['tapToRestart'] ?? 'Tap to restart';
+  String get restartGame => _localizedValues[locale.languageCode]?['restartGame'] ?? 'Restart Game';
+  String get returnToMenu => _localizedValues[locale.languageCode]?['returnToMenu'] ?? 'Return to Menu';
 
   // 스킬 이름
   String get lightningSkill => _localizedValues[locale.languageCode]?['lightningSkill'] ?? 'Lightning';
@@ -46,6 +48,8 @@ class AppLocalizations {
       'score': 'Score: {score}',
       'gameOver': 'Game Over!',
       'tapToRestart': 'Tap to restart',
+      'restartGame': 'Restart Game',
+      'returnToMenu': 'Return to Menu',
       'lightningSkill': 'Lightning',
       'freezeSkill': 'Freeze',
       'healSkill': 'Heal',
@@ -180,6 +184,8 @@ class AppLocalizations {
       'score': '점수: {score}',
       'gameOver': '게임 오버!',
       'tapToRestart': '탭하여 재시작',
+      'restartGame': '다시 시작',
+      'returnToMenu': '메뉴로 돌아가기',
       'lightningSkill': '번개',
       'freezeSkill': '얼음',
       'healSkill': '힐',
@@ -224,6 +230,9 @@ class AppLocalizations {
       'variant.arcane_missile_homing.desc': '신비한 미사일이 이제 적을 추적합니다.',
       'variant.frost_nova_expanding.desc': '서리 고리가 시간이 지남에 따라 확장됩니다.',
       'variant.berserk_rage_unleashed.desc': '공격력 대폭 증가 및 재사용 대기시간 대폭 감소.',
+
+      'card.cursed_glass_cannon_1.title': '유리 대포',
+      'card.cursed_glass_cannon_1.desc': '+80% 모든 공격력, -40% 기지 체력',
     },
   };
 }

@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/game/ui/skill_ui.dart';
-import 'dart:ui';
 import '../overflow_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../config/game_config.dart';
@@ -53,7 +52,10 @@ class Skill {
       skillId,
       'damage',
     );
-    return (base + levelBonus) * globalMultiplier * skillMultiplier;
+    final attackPower = game.skillSystem.baseAttackPower;
+    return (base + levelBonus + attackPower) *
+        globalMultiplier *
+        skillMultiplier;
   }
 
   double get range => definition.baseRange + (10.0 * currentLevel);
@@ -94,15 +96,17 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   final Random _random = Random();
   final Locale locale;
   final GameStats
-      gameStats; // Still needed for other game stats, not just skill stats
+  gameStats; // Still needed for other game stats, not just skill stats
   final Map<String, SkillDefinition>
-      skillDefinitions; // New field for loaded skill definitions
+  skillDefinitions; // New field for loaded skill definitions
+  final int baseAttackPower;
   late AppLocalizations l10n;
 
   SkillSystem({
     required this.locale,
     required this.gameStats,
     required this.skillDefinitions,
+    this.baseAttackPower = 0,
   }) {
     l10n = AppLocalizations(locale);
   }
@@ -198,9 +202,9 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   void upgradeSkill(String skillId) {
     // Changed SkillType to String
     final skill = skills.firstWhere((s) => s.skillId == skillId);
-    if (skill.canUpgrade && game.score >= skill.upgradeCost) {
+    if (skill.canUpgrade && game.gameScore >= skill.upgradeCost) {
       game.scoreDisplay.updateScore(
-        game.score - skill.upgradeCost,
+        game.gameScore - skill.upgradeCost,
       ); // Deduct cost
       skill.upgrade();
       // Optionally update UI here or trigger a rebuild in SkillUI
@@ -253,8 +257,9 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _useLightning(Skill skill) {
-    final activeEnemies =
-        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
+    final activeEnemies = List<Enemy>.from(
+      game.enemySystem.enemies.where((e) => !e.isDying),
+    );
 
     if (activeEnemies.isEmpty) return;
 
@@ -292,8 +297,9 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _useFireball(Skill skill) {
-    final activeEnemies =
-        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
+    final activeEnemies = List<Enemy>.from(
+      game.enemySystem.enemies.where((e) => !e.isDying),
+    );
 
     if (activeEnemies.isEmpty) return;
 
@@ -387,8 +393,9 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _useArcaneMissile(Skill skill) {
-    final activeEnemies =
-        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
+    final activeEnemies = List<Enemy>.from(
+      game.enemySystem.enemies.where((e) => !e.isDying),
+    );
     if (activeEnemies.isEmpty) return;
 
     activeEnemies.shuffle(_random);
@@ -413,8 +420,9 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _usePoisonCloud(Skill skill) {
-    final activeEnemies =
-        List<Enemy>.from(game.enemySystem.enemies.where((e) => !e.isDying));
+    final activeEnemies = List<Enemy>.from(
+      game.enemySystem.enemies.where((e) => !e.isDying),
+    );
     if (activeEnemies.isEmpty) return;
     activeEnemies.shuffle(_random);
     final target = activeEnemies.first;

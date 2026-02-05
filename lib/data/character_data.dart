@@ -1,4 +1,10 @@
 // lib/data/character_data.dart
+//
+// Defines the data structures for characters.
+// - `CharacterTier` enum for rarity.
+// - `Character` class for static configuration data (stats, name, icon) loaded from the game config.
+// - `PlayerCharacter` class for dynamic player-owned state (level, cards collected, unlock status).
+
 import 'package:flutter/material.dart';
 
 /// Rarity tier for characters.

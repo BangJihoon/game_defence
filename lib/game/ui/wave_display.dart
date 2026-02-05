@@ -1,8 +1,15 @@
+// lib/game/ui/wave_display.dart
+//
+// A HUD component that displays the current wave progress.
+// Responsibilities:
+// - Showing the current wave number.
+// - Displaying a countdown timer when waiting for the next wave to start.
+// - Hiding the countdown when a wave is active.
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import '../overflow_game.dart';
-import '../../l10n/app_localizations.dart';
-// Import WaveManager
+import 'package:game_defence/game/overflow_game.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 
 class WaveDisplay extends PositionComponent
     with HasGameRef<OverflowDefenseGame> {

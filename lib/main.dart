@@ -6,6 +6,7 @@ import 'package:game_defence/config/game_config.dart'; // Import GameStats
 import 'package:game_defence/player/player_data_manager.dart';
 import 'package:provider/provider.dart';
 
+import 'package:game_defence/game/events/event_bus.dart';
 import 'l10n/app_localizations.dart';
 import 'game/overflow_game.dart';
 import 'menu/pages/home_page.dart';
@@ -33,6 +34,7 @@ class GameApp extends StatefulWidget {
 
 class _GameAppState extends State<GameApp> {
   late final PlayerDataManager _playerDataManager;
+  late final EventBus _gameEventBus;
   bool _showGame = false;
   int _selectedIndex = 2; // Default to Home
   Locale _locale = const Locale('ko'); // 기본값은 한국어
@@ -40,19 +42,15 @@ class _GameAppState extends State<GameApp> {
   @override
   void initState() {
     super.initState();
-    _playerDataManager = PlayerDataManager();
+    _gameEventBus = EventBus();
+    _playerDataManager = PlayerDataManager(eventBus: _gameEventBus);
   }
 
   @override
   void dispose() {
     _playerDataManager.dispose();
+    _gameEventBus.dispose();
     super.dispose();
-  }
-
-  void _startGame() {
-    setState(() {
-      _showGame = true;
-    });
   }
 
   void _returnToMenu() {
@@ -61,11 +59,9 @@ class _GameAppState extends State<GameApp> {
     });
   }
 
-  void _toggleLocale() {
+  void _startGame() {
     setState(() {
-      _locale = _locale.languageCode == 'ko' 
-          ? const Locale('en') 
-          : const Locale('ko');
+      _showGame = true;
     });
   }
 
@@ -77,37 +73,50 @@ class _GameAppState extends State<GameApp> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
+    final pages = [
       const ShopPage(),
       const InventoryPage(),
       HomePage(
         onStartGame: _startGame,
         locale: _locale,
-        onToggleLocale: _toggleLocale,
+        onToggleLocale: () => setState(() {
+          _locale = _locale == const Locale('ko')
+              ? const Locale('en')
+              : const Locale('ko');
+        }),
       ),
       const CharacterPage(),
       const SkillPage(),
     ];
 
-    return ChangeNotifierProvider.value(
-      value: _playerDataManager,
+    return MultiProvider(
+      providers: [ChangeNotifierProvider.value(value: _playerDataManager)],
       child: MaterialApp(
-        title: 'Defense Game',
-        debugShowCheckedModeBanner: false,
-        locale: _locale,
-        supportedLocales: const [
-          Locale('en', ''),
-          Locale('ko', ''),
-        ],
+        title: 'Overflow Defense',
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        supportedLocales: const [Locale('en'), Locale('ko')],
+        locale: _locale,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          fontFamily: 'NanumGothic',
+          scaffoldBackgroundColor: const Color(0xFF1a1a2e),
+          textTheme: const TextTheme(
+            bodyMedium: TextStyle(color: Colors.white),
+          ),
+        ),
         home: _showGame
             ? GameWidget(
-                game: OverflowDefenseGame(locale: _locale),
+                game: OverflowDefenseGame(
+                  locale: _locale,
+                  onExit: _returnToMenu,
+                  playerDataManager: _playerDataManager,
+                  eventBus: _gameEventBus,
+                ),
               )
             : Scaffold(
                 body: pages[_selectedIndex],
@@ -121,10 +130,7 @@ class _GameAppState extends State<GameApp> {
                       icon: Icon(Icons.inventory),
                       label: '인벤토리',
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home),
-                      label: '홈',
-                    ),
+                    BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.person),
                       label: '캐릭터',

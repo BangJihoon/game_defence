@@ -1,3 +1,11 @@
+// lib/game/card_manager.dart
+//
+// Manages the card system within the game.
+// Responsibilities include:
+// - Initializing the deck from game statistics.
+// - Drawing a hand of random cards based on rarity weights.
+// - Applying the specific effects (buffs, skill modifications) of chosen cards to the game state via events.
+
 import 'dart:math';
 
 import 'package:flame/components.dart';

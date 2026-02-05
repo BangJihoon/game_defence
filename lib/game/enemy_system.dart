@@ -1,10 +1,19 @@
+// lib/game/enemy_system.dart
+//
+// Central system for managing enemy entities.
+// Responsibilities:
+// - Spawning enemies at specific positions based on definitions.
+// - Tracking the active list of enemies.
+// - Handling enemy destruction and firing `EnemyKilledEvent`.
+// - Applying damage and status effects (like freeze) to enemies.
+
 import 'package:flame/components.dart';
-import 'enemy.dart';
-import 'player_base.dart';
-import 'overflow_game.dart';
-import '../data/enemy_data.dart'; // Import the new EnemyDefinition
-import 'package:game_defence/game/events/event_bus.dart'; // Import EventBus
-import 'package:game_defence/game/events/game_events.dart'; // Import GameEvent
+import 'package:game_defence/game/enemy.dart';
+import 'package:game_defence/game/player_base.dart';
+import 'package:game_defence/game/overflow_game.dart';
+import 'package:game_defence/data/enemy_data.dart';
+import 'package:game_defence/game/events/event_bus.dart';
+import 'package:game_defence/game/events/game_events.dart';
 
 class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   final PlayerBase base;

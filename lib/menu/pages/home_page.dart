@@ -1,4 +1,10 @@
 // lib/menu/pages/home_page.dart
+//
+// The entry point for the game's menu screen within the Flutter widget tree.
+// Responsibilities:
+// - Hosting the `MainMenuGame` (a FlameGame instance) inside a `GameWidget`.
+// - Passing initialization parameters (callbacks, locale) to the game instance.
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/menu/main_menu.dart';

@@ -1,3 +1,11 @@
+// lib/config/game_config.dart
+//
+// A singleton configuration manager that loads and provides static game data.
+// Responsibilities:
+// - Loading JSON configuration files (game_stats, cards, enemies, skills, waves) from assets.
+// - Parsing JSON into strongly-typed data objects (CardDefinition, EnemyDefinition, etc.).
+// - Providing a globally accessible `GameStats.instance` for other systems to access static data.
+
 import 'package:game_defence/data/wave_data.dart';
 import 'package:game_defence/data/skill_data.dart';
 import 'package:game_defence/data/enemy_data.dart';

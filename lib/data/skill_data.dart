@@ -1,3 +1,9 @@
+// lib/data/skill_data.dart
+//
+// Defines the data structures for skills and their variants.
+// - `SkillVariantDefinition`: Defines a specific variation of a skill (e.g., "Fireball" becoming "Meteor").
+// - `SkillDefinition`: Represents the static configuration of a skill loaded from JSON, including its base stats, type, and list of available variants.
+
 /// Represents a single skill variant definition.
 class SkillVariantDefinition {
   final String variantId;

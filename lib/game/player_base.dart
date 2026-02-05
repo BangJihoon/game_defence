@@ -1,8 +1,17 @@
+// lib/game/player_base.dart
+//
+// Represents the player's base or wall that must be defended.
+// Responsibilities:
+// - Tracking current HP and Shield values.
+// - Rendering the visual representation of the base, including HP and Shield bars.
+// - Handling incoming damage, applying it first to shields then to HP.
+// - Triggering visual feedback (shake) and events (destruction, hit) on damage.
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:flame/effects.dart'; // Import effects
+import 'package:flame/effects.dart'; 
 
-import 'overflow_game.dart';
+import 'package:game_defence/game/overflow_game.dart';
 
 class PlayerBase extends PositionComponent
     with HasGameRef<OverflowDefenseGame> {

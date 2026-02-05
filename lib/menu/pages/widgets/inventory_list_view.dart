@@ -21,12 +21,12 @@ class InventoryListView extends StatelessWidget {
       ),
       itemCount: inventoryItems.length,
       itemBuilder: (context, index) {
-        return _buildInventoryItem(inventoryItems[index]);
+        return _buildInventoryItem(context, playerDataManager, inventoryItems[index]);
       },
     );
   }
 
-  Widget _buildInventoryItem(InventoryItem item) {
+  Widget _buildInventoryItem(BuildContext context, PlayerDataManager manager, InventoryItem item) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.5),
@@ -53,8 +53,12 @@ class InventoryListView extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             onPressed: () {
-              // TODO: Implement equipping logic
-              print("Tapped item: ${item.name}");
+              if (item.equipmentType != null) {
+                manager.equipItem(item);
+              } else {
+                // TODO: Implement logic for using non-equippable items (e.g., scrolls)
+                print("Used item: ${item.name}");
+              }
             },
             child: Text(
               item.equipmentType != null ? '장착' : '사용',

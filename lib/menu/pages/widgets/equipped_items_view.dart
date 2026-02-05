@@ -42,7 +42,7 @@ class EquippedItemsView extends StatelessWidget {
 
               return Transform.translate(
                 offset: Offset(x, y),
-                child: _buildEquipmentSlot(slot),
+                child: _buildEquipmentSlot(context, playerDataManager, slot),
               );
             }),
           ],
@@ -51,7 +51,7 @@ class EquippedItemsView extends StatelessWidget {
     );
   }
 
-  Widget _buildEquipmentSlot(EquipmentSlotState slot) {
+  Widget _buildEquipmentSlot(BuildContext context, PlayerDataManager manager, EquipmentSlotState slot) {
     String name = slot.type.name;
     switch(slot.type) {
       case EquipmentType.hat: name = '모자'; break;
@@ -62,14 +62,16 @@ class EquippedItemsView extends StatelessWidget {
       case EquipmentType.shoe: name = '신발'; break;
     }
 
+    final bool isEquipped = slot.equippedItem != null;
+
     return Container(
       width: 100,
-      height: 120,
+      height: 140, // Increased height for button
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blueGrey),
+        border: Border.all(color: isEquipped ? Colors.amber.shade600 : Colors.blueGrey),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -77,9 +79,46 @@ class EquippedItemsView extends StatelessWidget {
           // Slot Name and Level
           Text(
             '$name (Lv. ${slot.level})',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
             textAlign: TextAlign.center,
           ),
+
+          // Equipped Item Info
+          if (isEquipped)
+            Column(
+              children: [
+                Icon(slot.equippedItem!.icon, color: Colors.white, size: 24),
+                Text(
+                  slot.equippedItem!.name,
+                  style: const TextStyle(color: Colors.amber, fontSize: 11),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            )
+          else
+            Column(
+              children: const [
+                Icon(Icons.remove, color: Colors.grey, size: 24),
+                Text('비어있음', style: TextStyle(color: Colors.grey, fontSize: 11)),
+              ],
+            ),
+          
+          // Unequip Button
+          if (isEquipped)
+            SizedBox(
+              height: 25,
+              child: ElevatedButton(
+                onPressed: () {
+                  manager.unequipItem(slot.type);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade900,
+                  padding: EdgeInsets.zero,
+                ),
+                child: const Text('해제', style: TextStyle(fontSize: 12)),
+              ),
+            ),
+
           // Sockets
           Wrap(
             spacing: 2,
@@ -87,12 +126,12 @@ class EquippedItemsView extends StatelessWidget {
             children: List.generate(10, (index) {
               final bool isUnlocked = index < slot.maxSockets;
               return Container(
-                width: 15,
-                height: 15,
+                width: 12,
+                height: 12,
                 decoration: BoxDecoration(
                   color: isUnlocked ? Colors.green.withOpacity(0.5) : Colors.black.withOpacity(0.5),
                   shape: BoxShape.circle,
-                  border: Border.all(color: isUnlocked ? Colors.green : Colors.grey.shade700),
+                  border: Border.all(color: isUnlocked ? Colors.green : Colors.grey.shade700, width: 1),
                 ),
               );
             }),

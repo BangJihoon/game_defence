@@ -1,5 +1,6 @@
 {
   "game": {
+    "score":0,
     "baseHP": 500,
     "explosionRadius": 100,
     "explosionDamage": 50
