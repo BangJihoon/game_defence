@@ -10,7 +10,7 @@ import 'package:game_defence/game/events/event_bus.dart';
 import 'l10n/app_localizations.dart';
 import 'game/overflow_game.dart';
 import 'menu/pages/home_page.dart';
-import 'menu/pages/shop_page.dart';
+import 'menu/pages/shop/presentation/pages/shop_page.dart';
 import 'menu/pages/inventory_page.dart';
 import 'menu/pages/character_page.dart';
 import 'menu/pages/skill_page.dart';
@@ -111,6 +111,7 @@ class _GameAppState extends State<GameApp> {
         ),
         home: _showGame
             ? GameWidget(
+                key: UniqueKey(), // 게임 재시작 시 완전한 초기화를 보장
                 game: OverflowDefenseGame(
                   locale: _locale,
                   onExit: _returnToMenu,

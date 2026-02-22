@@ -2,42 +2,60 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flame_test/flame_test.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'package:game_defence/game/card_manager.dart';
+import 'package:game_defence/game/events/event_bus.dart';
 import 'package:game_defence/game/overflow_game.dart';
 import 'package:flame/game.dart';
 import 'package:game_defence/config/game_config.dart';
+import 'package:game_defence/player/player_data_manager.dart';
 
 // Mock classes
-class MockGameStats extends GameStats {
-  MockGameStats() : super.empty() {
-    final file = File('assets/data/cards.json');
-    final jsonString = file.readAsStringSync();
-    final List<dynamic> jsonList = json.decode(jsonString);
-    cards.addAll(
-      jsonList.map((json) => CardDefinition.fromJson(json)).toList(),
-    );
-  }
+class MockPlayerDataManager extends PlayerDataManager {
+  MockPlayerDataManager({required super.eventBus});
 }
 
 class MockOverflowDefenseGame extends OverflowDefenseGame {
-  MockOverflowDefenseGame() : super(soundEnabled: false) {
-    gameStats = MockGameStats();
+  MockOverflowDefenseGame(
+      {required PlayerDataManager playerDataManager, required EventBus eventBus})
+      : super(
+            soundEnabled: false,
+            playerDataManager: playerDataManager,
+            eventBus: eventBus);
+
+  @override
+  Future<void> onLoad() async {
+    gameStats = GameStats.instance;
+    final file = File('assets/data/cards.json');
+    final jsonString = file.readAsStringSync();
+    final List<dynamic> jsonList = json.decode(jsonString);
+    gameStats.cards.addAll(
+      jsonList.map((json) => CardDefinition.fromJson(json)).toList(),
+    );
+    await super.onLoad();
   }
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('CardManager', () {
-    final flameGame = FlameGame();
     late CardManager cardManager;
     late MockOverflowDefenseGame mockGame;
+    late EventBus eventBus;
+    late MockPlayerDataManager mockPlayerDataManager;
 
     setUp(() async {
-      mockGame = MockOverflowDefenseGame();
-      cardManager = CardManager();
+      await GameStats.initialize();
+      eventBus = EventBus();
+      mockPlayerDataManager = MockPlayerDataManager(eventBus: eventBus);
+      mockGame = MockOverflowDefenseGame(
+        playerDataManager: mockPlayerDataManager,
+        eventBus: eventBus,
+      );
+      cardManager = CardManager(eventBus: eventBus);
+      final flameGame = FlameGame();
       flameGame.add(mockGame);
       await mockGame.add(cardManager);
       await flameGame.ready();
@@ -64,9 +82,8 @@ void main() {
       },
     );
 
-    testWithGame<
-      MockOverflowDefenseGame
-    >('weightedRandomDraw respects rank weights', () => mockGame, (game) async {
+    testWithGame<MockOverflowDefenseGame>(
+        'weightedRandomDraw respects rank weights', () => mockGame, (game) async {
       final rankCounts = <CardRank, int>{};
       const drawCount = 10000;
 

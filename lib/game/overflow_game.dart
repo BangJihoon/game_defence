@@ -29,7 +29,6 @@ import 'package:game_defence/data/card_data.dart';
 import 'modifier_manager.dart';
 import 'package:game_defence/game/ui/attack_power_display.dart';
 import 'wave_manager.dart';
-import 'package:game_defence/data/character_data.dart';
 import 'package:game_defence/player/player_data_manager.dart';
 import 'package:game_defence/game/events/event_bus.dart'; // Import EventBus
 import 'package:game_defence/game/events/game_events.dart'; // Import GameEvent
@@ -262,24 +261,23 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   }
 
   void _showAutomaticCardSelection() {
-    if (paused) return; // Don't show if already paused or showing
+    // 이미 오버레이가 떠있거나 일시정지 상태면 무시
+    if (paused || children.whereType<CardSelectionOverlay>().isNotEmpty) return;
 
     playCardDrawSound();
-    paused = true;
     final hand = cardManager.drawHand();
     print('Drawn cards automatically: ${hand.map((c) => c.cardId).join(', ')}');
     if (hand.isNotEmpty) {
       add(CardSelectionOverlay(cards: hand, l10n: l10n));
-    } else {
-      paused = false; // Resume if no cards to show
     }
   }
 
   void showCardSelection() {
     debugPrint("--- Attempting to show card selection ---");
     try {
-      if (paused) {
-        debugPrint("[CARD DRAW] FAILED: Game is already paused.");
+      // 이미 오버레이가 떠있거나 일시정지 상태면 무시
+      if (paused || children.whereType<CardSelectionOverlay>().isNotEmpty) {
+        debugPrint("[CARD DRAW] FAILED: Game is already paused or overlay exists.");
         return;
       }
 
@@ -292,7 +290,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
         playCardDrawSound();
         gameStateManager.deductCardPoints(cardDrawCost);
         gameStateManager.updateCardDrawCost((cardDrawCost * 1.1).round());
-        paused = true;
+
         final hand = cardManager.drawHand();
         debugPrint(
           '[CARD DRAW] Drawn cards: ${hand.map((c) => c.cardId).join(', ')}',
@@ -302,8 +300,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
           debugPrint("[CARD DRAW] Adding CardSelectionOverlay to the game.");
           add(CardSelectionOverlay(cards: hand, l10n: l10n));
         } else {
-          debugPrint("[CARD DRAW] WARNING: Drew an empty hand, resuming game.");
-          paused = false;
+          debugPrint("[CARD DRAW] WARNING: Drew an empty hand.");
         }
       } else {
         debugPrint("[CARD DRAW] FAILED: Insufficient card points.");

@@ -35,6 +35,7 @@ class AppLocalizations {
   String get healSkillDesc => _localizedValues[locale.languageCode]?['healSkillDesc'] ?? 'Restore 30 HP';
   String get wave => _localizedValues[locale.languageCode]?['wave'] ?? 'Wave';
   String get nextWaveIn => _localizedValues[locale.languageCode]?['nextWaveIn'] ?? 'Next Wave In';
+  String get waveCleared => _localizedValues[locale.languageCode]?['waveCleared'] ?? 'Wave Cleared!';
 
   String translate(String key) {
     return _localizedValues[locale.languageCode]?[key] ?? key;
@@ -58,6 +59,7 @@ class AppLocalizations {
       'healSkillDesc': 'Restore 30 HP',
       'wave': 'Wave',
       'nextWaveIn': 'Next Wave In',
+      'waveCleared': 'Wave Cleared!',
       'skill.fireball.title': 'Fireball',
       'skill.chain_lightning.title': 'Chain Lightning',
       'skill.ice_wall.title': 'Ice Wall',
@@ -194,6 +196,7 @@ class AppLocalizations {
       'healSkillDesc': '기지 HP 30 회복',
       'wave': '웨이브',
       'nextWaveIn': '다음 웨이브까지',
+      'waveCleared': '웨이브 클리어!',
       'skill.fireball.title': '화염구',
       'skill.chain_lightning.title': '연쇄 번개',
       'skill.ice_wall.title': '얼음 벽',

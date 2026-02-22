@@ -10,7 +10,6 @@ import 'package:game_defence/l10n/app_localizations.dart';
 class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final List<CardDefinition> cards;
   final AppLocalizations l10n;
-  late TimerComponent _autoSelectTimer;
 
   CardSelectionOverlay({required this.cards, required this.l10n}) : super(priority: 200);
 
@@ -18,51 +17,52 @@ class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDef
   Future<void> onLoad() async {
     super.onLoad();
     size = game.size; // Cover the whole screen
-    
-    // For debugging: Automatically selects the first card if the player doesn't choose within a time limit.
-    _autoSelectTimer = TimerComponent(
-      period: 10, // Increased to 10 seconds to allow for manual testing
-      onTick: () {
-        if (cards.isNotEmpty) {
-          game.selectCard(cards.first); // Select the first card by default
-        }
-      },
-      removeOnFinish: true,
-    );
-    add(_autoSelectTimer);
 
     // This loop creates and positions the visual display for each card.
-    final cardWidth = size.x / 4;
-    final cardHeight = size.y / 2;
-    final spacing = (size.x - (3 * cardWidth)) / 4;
+    final cardWidth = 200.0;
+    final cardHeight = 300.0;
+    final gap = 20.0;
+    
+    // 화면 중앙 정렬 계산
+    final totalWidth = (cardWidth * cards.length) + (gap * (cards.length - 1));
+    final startX = (size.x - totalWidth) / 2 + cardWidth / 2;
+    final centerY = size.y / 2;
 
     for (int i = 0; i < cards.length; i++) {
       add(
         CardDisplay(
           card: cards[i],
           l10n: l10n, // Pass down the localization instance
-          position: Vector2(spacing * (i + 1) + cardWidth * i, size.y / 4),
+          position: Vector2(startX + i * (cardWidth + gap), centerY),
           size: Vector2(cardWidth, cardHeight),
         ),
       );
     }
   }
 
+  @override
+  void onMount() {
+    super.onMount();
+    // 컴포넌트가 게임 트리에 완전히 추가된(Mount) 직후에 게임을 멈춥니다.
+    game.paused = true;
+  }
+
   /// This render method provides the dark, semi-transparent background for the overlay.
   @override
   void render(Canvas canvas) {
-    super.render(canvas);
+    // 1. 배경을 먼저 그립니다.
     canvas.drawRect(
       size.toRect(),
       Paint()..color = Colors.black.withOpacity(0.7),
     );
+    // 2. 그 위에 자식 컴포넌트(카드들)를 그립니다.
+    super.render(canvas);
   }
 }
 
 /// This component represents a single card visually on the screen.
 /// It handles rendering the card's details and processing tap events.
-class CardDisplay extends PositionComponent
-    with TapCallbacks, HasGameRef<OverflowDefenseGame> {
+class CardDisplay extends PositionComponent with TapCallbacks, HoverCallbacks, HasGameRef<OverflowDefenseGame> {
   final CardDefinition card;
   final AppLocalizations l10n; // Use the passed-in localization instance
 
@@ -71,19 +71,22 @@ class CardDisplay extends PositionComponent
     required this.l10n,
     required Vector2 position,
     required Vector2 size,
-  }) {
-    this.position = position;
-    this.size = size;
-  }
+  }) : super(position: position, size: size, anchor: Anchor.center);
 
   /// When a card is tapped, this method calls the main game's `selectCard` function.
   @override
   void onTapUp(TapUpEvent event) {
-    // Also stop the auto-select timer on the parent overlay
-    final parentOverlay = parent as CardSelectionOverlay?;
-    parentOverlay?._autoSelectTimer.timer.stop();
-    
     game.selectCard(card);
+  }
+
+  @override
+  void onHoverEnter() {
+    scale = Vector2.all(1.05); // 마우스 오버 시 확대 효과
+  }
+
+  @override
+  void onHoverExit() {
+    scale = Vector2.all(1.0);
   }
 
   /// This render method draws the card's background, title, and description.
@@ -91,17 +94,28 @@ class CardDisplay extends PositionComponent
   void render(Canvas canvas) {
     super.render(canvas);
     final paint = Paint()..color = _getColorForRank(card.rank);
+    
+    // 카드 배경
     canvas.drawRRect(
       RRect.fromRectAndRadius(size.toRect(), const Radius.circular(12)),
       paint,
+    );
+    
+    // 내부 컨텐츠 배경 (가독성 확보)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(6, 6, size.x - 12, size.y - 12),
+        const Radius.circular(8),
+      ),
+      Paint()..color = const Color(0xFF222222),
     );
 
     // Card Title
     TextPainter(
         text: TextSpan(
-          text: l10n.translate(card.titleLocaleKey), // Use the passed-in l10n
-          style: const TextStyle(
-            color: Colors.white,
+          text: l10n.translate(card.titleLocaleKey) ?? card.cardId.toUpperCase(),
+          style: TextStyle(
+            color: _getColorForRank(card.rank), // 등급 색상 적용
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -109,20 +123,20 @@ class CardDisplay extends PositionComponent
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr,
       )
-      ..layout(maxWidth: size.x - 20)
-      ..paint(canvas, Offset(10, 20));
+      ..layout(maxWidth: size.x - 20, minWidth: size.x - 20)
+      ..paint(canvas, Offset(10, 20)); // 위치 조정
 
     // Card Description
     TextPainter(
         text: TextSpan(
-          text: l10n.translate(card.descriptionLocaleKey), // Use the passed-in l10n
+          text: l10n.translate(card.descriptionLocaleKey) ?? card.effect.toString(),
           style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr,
       )
-      ..layout(maxWidth: size.x - 20)
-      ..paint(canvas, Offset(10, 80));
+      ..layout(maxWidth: size.x - 20, minWidth: size.x - 20)
+      ..paint(canvas, Offset(10, 60)); // 위치 조정
   }
 
   /// This is a helper function to determine the card's color based on its rarity (rank).

@@ -15,7 +15,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   int _currentWaveIndex = 0;
   double _waveTimer = 0;
   bool _isSpawning = false;
-  bool _waveClearEventFired = false;
+  bool _waveClearEventFired = true;
 
   int get currentWaveNumber => _currentWaveIndex + 1;
   bool get isSpawning => _isSpawning;
@@ -38,7 +38,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
     if (currentWaveEnemiesCleared) {
       if (!_waveClearEventFired) {
-        game.eventBus.fire(WaveClearedEvent(currentWaveNumber));
+        game.eventBus.fire(WaveClearedEvent(_currentWaveIndex));
         _waveClearEventFired = true;
       }
 
@@ -111,7 +111,7 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
     _currentWaveIndex = 0;
     _waveTimer = 0;
     _isSpawning = false;
-    _waveClearEventFired = false;
+    _waveClearEventFired = true;
     removeAll(children.whereType<TimerComponent>());
   }
 }

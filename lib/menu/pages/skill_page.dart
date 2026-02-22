@@ -1,7 +1,11 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/config/game_config.dart';
 import 'package:game_defence/data/player_skill_data.dart';
 import 'package:game_defence/data/skill_data.dart';
+import 'package:game_defence/game/events/event_bus.dart';
+import 'package:game_defence/game/overflow_game.dart';
+import 'package:game_defence/game/skill_popup_overlay.dart';
 import 'package:game_defence/l10n/app_localizations.dart';
 import 'package:game_defence/player/player_data_manager.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +24,21 @@ class SkillPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('스킬'),
         backgroundColor: const Color(0xFF1a1a2e),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.play_arrow),
+            onPressed: () {
+              showGeneralDialog(
+                context: context,
+                barrierDismissible: false,
+                barrierLabel: 'skill',
+                barrierColor: Colors.black.withOpacity(0.35),
+                transitionDuration: const Duration(milliseconds: 180),
+                pageBuilder: (_, __, ___) => const SkillPopupOverlay(),
+              );
+            },
+          ),
+        ],
       ),
       body: Consumer<PlayerDataManager>(
         builder: (context, playerDataManager, child) {
