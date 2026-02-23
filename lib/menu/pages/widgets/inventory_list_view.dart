@@ -56,8 +56,12 @@ class InventoryListView extends StatelessWidget {
               if (item.equipmentType != null) {
                 manager.equipItem(item);
               } else {
-                // TODO: Implement logic for using non-equippable items (e.g., scrolls)
-                print("Used item: ${item.name}");
+                // Handle scroll/use items
+                if (item.id.contains('scroll') || item.name.contains('주문서')) {
+                  _showUpgradeSlotDialog(context, manager, item);
+                } else {
+                  print("Used item: ${item.name}");
+                }
               }
             },
             child: Text(
@@ -67,6 +71,30 @@ class InventoryListView extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+
+  void _showUpgradeSlotDialog(BuildContext context, PlayerDataManager manager, InventoryItem scroll) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.blueGrey.shade900,
+          title: Text('강화할 슬롯 선택', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: EquipmentType.values.map((type) {
+              return ListTile(
+                title: Text(type.name.toUpperCase(), style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  manager.upgradeSlot(type, scroll.id);
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 }

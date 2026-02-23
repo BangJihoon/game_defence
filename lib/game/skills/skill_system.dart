@@ -63,8 +63,16 @@ class Skill {
       1 +
       (game.modifierManager.getSkillModifier(skillId, 'chains') - 1)
           .toInt(); // Example for chains
-  double get speedMultiplier => 1.0;
-  double get duration => 0.0;
+  double get speedMultiplier {
+    if (skillId == 'frost_nova') return 0.5; // 50% slow
+    return 1.0;
+  }
+
+  double get duration {
+    if (skillId == 'frost_nova') return 3.0 + (0.5 * currentLevel); // 3-5.5s slow
+    return 0.0;
+  }
+
   int get amount => 0;
 
   bool get isReady => currentCooldown <= 0;
@@ -123,6 +131,7 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
   @override
   void update(double dt) {
     super.update(dt);
+    if (game.isCardSelecting || game.isGameOver) return;
     for (final skill in skills) {
       if (skill.currentCooldown > 0) {
         skill.currentCooldown -= dt;
@@ -415,6 +424,8 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
       damage: skill.damage.toInt(),
       radius: skill.range,
       isExpanding: skill.variantEffect?['type'] == 'expanding_aoe',
+      slowMultiplier: skill.speedMultiplier,
+      slowDuration: skill.duration,
     );
     add(effect);
   }

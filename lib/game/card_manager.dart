@@ -7,7 +7,7 @@
 // - Applying the specific effects (buffs, skill modifications) of chosen cards to the game state via events.
 
 import 'dart:math';
-
+import 'dart:async';
 import 'package:flame/components.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'package:flutter/foundation.dart';
@@ -100,25 +100,31 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
 
     switch (type) {
       case 'add_modifier':
-        _eventBus.fire(StatModifierAppliedEvent(
-          target: effect['target'],
-          stat: effect['stat'],
-          value: effect['value'],
-        ));
+        _eventBus.fire(
+          StatModifierAppliedEvent(
+            target: effect['target'],
+            stat: effect['stat'],
+            value: effect['value'],
+          ),
+        );
         break;
       case 'skill_modifier':
-        _eventBus.fire(StatModifierAppliedEvent(
-          target: 'skill',
-          skillId: effect['skillId'],
-          stat: effect['stat'],
-          value: effect['value'],
-        ));
+        _eventBus.fire(
+          StatModifierAppliedEvent(
+            target: 'skill',
+            skillId: effect['skillId'],
+            stat: effect['stat'],
+            value: effect['value'],
+          ),
+        );
         break;
       case 'apply_variant':
-        _eventBus.fire(SkillVariantAppliedEvent(
-          skillId: effect['skillId'],
-          variantId: effect['variantId'],
-        ));
+        _eventBus.fire(
+          SkillVariantAppliedEvent(
+            skillId: effect['skillId'],
+            variantId: effect['variantId'],
+          ),
+        );
         break;
       case 'instant_heal_wall_percent':
         _eventBus.fire(WallHealedEvent(effect['value']));
@@ -149,11 +155,13 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
 
     switch (type) {
       case 'reduce_modifier':
-        _eventBus.fire(StatModifierAppliedEvent(
-          target: risk['target'],
-          stat: risk['stat'],
-          value: -risk['value'], // Negative value for reduction
-        ));
+        _eventBus.fire(
+          StatModifierAppliedEvent(
+            target: risk['target'],
+            stat: risk['stat'],
+            value: -risk['value'], // Negative value for reduction
+          ),
+        );
         break;
       case 'disable_coin_gain':
         _eventBus.fire(CoinGainDisabledEvent());

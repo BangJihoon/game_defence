@@ -22,7 +22,7 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
   final EventBus _eventBus; // Add EventBus instance
 
   EnemySystem(this.base, this.enemyDefinitions, {required EventBus eventBus})
-      : _eventBus = eventBus; // Initialize EventBus
+    : _eventBus = eventBus; // Initialize EventBus
 
   void spawnEnemy(Vector2 position, String enemyId) {
     final enemyDefinition = enemyDefinitions[enemyId];
@@ -83,4 +83,3 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
     enemies.clear();
   }
 }
-

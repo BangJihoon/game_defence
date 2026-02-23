@@ -46,7 +46,7 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   void update(double dt) {
     super.update(dt);
 
-    if (isDying) {
+    if (isDying || game.isCardSelecting || game.isGameOver) {
       return;
     }
 

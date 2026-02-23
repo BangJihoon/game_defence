@@ -12,14 +12,22 @@ import 'package:game_defence/data/enemy_data.dart';
 import 'package:game_defence/data/card_data.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class GameStats {
   static GameStats? _instance;
   static GameStats get instance {
     if (_instance == null) {
-      throw Exception("GameStats has not been initialized. Call GameStats.initialize() first.");
+      throw Exception(
+        "GameStats has not been initialized. Call GameStats.initialize() first.",
+      );
     }
     return _instance!;
+  }
+
+  @visibleForTesting
+  static set instance(GameStats instance) {
+    _instance = instance;
   }
 
   // Game base stats
@@ -57,6 +65,33 @@ class GameStats {
     required this.skillButtonSpacing,
   });
 
+  @visibleForTesting
+  factory GameStats.forTest({
+    int baseHP = 100,
+    double explosionRadius = 100.0,
+    int explosionDamage = 10,
+    List<WaveDefinition> waveDefinitions = const [],
+    Map<String, EnemyDefinition> enemyDefinitions = const {},
+    Map<String, SkillDefinition> skillDefinitions = const {},
+    List<CardDefinition> cards = const [],
+    UiSizeStats? baseSize,
+    int skillButtonSize = 64,
+    int skillButtonSpacing = 8,
+  }) {
+    return GameStats._internal(
+      baseHP: baseHP,
+      explosionRadius: explosionRadius,
+      explosionDamage: explosionDamage,
+      waveDefinitions: waveDefinitions,
+      enemyDefinitions: enemyDefinitions,
+      skillDefinitions: skillDefinitions,
+      cards: cards,
+      baseSize: baseSize ?? UiSizeStats(width: 100, height: 100),
+      skillButtonSize: skillButtonSize,
+      skillButtonSpacing: skillButtonSpacing,
+    );
+  }
+
   factory GameStats._fromJson(
     Map<String, dynamic> json,
     List<CardDefinition> loadedCards,
@@ -87,41 +122,54 @@ class GameStats {
   }
 
   static Future<GameStats> _load() async {
+    // 🔹 1단계: JSON 문자열만 먼저 로드 (UI isolate)
     final gameStatsJsonString = await rootBundle.loadString(
       'assets/config/game_stats.json',
     );
-    final gameStatsJsonMap = json.decode(gameStatsJsonString);
-
     final cardsJsonString = await rootBundle.loadString(
       'assets/data/cards.json',
     );
-    final List<dynamic> cardsJsonList = json.decode(cardsJsonString);
+    final enemiesJsonString = await rootBundle.loadString(
+      'assets/data/enemies.json',
+    );
+    final skillsJsonString = await rootBundle.loadString(
+      'assets/data/skills.json',
+    );
+    final wavesJsonString = await rootBundle.loadString(
+      'assets/data/waves.json',
+    );
+
+    // 🔹 2단계: JSON 파싱 + 객체 생성은 isolate에서 실행
+    return compute(_parseGameStatsInIsolate, {
+      'game': gameStatsJsonString,
+      'cards': cardsJsonString,
+      'enemies': enemiesJsonString,
+      'skills': skillsJsonString,
+      'waves': wavesJsonString,
+    });
+  }
+
+  static GameStats _parseGameStatsInIsolate(Map<String, String> jsonStrings) {
+    final gameStatsJsonMap = json.decode(jsonStrings['game']!);
+
+    final List<dynamic> cardsJsonList = json.decode(jsonStrings['cards']!);
     final List<CardDefinition> loadedCards = cardsJsonList
         .map((json) => CardDefinition.fromJson(json))
         .toList();
 
-    final enemiesJsonString = await rootBundle.loadString(
-      'assets/data/enemies.json',
-    );
-    final List<dynamic> enemiesJsonList = json.decode(enemiesJsonString);
+    final List<dynamic> enemiesJsonList = json.decode(jsonStrings['enemies']!);
     final Map<String, EnemyDefinition> loadedEnemyDefinitions = {
       for (var json in enemiesJsonList)
         json['enemyId'] as String: EnemyDefinition.fromJson(json),
     };
 
-    final skillsJsonString = await rootBundle.loadString(
-      'assets/data/skills.json',
-    );
-    final List<dynamic> skillsJsonList = json.decode(skillsJsonString);
+    final List<dynamic> skillsJsonList = json.decode(jsonStrings['skills']!);
     final Map<String, SkillDefinition> loadedSkillDefinitions = {
       for (var json in skillsJsonList)
         json['skillId'] as String: SkillDefinition.fromJson(json),
     };
 
-    final wavesJsonString = await rootBundle.loadString(
-      'assets/data/waves.json',
-    );
-    final List<dynamic> wavesJsonList = json.decode(wavesJsonString);
+    final List<dynamic> wavesJsonList = json.decode(jsonStrings['waves']!);
     final List<WaveDefinition> loadedWaveDefinitions = wavesJsonList
         .map((json) => WaveDefinition.fromJson(json))
         .toList();

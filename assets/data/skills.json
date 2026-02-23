@@ -137,4 +137,15 @@
       }
     ]
   }
+  {
+  "skillId": "chain_lightning",
+  "type": "active",
+  "initialDamage": 40,
+  "damagePerLevel": 10,
+  "initialMaxChain": 3,
+  "chainPerLevel": 1,
+  "initialCooldown": 7.0,
+  "cooldownReductionPerLevel": 0.5,
+  "maxLevel": 3
+}
 ]

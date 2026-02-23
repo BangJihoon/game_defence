@@ -24,7 +24,10 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
   double get nextWaveCountdown {
     if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) return 0;
-    return game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave -
+    return game
+            .gameStats
+            .waveDefinitions[_currentWaveIndex]
+            .delayBeforeNextWave -
         _waveTimer;
   }
 
@@ -34,12 +37,14 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   void update(double dt) {
     super.update(dt);
 
-    if (game.isGameOver) return;
+    if (game.isGameOver || game.isCardSelecting) return;
 
     if (currentWaveEnemiesCleared) {
       if (!_waveClearEventFired) {
+        // Fire event for the wave that was just cleared
         game.eventBus.fire(WaveClearedEvent(currentWaveNumber));
         _waveClearEventFired = true;
+        _currentWaveIndex++; // Move to next wave after clearing
       }
 
       if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) {
@@ -48,7 +53,10 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
       }
       _waveTimer += dt;
       if (_waveTimer >=
-          game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave) {
+          game
+              .gameStats
+              .waveDefinitions[_currentWaveIndex]
+              .delayBeforeNextWave) {
         _startWave();
         _waveTimer = 0;
       }
@@ -83,7 +91,6 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
             spawnDelayAccumulator, // Total time for all enemies in this wave to spawn
         onTick: () {
           _isSpawning = false; // All enemies for this wave are now released
-          _currentWaveIndex++;
         },
         removeOnFinish: true,
       ),

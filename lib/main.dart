@@ -21,7 +21,8 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await GameStats.initialize(); // Preload game stats
+
+  await GameStats.initialize(); // ← 여기서 미리 로딩
   runApp(const GameApp());
 }
 

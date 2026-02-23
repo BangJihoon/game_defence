@@ -60,6 +60,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late final EventBus eventBus;
 
   bool _soundEnabled;
+  bool isCardSelecting = false;
 
   bool get isGameOver => gameStateManager.isGameOver;
   int get gameScore => gameStateManager.gameScore;
@@ -87,7 +88,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     ); // Initialize GameStateManager
 
     if (_soundEnabled) {
-      _initializeSounds();
+      await _initializeSounds(); // Await sound initialization
     }
 
     modifierManager = ModifierManager(); // Initialize ModifierManager
@@ -262,24 +263,24 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   }
 
   void _showAutomaticCardSelection() {
-    if (paused) return; // Don't show if already paused or showing
+    if (isCardSelecting || paused) return; // Don't show if already selecting or paused
 
     playCardDrawSound();
-    paused = true;
+    isCardSelecting = true;
     final hand = cardManager.drawHand();
     print('Drawn cards automatically: ${hand.map((c) => c.cardId).join(', ')}');
     if (hand.isNotEmpty) {
       add(CardSelectionOverlay(cards: hand, l10n: l10n));
     } else {
-      paused = false; // Resume if no cards to show
+      isCardSelecting = false; // Resume if no cards to show
     }
   }
 
   void showCardSelection() {
     debugPrint("--- Attempting to show card selection ---");
     try {
-      if (paused) {
-        debugPrint("[CARD DRAW] FAILED: Game is already paused.");
+      if (isCardSelecting || paused) {
+        debugPrint("[CARD DRAW] FAILED: Already selecting or paused.");
         return;
       }
 
@@ -292,7 +293,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
         playCardDrawSound();
         gameStateManager.deductCardPoints(cardDrawCost);
         gameStateManager.updateCardDrawCost((cardDrawCost * 1.1).round());
-        paused = true;
+        isCardSelecting = true;
         final hand = cardManager.drawHand();
         debugPrint(
           '[CARD DRAW] Drawn cards: ${hand.map((c) => c.cardId).join(', ')}',
@@ -303,7 +304,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
           add(CardSelectionOverlay(cards: hand, l10n: l10n));
         } else {
           debugPrint("[CARD DRAW] WARNING: Drew an empty hand, resuming game.");
-          paused = false;
+          isCardSelecting = false;
         }
       } else {
         debugPrint("[CARD DRAW] FAILED: Insufficient card points.");
@@ -311,7 +312,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       }
     } catch (e, st) {
       debugPrint("[CARD DRAW] CRITICAL ERROR in showCardSelection: $e\n$st");
-      paused = false; // Attempt to resume game on error
+      isCardSelecting = false; // Attempt to resume game on error
     }
   }
 
@@ -332,11 +333,11 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
         );
       }
 
-      paused = false;
-      debugPrint("[CARD SELECT] Game resumed.");
+      isCardSelecting = false;
+      debugPrint("[CARD SELECT] Game logic resumed.");
     } catch (e, st) {
       debugPrint("[CARD SELECT] CRITICAL ERROR in selectCard: $e\n$st");
-      paused = false; // Attempt to resume game on error
+      isCardSelecting = false; // Attempt to resume game on error
     }
   }
 
@@ -358,6 +359,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   }
 
   void _gameOver() {
+    paused = true; // Stop the game loop
     playGameOverSound();
     _cardSelectionTimer.timer.pause();
     add(
@@ -377,6 +379,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     // scoreDisplay.updateScore(0); // This is now handled by ScoreChangedEvent
     waveManager.reset();
     _cardSelectionTimer.timer.start();
+    paused = false; // Resume the game loop
   }
 
   void showMessage(String message) {

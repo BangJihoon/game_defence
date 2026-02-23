@@ -7,18 +7,20 @@ import 'package:game_defence/l10n/app_localizations.dart';
 
 /// This overlay component pauses the game and displays a selection of cards for the player to choose from.
 /// It covers the entire screen with a semi-transparent background.
-class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame> {
+class CardSelectionOverlay extends PositionComponent
+    with HasGameRef<OverflowDefenseGame> {
   final List<CardDefinition> cards;
   final AppLocalizations l10n;
   late TimerComponent _autoSelectTimer;
 
-  CardSelectionOverlay({required this.cards, required this.l10n}) : super(priority: 200);
+  CardSelectionOverlay({required this.cards, required this.l10n})
+    : super(priority: 200);
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
     size = game.size; // Cover the whole screen
-    
+
     // For debugging: Automatically selects the first card if the player doesn't choose within a time limit.
     _autoSelectTimer = TimerComponent(
       period: 10, // Increased to 10 seconds to allow for manual testing
@@ -82,7 +84,7 @@ class CardDisplay extends PositionComponent
     // Also stop the auto-select timer on the parent overlay
     final parentOverlay = parent as CardSelectionOverlay?;
     parentOverlay?._autoSelectTimer.timer.stop();
-    
+
     game.selectCard(card);
   }
 
@@ -115,7 +117,9 @@ class CardDisplay extends PositionComponent
     // Card Description
     TextPainter(
         text: TextSpan(
-          text: l10n.translate(card.descriptionLocaleKey), // Use the passed-in l10n
+          text: l10n.translate(
+            card.descriptionLocaleKey,
+          ), // Use the passed-in l10n
           style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
         textAlign: TextAlign.center,

@@ -10,11 +10,15 @@ class FrostNovaEffect extends PositionComponent
   final int damage;
   final double radius;
   final bool isExpanding;
+  final double slowMultiplier;
+  final double slowDuration;
 
   FrostNovaEffect({
     required this.damage,
     required this.radius,
     this.isExpanding = false,
+    this.slowMultiplier = 0.5,
+    this.slowDuration = 3.0,
   }) {
     anchor = Anchor.center;
   }
@@ -46,7 +50,7 @@ class FrostNovaEffect extends PositionComponent
         );
         for (final enemy in enemies) {
           enemy.takeDamage(damage);
-          // TODO: Add slow effect
+          enemy.applyFreeze(slowMultiplier, slowDuration);
         }
         removeFromParent();
       },
