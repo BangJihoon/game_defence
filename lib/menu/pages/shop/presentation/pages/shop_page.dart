@@ -8,7 +8,6 @@ import 'package:game_defence/menu/pages/shop/presentation/sections/character_sum
 import 'package:game_defence/menu/pages/shop/presentation/sections/shop_header.dart';
 import 'package:game_defence/menu/pages/shop/presentation/sections/gold_section.dart';
 import 'package:game_defence/menu/pages/shop/presentation/sections/daily_shop_section.dart';
-import 'package:game_defence/menu/pages/shop/presentation/widgets/shop_bottom_nav.dart';
 import 'package:game_defence/menu/pages/shop/presentation/widgets/section_title.dart';
 
 class ShopPage extends StatelessWidget {
@@ -18,7 +17,7 @@ class ShopPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4A3B53),
-      bottomNavigationBar: const ShopBottomNav(),
+      // bottomNavigationBar: const ShopBottomNav(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

@@ -9,12 +9,12 @@ import 'package:provider/provider.dart';
 import 'package:game_defence/game/events/event_bus.dart';
 import 'l10n/app_localizations.dart';
 import 'game/overflow_game.dart';
-import 'menu/pages/home_page.dart';
-import 'menu/pages/shop/presentation/pages/shop_page.dart';
-import 'menu/pages/inventory_page.dart';
-import 'menu/pages/character_page.dart';
-import 'menu/pages/skill_page.dart';
-
+import 'package:game_defence/menu/pages/home_page.dart';
+import 'package:game_defence/menu/pages/shop/presentation/pages/shop_page.dart';
+import 'package:game_defence/menu/pages/inventory_page.dart';
+import 'package:game_defence/menu/pages/character/presentation/pages/character_page.dart';
+import 'package:game_defence/menu/pages/skill_page.dart';
+import 'package:game_defence/menu/pages/main_menu_shell.dart'; 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
@@ -75,7 +75,7 @@ class _GameAppState extends State<GameApp> {
   Widget build(BuildContext context) {
     final pages = [
       const ShopPage(),
-      const InventoryPage(),
+      const CharacterPage(),
       HomePage(
         onStartGame: _startGame,
         locale: _locale,
@@ -85,7 +85,7 @@ class _GameAppState extends State<GameApp> {
               : const Locale('ko');
         }),
       ),
-      const CharacterPage(),
+      const InventoryPage(),
       const SkillPage(),
     ];
 
@@ -109,46 +109,29 @@ class _GameAppState extends State<GameApp> {
             bodyMedium: TextStyle(color: Colors.white),
           ),
         ),
-        home: _showGame
-            ? GameWidget(
-                key: UniqueKey(), // 게임 재시작 시 완전한 초기화를 보장
-                game: OverflowDefenseGame(
-                  locale: _locale,
-                  onExit: _returnToMenu,
-                  playerDataManager: _playerDataManager,
-                  eventBus: _gameEventBus,
-                ),
-              )
-            : Scaffold(
-                body: pages[_selectedIndex],
-                bottomNavigationBar: BottomNavigationBar(
-                  items: const <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.store),
-                      label: '상점',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.inventory),
-                      label: '인벤토리',
-                    ),
-                    BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person),
-                      label: '캐릭터',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.star),
-                      label: '스킬',
-                    ),
-                  ],
-                  currentIndex: _selectedIndex,
-                  selectedItemColor: Colors.amber[800],
-                  unselectedItemColor: Colors.grey,
-                  backgroundColor: const Color(0xFF1a1a2e),
-                  type: BottomNavigationBarType.fixed,
-                  onTap: _onItemTapped,
-                ),
-              ),
+       home: _showGame
+    ? GameWidget(
+        key: UniqueKey(),
+        game: OverflowDefenseGame(
+          locale: _locale,
+          onExit: _returnToMenu,
+          playerDataManager: _playerDataManager,
+          eventBus: _gameEventBus,
+        ),
+      )
+    : MainMenuShell(
+        selectedIndex: _selectedIndex,
+        onTabChanged: _onItemTapped,
+        locale: _locale,
+        onStartGame: _startGame,
+        onToggleLocale: () {
+          setState(() {
+            _locale = _locale == const Locale('ko')
+                ? const Locale('en')
+                : const Locale('ko');
+          });
+        },
+      ),
       ),
     );
   }
