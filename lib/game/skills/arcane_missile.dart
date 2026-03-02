@@ -9,7 +9,7 @@ class ArcaneMissileProjectile extends PositionComponent
   final int damage;
   final bool isHoming;
 
-  final double _speed = 300;
+  final double _baseSpeed = 600;
 
   ArcaneMissileProjectile({
     required this.target,
@@ -26,8 +26,9 @@ class ArcaneMissileProjectile extends PositionComponent
       return;
     }
 
+    final speed = _baseSpeed * gameRef.modifierManager.projectileSpeedMultiplier;
     final direction = (target.position - position).normalized();
-    position += direction * _speed * dt;
+    position += direction * speed * dt;
 
     if (position.distanceTo(target.position) < 10) {
       target.takeDamage(damage);

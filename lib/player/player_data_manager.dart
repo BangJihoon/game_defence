@@ -1,397 +1,135 @@
 // lib/player/player_data_manager.dart
-
 import 'package:flutter/material.dart';
-import 'package:game_defence/config/game_config.dart'; // Import GameStats for skill definitions
 import 'package:game_defence/data/inventory_data.dart';
 import 'package:game_defence/data/character_data.dart';
-import 'package:game_defence/data/player_skill_data.dart';
 import 'package:game_defence/game/events/event_bus.dart';
-import 'package:game_defence/game/events/game_events.dart';
 
-// --- Constants ---
-const int cardsNeededToUnlock = 50;
-const int skillRankUpGemCost = 50; // Example cost for ranking up a skill
-
-// --- Master List of All Characters in the Game ---
-const List<Character> masterCharacterList = [
-  Character(
-    id: 'hermes',
-    name: '헤르메스',
-    description: '신들의 전령. 빠른 속도를 자랑합니다.',
-    tier: CharacterTier.hero,
-    icon: Icons.flash_on,
-    baseAttack: 10,
-    baseHp: 80,
-    baseDefense: 5,
-  ),
-  Character(
-    id: 'hercules',
-    name: '헤라클레스',
-    description: '압도적인 힘을 가진 반신반인 영웅.',
-    tier: CharacterTier.hero,
-    icon: Icons.fitness_center,
-    baseAttack: 15,
-    baseHp: 120,
-    baseDefense: 8,
-  ),
-  Character(
-    id: 'zeus',
-    name: '제우스',
-    description: '올림푸스의 왕. 번개를 다스립니다.',
-    tier: CharacterTier.celestial,
-    icon: Icons.bolt,
-    baseAttack: 25,
-    baseHp: 100,
-    baseDefense: 10,
-  ),
-];
-// ------------------------------------------------
-
-/// A class to hold all data specific to a player.
-class PlayerData {
-  // Player Progression
-  int playerLevel;
-  int playerExp;
-
-  Map<String, int> currencies;
-  List<InventoryItem> inventory;
-  List<EquipmentSlotState> equipmentSlots;
-
-  List<PlayerCharacter> ownedCharacters;
-  List<PlayerSkill> ownedSkills;
-  int totalAttackPower;
-  String activeCharacterId;
-  EventBus eventBus;
-
-  PlayerData({
-    this.playerLevel = 1,
-    this.playerExp = 0,
-    required this.currencies,
-    required this.inventory,
-    required this.equipmentSlots,
-    required this.ownedCharacters,
-    required this.ownedSkills,
-    this.totalAttackPower = 0,
-    required this.activeCharacterId,
-    required this.eventBus,
-  });
-}
-
-/// Manages loading, saving, and providing access to player data.
-/// For now, it initializes a "test account" with mock data.
 class PlayerDataManager extends ChangeNotifier {
-  late final PlayerData _playerData;
-  PlayerSkill? _skillAwaitingVariantChoice;
+  late final List<Temple> temples;
+  late final List<Offering> allOfferings;
+  late final List<GameItem> mysticTools;
+  late final List<Character> masterCharacterList;
+  
+  String activeTempleId = 'athena';
+  String activeCharacterId = 'hermes';
+  int gold = 500000;
+  int gems = 5000;
+
+  bool soundEnabled = true;
+  bool vibrationEnabled = true;
+
+  int characterSlots = 3;
+  List<String> equippedCharacterIds = ['hermes', 'athena', 'zeus'];
+
+  int toolSlots = 3;
+  List<String> equippedToolIds = ['tsunami', 'meteor_shower', 'ice_age'];
+  List<String> ownedToolIds = ['tsunami', 'meteor_shower', 'ice_age', 'thunder_storm', 'black_hole'];
+
+  int runeSlots = 4;
+  List<String?> equippedRuneIds = [null, null, null, null];
+
+  int currentTempleIndex = 0;
 
   PlayerDataManager({required EventBus eventBus}) {
-    // Mock Data
-    final inventory = <InventoryItem>[];
-    final slots = [
-      EquipmentSlotState(type: EquipmentType.weapon, level: 1),
-      EquipmentSlotState(type: EquipmentType.armor, level: 1),
-      EquipmentSlotState(type: EquipmentType.hat, level: 1),
-      EquipmentSlotState(type: EquipmentType.shoe, level: 1),
-      EquipmentSlotState(type: EquipmentType.ring, level: 1),
-      EquipmentSlotState(type: EquipmentType.necklace, level: 1),
+    _initTemples();
+    _initOfferings();
+    _initMysticTools();
+    _initCharacters();
+  }
+
+  void _initCharacters() {
+    masterCharacterList = [
+      const Character(id: 'hermes', name: '헤르메스', description: '전령', tier: CharacterTier.hero, icon: Icons.directions_run, skillId: 'arcane_missile', baseAttack: 25, baseHp: 500, baseDefense: 5),
+      const Character(id: 'athena', name: '아테나', description: '지혜', tier: CharacterTier.hero, icon: Icons.security, skillId: 'frost_nova', baseAttack: 30, baseHp: 600, baseDefense: 10),
+      const Character(id: 'zeus', name: '제우스', description: '올림포스의 왕', tier: CharacterTier.celestial, icon: Icons.bolt, skillId: 'chain_lightning', baseAttack: 40, baseHp: 700, baseDefense: 15),
+      const Character(id: 'ares', name: '아레스', description: '전쟁', tier: CharacterTier.hero, icon: Icons.colorize, skillId: 'fireball', baseAttack: 50, baseHp: 700, baseDefense: 15),
+      const Character(id: 'poseidon', name: '포세이돈', description: '바다', tier: CharacterTier.hero, icon: Icons.waves, skillId: 'frost_nova', baseAttack: 38, baseHp: 750, baseDefense: 12),
+      const Character(id: 'lucifer', name: '루시퍼', description: '타락', tier: CharacterTier.mortal, icon: Icons.brightness_3, skillId: 'poison_cloud', baseAttack: 65, baseHp: 1200, baseDefense: 20),
+      const Character(id: 'michael', name: '미카엘', description: '대천사', tier: CharacterTier.celestial, icon: Icons.auto_awesome, skillId: 'chain_lightning', baseAttack: 55, baseHp: 1000, baseDefense: 30),
+      const Character(id: 'satan', name: '사탄', description: '분노', tier: CharacterTier.mortal, icon: Icons.local_fire_department, skillId: 'fireball', baseAttack: 75, baseHp: 1100, baseDefense: 10),
+      const Character(id: 'raphael', name: '라파엘', description: '치유', tier: CharacterTier.celestial, icon: Icons.healing, skillId: 'healing_aura', baseAttack: 20, baseHp: 1200, baseDefense: 40),
+      const Character(id: 'hades', name: '하데스', description: '지하', tier: CharacterTier.hero, icon: Icons.visibility_off, skillId: 'poison_cloud', baseAttack: 42, baseHp: 650, baseDefense: 10),
     ];
-    final ownedChars = masterCharacterList
-        .map(
-          (c) => PlayerCharacter(
-            characterId: c.id,
-            isUnlocked: c.id == 'hermes',
-            cardCount: 0,
-          ),
-        )
-        .toList();
-    final ownedSkills = GameStats.instance.skillDefinitions.keys
-        .map(
-          (id) => PlayerSkill(skillId: id, level: 1, rank: 1, isUnlocked: true),
-        )
-        .toList();
+  }
 
-    _playerData = PlayerData(
-      playerLevel: 15, // Start at level 15 for testing rank-up
-      currencies: {'gold': 999999, 'gems': 9999},
-      inventory: inventory,
-      equipmentSlots: slots,
-      ownedCharacters: ownedChars,
-      ownedSkills: ownedSkills,
-      totalAttackPower: 10, // Base attack power
-      activeCharacterId: 'hermes', // Hermes is active by default
-      eventBus: eventBus,
-    );
+  void _initTemples() {
+    temples = [
+      Temple(id: 'athena', name: '아테네 신전', description: '영웅과 신화 캐릭터 공격력 보너스', type: TempleType.hero, isUnlocked: true),
+      Temple(id: 'light_sanctuary', name: '빛의 성전', description: '천사 캐릭터 공격력 보너스', type: TempleType.light, isUnlocked: true),
+      Temple(id: 'babel_darkness', name: '어둠의 바벨', description: '악마 캐릭터 공격력 보너스', type: TempleType.darkness, isUnlocked: true),
+    ];
+  }
 
-    _recalculateStats();
-    // Notify listeners that data has been loaded
+  void _initOfferings() {
+    allOfferings = [];
+    final types = [TempleType.hero, TempleType.light, TempleType.darkness];
+    final icons = [Icons.star, Icons.shield, Icons.auto_awesome, Icons.bolt, Icons.gavel, Icons.favorite, Icons.ac_unit, Icons.wb_sunny, Icons.nightlight, Icons.psychology];
+    
+    for (var type in types) {
+      for (int i = 0; i < 10; i++) {
+        allOfferings.add(Offering(
+          id: '${type.name}_$i',
+          name: '${_getTypeName(type)} 룬 $i',
+          description: '신비로운 힘이 깃든 룬입니다.',
+          suitableTemple: type,
+          icon: icons[i % icons.length],
+          color: _getTypeColor(type),
+        ));
+      }
+    }
+  }
+
+  void _initMysticTools() {
+    mysticTools = [
+      GameItem(id: 'tsunami', name: '심연의 쓰나미', description: '모든 적을 뒤로 밀어냅니다.', icon: Icons.tsunami, color: Colors.blueAccent, goldCost: 5000),
+      GameItem(id: 'meteor_shower', name: '종말의 유성우', description: '하늘에서 불타는 돌이 떨어집니다.', icon: Icons.auto_awesome, color: Colors.deepOrangeAccent, goldCost: 8000),
+      GameItem(id: 'ice_age', name: '절대영도 빙하기', description: '전장을 2초간 동결시킵니다.', icon: Icons.ac_unit, color: Colors.cyanAccent, goldCost: 6000),
+      GameItem(id: 'thunder_storm', name: '천벌의 뇌우', description: '번개들이 적들을 연쇄 타격합니다.', icon: Icons.bolt, color: Colors.yellowAccent, goldCost: 7000),
+      GameItem(id: 'black_hole', name: '차원의 블랙홀', description: '모든 적을 중심부로 끌어당깁니다.', icon: Icons.vignette, color: Colors.deepPurpleAccent, goldCost: 12000),
+    ];
+  }
+
+  String _getTypeName(TempleType type) {
+    if (type == TempleType.hero) return '영웅';
+    if (type == TempleType.light) return '빛';
+    return '어둠';
+  }
+
+  Color _getTypeColor(TempleType type) {
+    if (type == TempleType.hero) return Colors.blueAccent;
+    if (type == TempleType.light) return Colors.orangeAccent;
+    return Colors.deepPurpleAccent;
+  }
+
+  Temple get activeTemple => temples.firstWhere((t) => t.id == activeTempleId);
+
+  void toggleSound() { soundEnabled = !soundEnabled; notifyListeners(); }
+  void toggleVibration() { vibrationEnabled = !vibrationEnabled; notifyListeners(); }
+
+  void toggleCharacterSelection(String id) {
+    if (equippedCharacterIds.contains(id)) {
+      if (equippedCharacterIds.length > 1) equippedCharacterIds.remove(id);
+    } else {
+      if (equippedCharacterIds.length < characterSlots) equippedCharacterIds.add(id);
+    }
     notifyListeners();
   }
 
-  PlayerData get playerData => _playerData;
-  PlayerSkill? get skillAwaitingVariantChoice => _skillAwaitingVariantChoice;
-
-  void unlockCharacter(String characterId) {
-    try {
-      final playerCharacter = _playerData.ownedCharacters.firstWhere(
-        (pc) => pc.characterId == characterId,
-      );
-
-      if (playerCharacter.isUnlocked) {
-        debugPrint("Character $characterId is already unlocked.");
-        return;
-      }
-
-      if (playerCharacter.cardCount >= cardsNeededToUnlock) {
-        playerCharacter.cardCount -= cardsNeededToUnlock;
-        playerCharacter.isUnlocked = true;
-        debugPrint("Character $characterId unlocked!");
-        notifyListeners();
-      } else {
-        debugPrint(
-          "Not enough cards to unlock $characterId. Needs $cardsNeededToUnlock, has ${playerCharacter.cardCount}.",
-        );
-      }
-    } catch (e) {
-      debugPrint("Error unlocking character $characterId: $e");
-    }
+  void equipRune(int slotIndex, String runeId) { equippedRuneIds[slotIndex] = runeId; notifyListeners(); }
+  void updateTempleIndex(int index) { currentTempleIndex = index; notifyListeners(); }
+  void setActiveTemple(String id) { 
+    activeTempleId = id; 
+    currentTempleIndex = temples.indexWhere((t) => t.id == id);
+    notifyListeners(); 
   }
+  void upgradeTemple(String id) { /* 구현 생략 */ }
+  void buyTool(String id) { /* 구현 생략 */ }
+  void equipTool(String id) { /* 구현 생략 */ }
+  void unequipTool(String id) { equippedToolIds.remove(id); notifyListeners(); }
+  void unlockToolSlot() { if (toolSlots < 5) toolSlots++; notifyListeners(); }
 
-  void setActiveCharacter(String characterId) {
-    try {
-      final playerCharacter = _playerData.ownedCharacters.firstWhere(
-        (pc) => pc.characterId == characterId,
-      );
-
-      if (playerCharacter.isUnlocked) {
-        if (_playerData.activeCharacterId != characterId) {
-          _playerData.activeCharacterId = characterId;
-          debugPrint("Active character set to $characterId.");
-          notifyListeners();
-        }
-      } else {
-        debugPrint(
-          "Cannot set active character to $characterId: Character is not unlocked.",
-        );
-      }
-    } catch (e) {
-      debugPrint("Error setting active character $characterId: $e");
-    }
-  }
-
-  void equipItem(InventoryItem itemToEquip) {
-    if (itemToEquip.equipmentType == null) {
-      debugPrint(
-        "Attempted to equip an item with no equipment type: ${itemToEquip.name}",
-      );
-      return;
-    }
-
-    // Find the slot for the item's type
-    final slot = _playerData.equipmentSlots.firstWhere(
-      (s) => s.type == itemToEquip.equipmentType,
-    );
-    final previouslyEquippedItem = slot.equippedItem;
-
-    // Remove the new item from inventory first to handle swapping identical items
-    _playerData.inventory.removeWhere((item) => item.id == itemToEquip.id);
-
-    // If an item was already in the slot, add it back to inventory
-    if (previouslyEquippedItem != null) {
-      _playerData.inventory.add(previouslyEquippedItem);
-    }
-
-    // Equip the new item
-    slot.equippedItem = itemToEquip;
-
-    debugPrint("Equipped ${itemToEquip.name} in ${slot.type}.");
-    _recalculateStats();
-    notifyListeners();
-  }
-
-  void unequipItem(EquipmentType slotType) {
-    // Find the slot
-    final slot = _playerData.equipmentSlots.firstWhere(
-      (s) => s.type == slotType,
-    );
-
-    // If there's an item to unequip
-    if (slot.equippedItem != null) {
-      debugPrint("Unequipping ${slot.equippedItem!.name} from ${slot.type}.");
-      _playerData.inventory.add(slot.equippedItem!);
-      slot.equippedItem = null;
-      _recalculateStats();
-      notifyListeners();
-    }
-  }
-
-  void _recalculateStats() {
-    double totalAttack = 0;
-    // In the future, add other stats like HP, defense etc.
-
-    for (final slot in _playerData.equipmentSlots) {
-      if (slot.equippedItem != null && slot.equippedItem!.stats != null) {
-        totalAttack += slot.equippedItem!.stats!['baseAttack'] ?? 0;
-      }
-    }
-    _playerData.totalAttackPower = totalAttack.toInt();
-    debugPrint(
-      "Recalculated stats. Total Attack Power: ${_playerData.totalAttackPower}",
-    );
-  }
-
-  int getSkillUpgradeCost(String skillId) {
-    try {
-      final playerSkill = _playerData.ownedSkills.firstWhere(
-        (s) => s.skillId == skillId,
-      );
-      final skillDef = GameStats.instance.skillDefinitions[skillId];
-
-      if (!playerSkill.isUnlocked ||
-          skillDef == null ||
-          playerSkill.level >= skillDef.maxLevel) {
-        return 0; // Cannot upgrade
-      }
-      // Simple cost formula: level * 100 * rank
-      return (playerSkill.level + 1) * 100 * playerSkill.rank;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  void upgradeSkill(String skillId) {
-    try {
-      final playerSkill = _playerData.ownedSkills.firstWhere(
-        (s) => s.skillId == skillId,
-      );
-      final skillDef = GameStats.instance.skillDefinitions[skillId];
-
-      if (!playerSkill.isUnlocked || skillDef == null) {
-        debugPrint(
-          "Cannot upgrade skill $skillId: Not unlocked or definition not found.",
-        );
-        return;
-      }
-      if (playerSkill.level >= skillDef.maxLevel) {
-        debugPrint(
-          "Skill $skillId is already at max level for its current rank (${playerSkill.level}/${skillDef.maxLevel}).",
-        );
-        return;
-      }
-
-      final cost = getSkillUpgradeCost(skillId);
-      if (cost == 0) return; // Should not happen if above checks pass
-
-      if ((_playerData.currencies['gold'] ?? 0) >= cost) {
-        _playerData.currencies['gold'] =
-            (_playerData.currencies['gold'] ?? 0) - cost;
-        playerSkill.level++;
-        debugPrint("Upgraded skill $skillId to level ${playerSkill.level}.");
-        notifyListeners();
-      } else {
-        debugPrint(
-          "Not enough gold to upgrade $skillId. Needs $cost, has ${_playerData.currencies['gold']}.",
-        );
-      }
-    } catch (e) {
-      debugPrint("Error upgrading skill $skillId: $e");
-    }
-  }
-
-  int getSkillRankUpCost(String skillId) {
-    try {
-      final playerSkill = _playerData.ownedSkills.firstWhere(
-        (s) => s.skillId == skillId,
-      );
-      final skillDef = GameStats.instance.skillDefinitions[skillId];
-
-      if (!playerSkill.isUnlocked ||
-          skillDef == null ||
-          playerSkill.rank >= 5) {
-        // Max 5 ranks for now
-        return 0; // Cannot rank up
-      }
-
-      // Must be at max level for current rank
-      if (playerSkill.level < skillDef.maxLevel) {
-        return 0;
-      }
-
-      // Player level requirement (e.g., player level >= current rank * 10)
-      if (_playerData.playerLevel < playerSkill.rank * 10) {
-        return 0;
-      }
-
-      return skillRankUpGemCost * playerSkill.rank; // Cost scales with rank
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  void rankUpSkill(String skillId) {
-    try {
-      final playerSkill = _playerData.ownedSkills.firstWhere(
-        (s) => s.skillId == skillId,
-      );
-      final skillDef = GameStats.instance.skillDefinitions[skillId];
-
-      if (!playerSkill.isUnlocked || skillDef == null) {
-        debugPrint(
-          "Cannot rank up skill $skillId: Not unlocked or definition not found.",
-        );
-        return;
-      }
-      if (playerSkill.rank >= 5) {
-        // Max 5 ranks
-        debugPrint(
-          "Skill $skillId is already at max rank (${playerSkill.rank}).",
-        );
-        return;
-      }
-      if (playerSkill.level < skillDef.maxLevel) {
-        debugPrint(
-          "Skill $skillId must be at max level (${skillDef.maxLevel}) to rank up.",
-        );
-        return;
-      }
-      if (_playerData.playerLevel < playerSkill.rank * 10) {
-        debugPrint(
-          "Player level ${_playerData.playerLevel} is too low to rank up $skillId. Requires player level ${playerSkill.rank * 10}.",
-        );
-        return;
-      }
-
-      final cost = getSkillRankUpCost(skillId);
-      if (cost == 0) return;
-
-      if ((_playerData.currencies['gems'] ?? 0) >= cost) {
-        _playerData.currencies['gems'] =
-            (_playerData.currencies['gems'] ?? 0) - cost;
-        playerSkill.rank++;
-        playerSkill.level = 1; // Reset level after rank up
-        debugPrint(
-          "Ranked up skill $skillId to rank ${playerSkill.rank}. Level reset to 1.",
-        );
-
-        final skillDef = GameStats.instance.skillDefinitions[skillId];
-        if (skillDef != null && skillDef.variants.isNotEmpty) {
-          _skillAwaitingVariantChoice = playerSkill;
-        }
-
-        notifyListeners();
-      } else {
-        debugPrint(
-          "Not enough gems to rank up $skillId. Needs $cost, has ${_playerData.currencies['gems']}.",
-        );
-      }
-    } catch (e) {
-      debugPrint("Error ranking up skill $skillId: $e");
-    }
-  }
-
-  void selectSkillVariant(String skillId, String variantId) {
-    _skillAwaitingVariantChoice = null;
-    _playerData.eventBus.fire(
-      SkillVariantAppliedEvent(skillId: skillId, variantId: variantId),
-    );
-    notifyListeners();
-  }
+  dynamic get playerData => this; 
+  int get totalAttackPower => 10; 
+  int get totalHpBonus => 0;
+  void updateEventBus(dynamic bus) {}
 }

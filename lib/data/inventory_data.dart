@@ -1,68 +1,65 @@
-// lib/data/inventory_data.dart
-//
-// Defines the data structures for the inventory and equipment system.
-// - `EquipmentType`: Enum for the different gear slots.
-// - `Scroll`: Socketable items that provide stat bonuses.
-// - `EquipmentSlotState`: Represents a specific equipment slot on the player, tracking its level, equipped item, and sockets.
-// - `InventoryItem`: Represents any item that can be stored in the player's inventory, including equipment and consumables.
-
 import 'package:flutter/material.dart';
 
-/// The 6 types of equipment slots available.
-enum EquipmentType { hat, armor, weapon, necklace, ring, shoe }
+enum TempleType { hero, light, darkness }
 
-/// Represents a scroll that can be socketed into an equipment slot.
-class Scroll {
+class Temple {
   final String id;
   final String name;
   final String description;
-  final IconData icon;
-  final Map<String, double>
-  effects; // e.g., {'attack_power': 5.0, 'cooldown_reduction': 0.01}
+  final TempleType type;
+  int level;
+  bool isUnlocked;
+  final double baseBonus;
 
-  Scroll({
+  Temple({
     required this.id,
     required this.name,
     required this.description,
+    required this.type,
+    this.level = 1,
+    this.isUnlocked = false,
+    this.baseBonus = 0.05,
+  });
+
+  double get currentBonus => baseBonus + (level - 1) * 0.01;
+  double get maxBonus => 0.15;
+
+  int get upgradeGoldCost => level * 5000;
+  int get upgradeGemCost => (level / 2).ceil() * 50;
+}
+
+class Offering {
+  final String id;
+  final String name;
+  final String description;
+  final TempleType suitableTemple;
+  final IconData icon;
+  final Color color;
+
+  Offering({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.suitableTemple,
     required this.icon,
-    required this.effects,
+    required this.color,
   });
 }
 
-/// Represents the state of a single equipment slot on the character.
-class EquipmentSlotState {
-  final EquipmentType type;
-  int level;
-  InventoryItem? equippedItem; // The item currently in this slot
-  final List<Scroll?> sockets; // A list of 10, can contain nulls if empty
-
-  EquipmentSlotState({
-    required this.type,
-    this.level = 1,
-    this.equippedItem,
-    List<Scroll?>? sockets,
-  }) : sockets = sockets ?? List.generate(10, (_) => null);
-
-  int get maxSockets =>
-      (level / 10).floor() + 1 > 10 ? 10 : (level / 10).floor() + 1;
-}
-
-/// Represents a generic item that can be in the player's inventory.
-/// This could be an equippable item, a scroll, or a currency.
-class InventoryItem {
+class GameItem {
   final String id;
   final String name;
   final String description;
   final IconData icon;
-  final EquipmentType? equipmentType; // if this item is equippable
-  final Map<String, double>? stats; // e.g., {'baseHp': 50.0, 'baseAttack': 5.0}
+  final Color color;
+  final int goldCost;
 
-  InventoryItem({
+  GameItem({
     required this.id,
     required this.name,
     required this.description,
     required this.icon,
-    this.equipmentType,
-    this.stats,
+    required this.color,
+    required this.goldCost,
   });
 }

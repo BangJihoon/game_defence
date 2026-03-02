@@ -1,30 +1,22 @@
 // lib/game/player_base.dart
-//
-// Represents the player's base or wall that must be defended.
-// Responsibilities:
-// - Tracking current HP and Shield values.
-// - Rendering the visual representation of the base, including HP and Shield bars.
-// - Handling incoming damage, applying it first to shields then to HP.
-// - Triggering visual feedback (shake) and events (destruction, hit) on damage.
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/effects.dart'; 
-
 import 'package:game_defence/game/overflow_game.dart';
 
-class PlayerBase extends PositionComponent
-    with HasGameRef<OverflowDefenseGame> {
+class PlayerBase extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final int maxHp;
   double hp;
   double shield = 0.0;
   VoidCallback? onDestroyed;
   VoidCallback? onHit;
 
+  double get regenPerSecond => maxHp * 0.01; // 초당 1% 회복
+
   PlayerBase({required int hp, required int height})
     : maxHp = hp,
       hp = hp.toDouble() {
-    size = Vector2(0, height.toDouble()); // Width will be set in onLoad
+    size = Vector2(0, height.toDouble());
     anchor = Anchor.topLeft;
   }
 
@@ -32,6 +24,17 @@ class PlayerBase extends PositionComponent
   Future<void> onLoad() async {
     await super.onLoad();
     size.x = gameRef.size.x;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (hp <= 0) return;
+
+    // 자동 체력 회복
+    if (hp < maxHp) {
+      hp = (hp + regenPerSecond * dt).clamp(0, maxHp.toDouble());
+    }
   }
 
   @override
@@ -47,24 +50,22 @@ class PlayerBase extends PositionComponent
       ).createShader(size.toRect());
     canvas.drawRect(size.toRect(), gradientPaint);
 
-    // HP bar
-    final hpRatio = hp / maxHp;
+    // --- 개선된 HP bar ---
+    final hpRatio = (hp / maxHp).clamp(0.0, 1.0);
     final hpRect = Rect.fromLTWH(0, 0, size.x * hpRatio, size.y);
-    final hpGradient = LinearGradient(
-      colors: [
-        Colors.green.withOpacity(0.5),
-        Colors.lightGreen.withOpacity(0.5),
-      ],
-    );
-    final hpPaint = Paint()..shader = hpGradient.createShader(hpRect);
+    
+    // 체력에 따라 색상 변화 (녹색 -> 노랑 -> 빨강)
+    final hpColor = Color.lerp(Colors.red, Colors.green, hpRatio)!;
+    final hpPaint = Paint()..color = hpColor.withValues(alpha: 0.8);
     canvas.drawRect(hpRect, hpPaint);
 
-    // Shield bar
+    // Shield bar (눈에 띄게 파란색 선으로 표시)
     if (shield > 0) {
-      final shieldRatio = shield / maxHp;
-      final shieldRect = Rect.fromLTWH(0, 0, size.x * shieldRatio, size.y);
-      final shieldPaint = Paint()..color = Colors.blue.withOpacity(0.5);
-      canvas.drawRect(shieldRect, shieldPaint);
+      final shieldRatio = (shield / maxHp).clamp(0.0, 1.0);
+      canvas.drawRect(
+        Rect.fromLTWH(0, size.y - 4, size.x * shieldRatio, 4),
+        Paint()..color = Colors.cyanAccent,
+      );
     }
 
     // Base border
@@ -73,9 +74,30 @@ class PlayerBase extends PositionComponent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawRect(size.toRect(), borderPaint);
+
+    // --- 체력 수치 텍스트 ---
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: 'HP: ${hp.toInt()} / $maxHp',
+        style: const TextStyle(
+          color: Colors.white, 
+          fontSize: 14, 
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas, 
+      Offset((size.x - textPainter.width) / 2, (size.y - textPainter.height) / 2)
+    );
   }
 
   void takeDamage(int dmg) {
+    if (hp <= 0) return;
+    
     final double damageToDeal = dmg.toDouble();
 
     if (shield > 0) {
@@ -92,7 +114,7 @@ class PlayerBase extends PositionComponent
     if (hp < 0) hp = 0;
 
     onHit?.call();
-    shake(); // Call shake when hit
+    shake(); 
 
     if (hp <= 0) {
       onDestroyed?.call();
@@ -109,9 +131,8 @@ class PlayerBase extends PositionComponent
         MoveByEffect(Vector2(5, 0), EffectController(duration: 0.05)),
         MoveByEffect(Vector2(-10, 0), EffectController(duration: 0.05)),
         MoveByEffect(Vector2(5, 0), EffectController(duration: 0.05)),
-        MoveByEffect(Vector2(0, 0), EffectController(duration: 0.05)), // Return to original position
+        MoveByEffect(Vector2(0, 0), EffectController(duration: 0.05)),
       ]),
     );
   }
 }
-

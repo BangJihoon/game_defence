@@ -1,38 +1,41 @@
+// lib/game/overflow_game.dart
 import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:flame/components.dart'; // Added
-import 'package:flame/effects.dart'
-    show
-        SequenceEffect,
-        OpacityEffect,
-        EffectController,
-        RemoveEffect,
-        MoveByEffect;
+import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 
 import 'player_base.dart';
 import 'enemy_system.dart';
 import 'input/tap_input_layer.dart';
-import 'ui/game_over_overlay.dart';
 import 'ui/score_display.dart';
-import 'ui/skill_ui.dart';
 import 'skills/skill_system.dart';
-import 'background.dart';
-import '../../l10n/app_localizations.dart';
-import '../../config/game_config.dart';
 import 'ui/wave_display.dart';
-import 'card_manager.dart';
-import 'ui/draw_card_button.dart';
-import 'ui/card_selection_overlay.dart';
-import 'package:game_defence/data/card_data.dart';
-import 'modifier_manager.dart';
-import 'package:game_defence/game/ui/attack_power_display.dart';
 import 'wave_manager.dart';
+import 'modifier_manager.dart';
+import 'ui/attack_power_display.dart';
+import 'ui/skill_ui.dart';
+import 'card_manager.dart';
+import 'ui/card_selection_overlay.dart';
+import 'ui/game_over_overlay.dart';
+import 'ui/draw_card_button.dart';
+import 'ui/settings_overlay.dart'; // 추가
+import 'package:game_defence/config/game_config.dart';
+import 'package:game_defence/data/card_data.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 import 'package:game_defence/player/player_data_manager.dart';
-import 'package:game_defence/game/events/event_bus.dart'; // Import EventBus
-import 'package:game_defence/game/events/game_events.dart'; // Import GameEvent
-import 'package:game_defence/game/game_state_manager.dart'; // Import GameStateManager
+import 'package:game_defence/game/events/event_bus.dart';
+import 'package:game_defence/game/events/game_events.dart';
+import 'package:game_defence/game/game_state_manager.dart';
+import 'package:game_defence/data/character_data.dart';
+import 'package:game_defence/data/inventory_data.dart';
+import 'package:flame/events.dart';
+
+import 'ui/victory_overlay.dart';
+import 'components/altar_character.dart';
+import 'enemy.dart'; // Add Enemy import
+import 'effects/explosion_effect.dart'; // Add ExplosionEffect import
 
 class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late PlayerBase playerBase;
@@ -40,17 +43,17 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late TapInputLayer tapInputLayer;
   late ScoreDisplay scoreDisplay;
   late SkillSystem skillSystem;
-  late SkillUI skillUI;
   late WaveManager waveManager;
   late WaveDisplay waveDisplay;
+  late SkillUI skillUI;
   late CardManager cardManager;
   late DrawCardButton drawCardButton;
-  late ModifierManager modifierManager; // Add ModifierManager instance
+  late ModifierManager modifierManager;
   late AttackPowerDisplay attackPowerDisplay;
-  late GameStateManager gameStateManager; // Declare GameStateManager
-  late TimerComponent _cardSelectionTimer;
+  late GameStateManager gameStateManager;
   late AppLocalizations l10n;
 
+  final List<AltarCharacterComponent> altarCharacters = [];
   final Random _random = Random();
   final Locale locale;
   late GameStats gameStats;
@@ -58,7 +61,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   final PlayerDataManager playerDataManager;
   late final EventBus eventBus;
 
-  bool _soundEnabled;
+  bool get _soundEnabled => playerDataManager.soundEnabled;
 
   bool get isGameOver => gameStateManager.isGameOver;
   int get gameScore => gameStateManager.gameScore;
@@ -69,447 +72,279 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
   OverflowDefenseGame({
     this.locale = const Locale('ko'),
-    bool soundEnabled = true,
+    bool soundEnabled = true, // 무시됨 (pdm 사용)
     this.onExit,
     required this.playerDataManager,
     required this.eventBus,
-  }) : _soundEnabled = soundEnabled;
+  });
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
     l10n = AppLocalizations(locale);
-    gameStats = GameStats.instance; // Use singleton instance
-    gameStateManager = GameStateManager(
-      eventBus: eventBus,
-    ); // Initialize GameStateManager
+    gameStats = GameStats.instance;
+    
+    gameStateManager = GameStateManager(eventBus: eventBus);
+    add(gameStateManager);
+    gameStateManager.resetGameState();
 
-    if (_soundEnabled) {
-      _initializeSounds();
-    }
+    if (_soundEnabled) { _initializeSounds(); }
 
-    modifierManager = ModifierManager(); // Initialize ModifierManager
+    modifierManager = ModifierManager();
 
-    // Get active character and apply stats
-    final activeCharacterId = playerDataManager.playerData.activeCharacterId;
-    final activeCharacter = masterCharacterList.firstWhere(
-      (c) => c.id == activeCharacterId,
-    );
-    final totalHpBonus = 0; // playerDataManager.playerData.totalHpBonus;
+    final activeCharacterId = playerDataManager.activeCharacterId;
+    final activeCharacter = playerDataManager.masterCharacterList.firstWhere((c) => c.id == activeCharacterId);
 
-    playerBase =
-        PlayerBase(
-            hp: activeCharacter.baseHp + totalHpBonus,
-            height: gameStats.baseSize.height,
-          )
-          ..position = Vector2(0, size.y - gameStats.baseSize.height)
-          ..onDestroyed = _onBaseDestroyed
-          ..onHit = playBaseHitSound;
+    playerBase = PlayerBase(hp: activeCharacter.baseHp, height: gameStats.baseSize.height)
+      ..position = Vector2(0, size.y - gameStats.baseSize.height)
+      ..onDestroyed = _onBaseDestroyed
+      ..onHit = playBaseHitSound;
 
-    enemySystem = EnemySystem(
-      playerBase,
-      gameStats.enemyDefinitions,
-      eventBus: eventBus, // Pass eventBus
-    );
-
+    enemySystem = EnemySystem(playerBase, gameStats.enemyDefinitions, eventBus: eventBus);
     tapInputLayer = TapInputLayer();
-
     scoreDisplay = ScoreDisplay(locale: locale);
 
-    final totalAttackPower = playerDataManager.playerData.totalAttackPower;
+    final totalAttackPower = playerDataManager.totalAttackPower;
+    final templeBonus = playerDataManager.activeTemple.currentBonus;
+
     skillSystem = SkillSystem(
       locale: locale,
       gameStats: gameStats,
       skillDefinitions: gameStats.skillDefinitions,
-      baseAttackPower: activeCharacter.baseAttack + totalAttackPower,
+      baseAttackPower: ((activeCharacter.baseAttack + totalAttackPower) * (1.0 + templeBonus)).toInt(),
     );
+
+    altarCharacters.clear();
+    final equippedIds = playerDataManager.equippedCharacterIds;
+    final altarY = size.y - gameStats.baseSize.height - 40;
+    final spacing = size.x / (equippedIds.length + 1);
+
+    for (int i = 0; i < equippedIds.length; i++) {
+      final char = playerDataManager.masterCharacterList.firstWhere((c) => c.id == equippedIds[i]);
+      final charComp = AltarCharacterComponent(character: char, position: Vector2(spacing * (i + 1), altarY));
+      altarCharacters.add(charComp);
+      add(charComp);
+    }
+
+    add(ItemSlotUI(equippedItemIds: playerDataManager.equippedToolIds, availableItems: playerDataManager.mysticTools));
 
     skillUI = SkillUI(skillSystem, locale: locale, gameStats: gameStats);
-
     waveManager = WaveManager();
-
     waveDisplay = WaveDisplay(locale: locale);
-
     cardManager = CardManager(eventBus: eventBus);
-    drawCardButton = DrawCardButton();
-    attackPowerDisplay = AttackPowerDisplay();
+    drawCardButton = DrawCardButton()..position = Vector2(size.x / 2, size.y - 140); 
+    attackPowerDisplay = AttackPowerDisplay()..position = Vector2(20, 80);
 
-    addAll([
-      GameBackground(),
-      playerBase,
-      enemySystem,
-      tapInputLayer,
-      skillSystem,
-      waveManager,
-      modifierManager,
-      scoreDisplay,
-      waveDisplay,
-      cardManager, // CardManager is a component
-      drawCardButton,
-      attackPowerDisplay,
-      gameStateManager, // Add GameStateManager to component tree
-    ]);
+    // 상단 버튼 추가 (종료, 설정)
+    add(TopNavButton(icon: Icons.home, position: Vector2(20, 20), onTap: () => onExit?.call()));
+    add(TopNavButton(icon: Icons.settings, position: Vector2(size.x - 60, 20), onTap: showSettings));
 
-    // Listen for events
-    eventBus.on<CoinGainAttemptedEvent>((event) {
-      if (modifierManager.isCoinGainDisabled) {
-        print("Coin gain disabled. Skipping score update.");
-        return;
-      }
-      gameStateManager.addGameScore(event.scoreValue);
-      gameStateManager.addCardPoints(1);
-      playEnemyDeathSound();
-    });
+    addAll([GameBackground(), playerBase, enemySystem, tapInputLayer, skillSystem, skillUI, waveManager, modifierManager, scoreDisplay, waveDisplay, cardManager, drawCardButton, attackPowerDisplay]);
 
-    eventBus.on<GameScoreChangedEvent>((event) {
-      scoreDisplay.updateScore(event.newGameScore);
-    });
-
-    eventBus.on<GameOverChangedEvent>((event) {
-      if (event.isGameOver) {
-        _gameOver();
-      }
-    });
-
-    eventBus.on<GameStateResetEvent>((event) {
-      _restartGame();
-    });
-
-    eventBus.on<StatModifierAppliedEvent>((event) {
-      switch (event.target) {
-        case 'global':
-          modifierManager.applyGlobalModifier(event.stat, event.value);
-          break;
-        case 'wall':
-          modifierManager.applyWallModifier(event.stat, event.value);
-          break;
-        case 'skill':
-          if (event.skillId != null) {
-            modifierManager.applySkillModifier(
-              event.skillId!,
-              event.stat,
-              event.value,
-            );
-          }
-          break;
-        default:
-          debugPrint(
-            "Unhandled stat modifier target in listener: ${event.target}",
-          );
-      }
-    });
-
-    eventBus.on<ShieldGainedEvent>((event) {
-      playerBase.addShield(playerBase.maxHp * event.amount);
-    });
-
-    eventBus.on<WallHealedEvent>((event) {
-      playerBase.hp = (playerBase.hp + (playerBase.maxHp * event.amount))
-          .clamp(0, playerBase.maxHp)
-          .toDouble();
-      debugPrint("Healed wall for ${event.amount * 100}%");
-    });
-
-    eventBus.on<SkillVariantAppliedEvent>((event) {
-      skillSystem.skills
-          .firstWhere((skill) => skill.skillId == event.skillId)
-          .applyVariant(event.variantId);
-      debugPrint(
-        "Applying Skill Variant: ${event.skillId} with variant ${event.variantId}",
-      );
-    });
-
-    eventBus.on<SkillSlotUnlockedEvent>((event) {
-      skillSystem.addRandomSkill();
-      debugPrint("New skill slot unlocked!");
-      // Potentially update UI here
-    });
-
-    eventBus.on<CoinGainDisabledEvent>((event) {
-      modifierManager.disableCoinGain();
-      debugPrint("Coin gain disabled!");
-      // Potentially update UI here
-    });
-
-    eventBus.on<RiskAppliedEvent>((event) {
-      debugPrint("Risk applied: ${event.riskDetails}");
-      // Add a screen shake effect
-      camera.viewfinder.add(
-        SequenceEffect([
-          MoveByEffect(Vector2(5, 0), EffectController(duration: 0.05)),
-          MoveByEffect(Vector2(-10, 0), EffectController(duration: 0.05)),
-          MoveByEffect(Vector2(5, 5), EffectController(duration: 0.05)),
-          MoveByEffect(Vector2(0, -5), EffectController(duration: 0.05)),
-        ]),
-      );
-      // Play a curse sound
-      playCurseSound();
-    });
-
-    eventBus.on<WaveClearedEvent>((event) {
-      debugPrint("Wave ${event.waveNumber} cleared! Showing card selection.");
-      _showAutomaticCardSelection();
-    });
-
-    _cardSelectionTimer = TimerComponent(
-      period: 30.0,
-      repeat: true,
-      onTick: _showAutomaticCardSelection,
-    );
-    add(_cardSelectionTimer);
+    _subscribeToEvents();
   }
 
-  void _showAutomaticCardSelection() {
-    // 이미 오버레이가 떠있거나 일시정지 상태면 무시
-    if (paused || children.whereType<CardSelectionOverlay>().isNotEmpty) return;
+  void _subscribeToEvents() {
+    eventBus.on<GameScoreChangedEvent>((event) => scoreDisplay.updateScore(event.newGameScore));
+    eventBus.on<StatModifierAppliedEvent>((event) {
+      if (event.target == 'global') modifierManager.applyGlobalModifier(event.stat, event.value);
+      else if (event.target == 'skill') modifierManager.applySkillModifier(event.skillId!, event.stat, event.value);
+    });
+    eventBus.on<SkillVariantAppliedEvent>((event) => skillSystem.applyVariant(event.skillId, event.variantId));
+    eventBus.on<LevelUpSkillEvent>((event) => skillSystem.upgradeSkill(event.skillId));
+    eventBus.on<WallHealedEvent>((event) {
+      final healAmount = playerBase.maxHp * event.amount;
+      playerBase.hp = min(playerBase.maxHp.toDouble(), playerBase.hp + healAmount);
+      showMessage("성벽 수리 완료! (+${(event.amount * 100).toInt()}%)");
+    });
+    eventBus.on<ShieldGainedEvent>((event) {
+      final shieldAmount = playerBase.maxHp * event.amount;
+      playerBase.addShield(shieldAmount);
+      showMessage("보호막 생성!");
+    });
+    eventBus.on<WaveClearedEvent>((event) {
+      gameStateManager.addFaith(20);
+      if (event.waveNumber % 10 == 0) _showSpecialOracleOffer();
+      else showMessage("${l10n.waveCleared} +20 Faith");
+    });
+  }
 
-    playCardDrawSound();
-    final hand = cardManager.drawHand();
-    print('Drawn cards automatically: ${hand.map((c) => c.cardId).join(', ')}');
-    if (hand.isNotEmpty) {
-      add(CardSelectionOverlay(cards: hand, l10n: l10n));
-    }
+  void _showSpecialOracleOffer() {
+    showMessage("보스 클리어! 특별한 신탁이 내려집니다!");
+    final specialHand = cardManager.drawHand();
+    add(CardSelectionOverlay(cards: specialHand, l10n: l10n, isSpecial: true));
   }
 
   void showCardSelection() {
-    debugPrint("--- Attempting to show card selection ---");
     try {
-      // 이미 오버레이가 떠있거나 일시정지 상태면 무시
-      if (paused || children.whereType<CardSelectionOverlay>().isNotEmpty) {
-        debugPrint("[CARD DRAW] FAILED: Game is already paused or overlay exists.");
-        return;
-      }
-
-      debugPrint(
-        "[CARD DRAW] Current card points: $cardPoints, Cost: $cardDrawCost",
-      );
-
-      if (cardPoints >= cardDrawCost) {
-        debugPrint("[CARD DRAW] SUCCESS: Sufficient card points. Proceeding.");
-        playCardDrawSound();
-        gameStateManager.deductCardPoints(cardDrawCost);
-        gameStateManager.updateCardDrawCost((cardDrawCost * 1.1).round());
-
-        final hand = cardManager.drawHand();
-        debugPrint(
-          '[CARD DRAW] Drawn cards: ${hand.map((c) => c.cardId).join(', ')}',
-        );
-
-        if (hand.isNotEmpty) {
-          debugPrint("[CARD DRAW] Adding CardSelectionOverlay to the game.");
-          add(CardSelectionOverlay(cards: hand, l10n: l10n));
-        } else {
-          debugPrint("[CARD DRAW] WARNING: Drew an empty hand.");
-        }
-      } else {
-        debugPrint("[CARD DRAW] FAILED: Insufficient card points.");
-        showMessage("카드 포인트 부족!");
-      }
-    } catch (e, st) {
-      debugPrint("[CARD DRAW] CRITICAL ERROR in showCardSelection: $e\n$st");
-      paused = false; // Attempt to resume game on error
-    }
+      if (paused || children.whereType<CardSelectionOverlay>().isNotEmpty) return;
+      playCardDrawSound();
+      final hand = cardManager.drawHand();
+      if (hand.isNotEmpty) add(CardSelectionOverlay(cards: hand, l10n: l10n));
+    } catch (e) { paused = false; }
   }
 
   void selectCard(CardDefinition card) {
-    debugPrint("--- Attempting to select card ---");
-    try {
-      debugPrint("[CARD SELECT] Selected card ID: ${card.cardId}");
-      playCardSelectSound();
-      cardManager.applyCard(card);
+    cardManager.applyCard(card);
+    gameStateManager.deductFaith(gameStateManager.oracleCost);
+    gameStateManager.updateOracleCost(gameStateManager.oracleCost + 1);
+  }
 
-      final overlay = children.whereType<CardSelectionOverlay>().firstOrNull;
-      if (overlay != null) {
-        debugPrint("[CARD SELECT] Removing CardSelectionOverlay.");
-        remove(overlay);
-      } else {
-        debugPrint(
-          "[CARD SELECT] WARNING: CardSelectionOverlay not found to remove.",
-        );
-      }
+  Vector2 getCharacterPosition(int index) {
+    if (index < altarCharacters.length) return altarCharacters[index].position;
+    return size / 2;
+  }
 
-      paused = false;
-      debugPrint("[CARD SELECT] Game resumed.");
-    } catch (e, st) {
-      debugPrint("[CARD SELECT] CRITICAL ERROR in selectCard: $e\n$st");
-      paused = false; // Attempt to resume game on error
-    }
+  void showVictoryOverlay() {
+    if (children.whereType<VictoryOverlay>().isNotEmpty) return;
+    add(VictoryOverlay(score: gameScore, locale: locale, onExit: () => onExit?.call()));
+  }
+
+  void showSkillInfo(Skill skill) {
+    if (children.whereType<SkillInfoPopup>().isNotEmpty) return;
+    add(SkillInfoPopup(skill: skill, locale: locale));
+  }
+
+  void showSettings() {
+    if (children.whereType<SettingsOverlay>().isNotEmpty) return;
+    add(SettingsOverlay());
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-
     if (isGameOver) return;
-
-    if (playerBase.hp <= 0 && !isGameOver) {
-      gameStateManager.setGameOver(true);
-    }
+    if (playerBase.hp <= 0) _gameOver();
   }
 
-  void _onBaseDestroyed() {
-    if (!isGameOver) {
-      gameStateManager.setGameOver(true);
-    }
-  }
+  void _onBaseDestroyed() { if (!isGameOver) _gameOver(); }
 
   void _gameOver() {
+    if (isGameOver) return;
+    gameStateManager.setGameOver(true);
     playGameOverSound();
-    _cardSelectionTimer.timer.pause();
-    add(
-      GameOverOverlay(
-        gameScore: gameScore,
-        onRestart: () => gameStateManager.resetGameState(),
-        locale: locale,
-        onExit: onExit,
-      ),
-    );
+    add(GameOverOverlay(gameScore: gameScore, waveReached: waveManager.currentWaveNumber, onRestart: _restartGame, locale: locale, onExit: onExit));
   }
 
   void _restartGame() {
     removeAll(children.whereType<GameOverOverlay>());
     playerBase.hp = playerBase.maxHp.toDouble();
     enemySystem.clearEnemies();
-    // scoreDisplay.updateScore(0); // This is now handled by ScoreChangedEvent
     waveManager.reset();
-    _cardSelectionTimer.timer.start();
+    gameStateManager.resetGameState();
   }
 
   void showMessage(String message) {
-    final wrapper = PositionComponent(
+    final textComponent = TextComponent(
+      text: message,
+      textRenderer: TextPaint(style: const TextStyle(fontSize: 20, color: Colors.redAccent, fontWeight: FontWeight.bold)),
       anchor: Anchor.center,
       position: size / 2,
     );
-    final textComponent = TextComponent(
-      text: message,
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontSize: 24,
-          color: Colors.red,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      anchor: Anchor.center,
-    );
-
-    wrapper.add(textComponent);
-    add(wrapper);
-
-    wrapper.add(
-      TimerComponent(
-        period: 1.0,
-        onTick: () {
-          wrapper.add(
-            OpacityEffect.fadeOut(
-              EffectController(duration: 0.5),
-              onComplete: () {
-                wrapper.removeFromParent();
-              },
-            ),
-          );
-        },
-        removeOnFinish: true,
-      ),
-    );
+    add(textComponent);
+    add(TimerComponent(period: 2.0, onTick: () => textComponent.removeFromParent(), removeOnFinish: true));
   }
 
-  Future<void> _initializeSounds() async {
-    try {
-      await FlameAudio.audioCache.loadAll([
-        'explosion.mp3',
+  void _initializeSounds() { FlameAudio.audioCache.loadAll(['base_hit.mp3', 'enemy_death.mp3', 'explosion.mp3', 'game_over.mp3']); }
+  void playBaseHitSound() { if (_soundEnabled) FlameAudio.play('base_hit.mp3', volume: 0.5); }
+  void playEnemyDeathSound() { if (_soundEnabled) FlameAudio.play('enemy_death.mp3', volume: 0.2); }
+  void playExplosionSound() { if (_soundEnabled) FlameAudio.play('explosion.mp3', volume: 0.4); }
+  void playGameOverSound() { if (_soundEnabled) FlameAudio.play('game_over.mp3', volume: 0.6); }
+  void playCardDrawSound() {}
+  void playCurseSound() {}
+  void playCardSelectSound() {}
 
-        'enemy_death.mp3',
+  @override
+  void onRemove() { super.onRemove(); }
+}
 
-        'base_hit.mp3',
+class GameBackground extends Component {}
 
-        'game_over.mp3',
-      ]);
-
-      _soundEnabled = true;
-    } catch (e) {
-      _soundEnabled = false;
-
-      debugPrint('Could not load sound files: $e');
+class ItemSlotUI extends PositionComponent with HasGameRef<OverflowDefenseGame> {
+  final List<String> equippedItemIds;
+  final List<GameItem> availableItems;
+  ItemSlotUI({required this.equippedItemIds, required this.availableItems}) : super(priority: 100);
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    anchor = Anchor.centerRight;
+    position = Vector2(gameRef.size.x - 12, gameRef.size.y * 0.5);
+    const double btnSize = 34.0;
+    const double spacing = 6.0;
+    for (int i = 0; i < equippedItemIds.length; i++) {
+      final itemId = equippedItemIds[i];
+      final item = availableItems.firstWhere((it) => it.id == itemId);
+      add(ItemButtonComponent(item: item, position: Vector2(0, (i * (btnSize + spacing)) - ((btnSize + spacing) * equippedItemIds.length / 2) + (btnSize / 2))));
     }
   }
+}
 
-  void playExplosionSound() {
-    if (!_soundEnabled) return;
-
-    try {
-      FlameAudio.play('explosion.mp3', volume: 0.3).ignore();
-    } catch (e) {
-      // Ignore
+class ItemButtonComponent extends PositionComponent with TapCallbacks, HasGameRef<OverflowDefenseGame> {
+  final GameItem item;
+  int charges = 1;
+  ItemButtonComponent({required this.item, required Vector2 position}) : super(position: position, size: Vector2.all(34), anchor: Anchor.center);
+  @override
+  void render(Canvas canvas) {
+    if (charges <= 0) return;
+    canvas.drawRRect(RRect.fromRectAndRadius(size.toRect(), const Radius.circular(8)), Paint()..color = item.color.withValues(alpha: 0.8));
+    final textPainter = TextPainter(text: TextSpan(text: String.fromCharCode(item.icon.codePoint), style: TextStyle(fontSize: 18, fontFamily: item.icon.fontFamily, package: item.icon.fontPackage, color: Colors.white, shadows: const [Shadow(color: Colors.black, blurRadius: 2)])), textDirection: TextDirection.ltr)..layout();
+    textPainter.paint(canvas, Offset((size.x - textPainter.width) / 2, (size.y - textPainter.height) / 2));
+  }
+  @override
+  void onTapDown(TapDownEvent event) {
+    if (charges > 0) {
+      charges--;
+      _triggerVisualEffects();
+      gameRef.showMessage("${item.name} 발동!");
+      if (item.id == 'tsunami') _applyTsunami();
+      else if (item.id == 'meteor_shower') _applyMeteorShower();
+      else gameRef.enemySystem.damageInRadius(gameRef.size / 2, 2000, 200);
+      if (charges <= 0) removeFromParent();
     }
   }
-
-  void playEnemyDeathSound() {
-    if (!_soundEnabled) return;
-
-    try {
-      FlameAudio.play('enemy_death.mp3', volume: 0.2).ignore();
-    } catch (e) {
-      // Ignore
+  void _triggerVisualEffects() {
+    gameRef.camera.viewfinder.add(MoveByEffect(Vector2(5, 5), EffectController(duration: 0.1, alternate: true, repeatCount: 3)));
+    final flash = RectangleComponent(size: gameRef.size, paint: Paint()..color = item.color.withValues(alpha: 0.3));
+    gameRef.add(flash);
+    flash.add(OpacityEffect.fadeOut(EffectController(duration: 0.4), onComplete: () => flash.removeFromParent()));
+  }
+  void _applyTsunami() {
+    final targets = List<Enemy>.from(gameRef.enemySystem.enemies);
+    for (final enemy in targets) { 
+      if (enemy.isMounted && !enemy.isDying) { enemy.position.y -= 200; enemy.takeDamage(50); }
     }
   }
-
-  void playBaseHitSound() {
-    if (!_soundEnabled) return;
-
-    try {
-      FlameAudio.play('base_hit.mp3', volume: 0.4).ignore();
-    } catch (e) {
-      // Ignore
+  void _applyMeteorShower() {
+    for (int i = 0; i < 10; i++) {
+      final randomPos = Vector2(gameRef.random.nextDouble() * gameRef.size.x, gameRef.random.nextDouble() * gameRef.size.y * 0.7);
+      gameRef.enemySystem.damageInRadius(randomPos, 100, 150);
+      gameRef.add(ExplosionEffect(randomPos));
     }
   }
+}
 
-  void playGameOverSound() {
-    if (!_soundEnabled) return;
+/// 상단 네비게이션 버튼 (홈, 설정용)
+class TopNavButton extends PositionComponent with TapCallbacks, HasGameRef<OverflowDefenseGame> {
+  final IconData icon;
+  final VoidCallback onTap;
+  TopNavButton({required this.icon, required Vector2 position, required this.onTap}) 
+    : super(position: position, size: Vector2.all(40), anchor: Anchor.topLeft, priority: 200);
 
-    try {
-      FlameAudio.play('game_over.mp3', volume: 0.5).ignore();
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  void playCurseSound() {
-    if (!_soundEnabled) return;
-
-    // TODO: Add a 'curse.mp3' sound file and uncomment below
-    // try {
-    //   FlameAudio.play('curse.mp3', volume: 0.4).ignore();
-    // } catch (e) {
-    //   // Ignore
-    // }
-  }
-
-  void playCardDrawSound() {
-    if (!_soundEnabled) return;
-
-    // TODO: Add a 'card_draw.mp3' sound file and uncomment below
-    // try {
-    //   FlameAudio.play('card_draw.mp3', volume: 0.3).ignore();
-    // } catch (e) {
-    //   // Ignore
-    // }
-  }
-
-  void playCardSelectSound() {
-    if (!_soundEnabled) return;
-
-    // TODO: Add a 'card_select.mp3' sound file and uncomment below
-    // try {
-    //   FlameAudio.play('card_select.mp3', volume: 0.3).ignore();
-    // } catch (e) {
-    //   // Ignore
-    // }
+  @override
+  void render(Canvas canvas) {
+    final paint = Paint()..color = Colors.white.withValues(alpha: 0.1);
+    canvas.drawCircle(Offset(size.x / 2, size.y / 2), size.x / 2, paint);
+    
+    final textPainter = TextPainter(
+      text: TextSpan(text: String.fromCharCode(icon.codePoint), style: TextStyle(fontSize: 24, fontFamily: icon.fontFamily, package: icon.fontPackage, color: Colors.white70)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(canvas, Offset((size.x - textPainter.width) / 2, (size.y - textPainter.height) / 2));
   }
 
   @override
-  void onRemove() {
-    eventBus.dispose(); // Dispose the event bus
-    super.onRemove();
+  void onTapDown(TapDownEvent event) {
+    onTap();
   }
 }

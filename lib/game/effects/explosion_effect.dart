@@ -27,7 +27,7 @@ class ExplosionEffect extends PositionComponent {
   void render(Canvas canvas) {
     super.render(canvas);
 
-    final opacity = life / 0.3;
+    final opacity = (life / 0.3).clamp(0.0, 1.0);
 
     // 외곽 원 - 빨간색
     final outerPaint = Paint()

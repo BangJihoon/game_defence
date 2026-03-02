@@ -93,3 +93,8 @@ class WaveClearedEvent extends GameEvent {
   final int waveNumber;
   WaveClearedEvent(this.waveNumber);
 }
+
+class LevelUpSkillEvent extends GameEvent {
+  final String skillId;
+  LevelUpSkillEvent(this.skillId);
+}

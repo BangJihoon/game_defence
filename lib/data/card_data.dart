@@ -5,7 +5,7 @@
 // - `CardDefinition` represents the static data of a card loaded from assets,
 //   including its ID, localization keys, and the dynamic effects/risks it carries.
 
-enum CardType { stat, skillUpgrade, skillVariant, utility, ruleBreak, cursed }
+enum CardType { stat, skillUpgrade, skillVariant, utility, ruleBreak, cursed, skillLevel }
 
 enum CardRank { normal, bronze, silver, gold, platinum, diamond, master }
 

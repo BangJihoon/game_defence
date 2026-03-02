@@ -3,7 +3,7 @@ import 'home_page.dart';
 import 'shop/presentation/pages/shop_page.dart';
 import 'character/presentation/pages/character_page.dart';
 import 'inventory_page.dart';
-import 'skill_page.dart';
+import 'item_page.dart';
 
 class MainMenuShell extends StatelessWidget {
   final int selectedIndex;
@@ -32,7 +32,7 @@ class MainMenuShell extends StatelessWidget {
         onToggleLocale: onToggleLocale,
       ),
       const InventoryPage(),
-      const SkillPage(),
+      const ItemPage(),
     ];
 
     return Scaffold(
@@ -46,10 +46,10 @@ class MainMenuShell extends StatelessWidget {
         backgroundColor: const Color(0xFF1a1a2e),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.store), label: '상점'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory), label: '캐릭터'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: '캐릭터'),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '인벤토리'),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: '스킬'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance), label: '신전'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_fix_high), label: '아이템'),
         ],
       ),
     );

@@ -20,7 +20,8 @@ class Character {
   final String name;
   final String description;
   final CharacterTier tier;
-  final IconData icon; // Placeholder for character asset
+  final IconData icon; 
+  final String skillId; // 추가: 고유 스킬 ID
   
   // Base stats
   final int baseAttack;
@@ -33,6 +34,7 @@ class Character {
     required this.description,
     required this.tier,
     required this.icon,
+    required this.skillId, // 필수값으로 변경
     required this.baseAttack,
     required this.baseHp,
     required this.baseDefense,

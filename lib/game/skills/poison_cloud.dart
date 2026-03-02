@@ -51,11 +51,16 @@ class PoisonCloudComponent extends PositionComponent
     _damageTimer -= dt;
     if (_damageTimer <= 0) {
       _damageTimer = 1.0; // Damage every 1 second
-      final enemies = game.enemySystem.enemies.where(
-        (enemy) => enemy.position.distanceTo(position) < radius,
-      );
-      for (final enemy in enemies) {
-        enemy.takeDamage(damage);
+      
+      // Create a fixed list copy to avoid concurrent modification errors
+      final targets = game.enemySystem.enemies
+          .where((enemy) => enemy.position.distanceTo(position) < radius)
+          .toList();
+
+      for (final enemy in targets) {
+        if (enemy.isMounted && !enemy.isDying) {
+          enemy.takeDamage(damage);
+        }
       }
     }
   }

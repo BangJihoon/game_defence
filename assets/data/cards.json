@@ -32,6 +32,78 @@
     "effect": { "type": "add_modifier", "target": "global", "stat": "coin_gain", "value": 0.10 }
   },
   {
+    "cardId": "LVL_FIREBALL",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_fireball.title",
+    "descriptionLocaleKey": "card.lvl_fireball.desc",
+    "effect": { "type": "level_up_skill", "skillId": "fireball" }
+  },
+  {
+    "cardId": "LVL_CHAIN_LIGHTNING",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_chain_lightning.title",
+    "descriptionLocaleKey": "card.lvl_chain_lightning.desc",
+    "effect": { "type": "level_up_skill", "skillId": "chain_lightning" }
+  },
+  {
+    "cardId": "LVL_ICE_WALL",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_ice_wall.title",
+    "descriptionLocaleKey": "card.lvl_ice_wall.desc",
+    "effect": { "type": "level_up_skill", "skillId": "ice_wall" }
+  },
+  {
+    "cardId": "LVL_ARCANE_MISSILE",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_arcane_missile.title",
+    "descriptionLocaleKey": "card.lvl_arcane_missile.desc",
+    "effect": { "type": "level_up_skill", "skillId": "arcane_missile" }
+  },
+  {
+    "cardId": "LVL_FROST_NOVA",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_frost_nova.title",
+    "descriptionLocaleKey": "card.lvl_frost_nova.desc",
+    "effect": { "type": "level_up_skill", "skillId": "frost_nova" }
+  },
+  {
+    "cardId": "LVL_POISON_CLOUD",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_poison_cloud.title",
+    "descriptionLocaleKey": "card.lvl_poison_cloud.desc",
+    "effect": { "type": "level_up_skill", "skillId": "poison_cloud" }
+  },
+  {
+    "cardId": "LVL_HEALING_AURA",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_healing_aura.title",
+    "descriptionLocaleKey": "card.lvl_healing_aura.desc",
+    "effect": { "type": "level_up_skill", "skillId": "healing_aura" }
+  },
+  {
+    "cardId": "LVL_SHIELD_BARRIER",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_shield_barrier.title",
+    "descriptionLocaleKey": "card.lvl_shield_barrier.desc",
+    "effect": { "type": "level_up_skill", "skillId": "shield_barrier" }
+  },
+  {
+    "cardId": "LVL_BERSERK_RAGE",
+    "rank": "silver",
+    "type": "skillLevel",
+    "titleLocaleKey": "card.lvl_berserk_rage.title",
+    "descriptionLocaleKey": "card.lvl_berserk_rage.desc",
+    "effect": { "type": "level_up_skill", "skillId": "berserk_rage" }
+  },
+  {
     "cardId": "UPG_FIREBALL_DMG_1",
     "rank": "silver",
     "type": "skillUpgrade",
