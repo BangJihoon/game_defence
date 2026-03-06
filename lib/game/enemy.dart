@@ -5,7 +5,36 @@ import 'dart:math' as math;
 import 'overflow_game.dart';
 import 'player_base.dart';
 import '../data/enemy_data.dart';
+import '../data/skill_data.dart';
+import '../data/character_data.dart';
 import 'package:flame/effects.dart';
+
+class StatusEffect {
+  final StatusEffectType type;
+  final double duration;
+  final double value;
+  final int maxStack;
+  final ElementType element;
+
+  double remainingTime;
+  int currentStack;
+
+  StatusEffect({
+    required this.type,
+    required this.duration,
+    required this.value,
+    this.maxStack = 1,
+    this.element = ElementType.none,
+  })  : remainingTime = duration,
+        currentStack = 1;
+
+  void refresh() {
+    remainingTime = duration;
+    if (currentStack < maxStack) {
+      currentStack++;
+    }
+  }
+}
 
 class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasPaint {
   final EnemyDefinition definition;
@@ -17,11 +46,14 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasP
   bool isDying = false;
   late final PlayerBase base;
 
+  // Status effects
+  final List<StatusEffect> statusEffects = [];
+  
   // 보스 패턴용 변수
   double _stateTimer = 0;
   bool _isMovingRight = true;
   
-  // 빙결 효과용 변수
+  // 빙결 효과용 변수 (Legacy - statusEffects로 통합 가능하나 기존 코드 유지를 위해 남겨둠)
   double _freezeTimer = 0;
   double _originalSpeed = 0;
 
@@ -32,6 +64,8 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasP
   })  : hp = definition.hp.toDouble(),
         speed = definition.speed,
         damage = definition.damage * 3;
+
+  bool get isAlive => !isDying && hp > 0;
 
   @override
   Future<void> onLoad() async {
@@ -46,29 +80,113 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasP
 
   @override
   void update(double dt) {
-    super.update(dt);
-    if (isDying || gameRef.isGameOver) return;
+    try {
+      super.update(dt);
+      if (isDying || gameRef.isGameOver) return;
 
-    // 빙결 타이머 처리
-    if (_freezeTimer > 0) {
-      _freezeTimer -= dt;
-      if (_freezeTimer <= 0) {
-        speed = _originalSpeed;
-        // 색상 복구 (효과 제거 시점 고려)
-        paint.color = Color(int.parse(definition.colorHex));
+      _tickStatusEffects(dt);
+
+      // 빙결 타이머 처리 (Legacy)
+      if (_freezeTimer > 0) {
+        _freezeTimer -= dt;
+        if (_freezeTimer <= 0) {
+          speed = _originalSpeed;
+          paint.color = Color(int.parse(definition.colorHex));
+        }
+      }
+
+      if (definition.type == 'boss') {
+        _updateBossPattern(dt);
+      } else {
+        _updateNormalPattern(dt);
+      }
+
+      // 성벽 충돌 체크
+      if (position.y + size.y / 2 >= base.position.y) {
+        base.takeDamage(damage);
+        _destroy();
+      }
+    } catch (e, stack) {
+      print("Error in Enemy update: $e\n$stack");
+    }
+  }
+
+  void _tickStatusEffects(double dt) {
+    if (statusEffects.isEmpty) return;
+
+    final toRemove = <StatusEffect>[];
+    
+    // Calculate speed modifiers from status effects
+    double speedMultiplier = 1.0;
+    bool isStunned = false;
+
+    for (final effect in statusEffects) {
+      effect.remainingTime -= dt;
+      if (effect.remainingTime <= 0) {
+        toRemove.add(effect);
+        continue;
+      }
+
+      // Apply effect logic
+      switch (effect.type) {
+        case StatusEffectType.burn:
+        case StatusEffectType.poison:
+        case StatusEffectType.shock:
+        case StatusEffectType.bleed:
+        case StatusEffectType.corruption:
+          // DOT Damage - use a safe version that doesn't trigger complex logic during tick
+          final dotDamage = effect.value * effect.currentStack * dt * 10; // Scaling for tick
+          hp -= dotDamage;
+          if (hp <= 0) _die();
+          break;
+        case StatusEffectType.stun:
+        case StatusEffectType.freeze:
+          isStunned = true;
+          break;
+        case StatusEffectType.speedDown:
+          speedMultiplier *= (1.0 - effect.value);
+          break;
+        default:
+          break;
       }
     }
 
-    if (definition.type == 'boss') {
-      _updateBossPattern(dt);
-    } else {
-      _updateNormalPattern(dt);
+    for (final effect in toRemove) {
+      statusEffects.remove(effect);
     }
 
-    // 성벽 충돌 체크
-    if (position.y + size.y / 2 >= base.position.y) {
-      base.takeDamage(damage);
-      _destroy();
+    if (isStunned) {
+      speed = 0;
+    } else if (_freezeTimer <= 0) { // Legacy check
+      speed = _originalSpeed * speedMultiplier;
+    }
+  }
+
+  void applyStatus(StatusEffectData data, ElementType element) {
+    try {
+      final existing = statusEffects.where((e) => e.type == data.type).toList();
+      if (existing.isNotEmpty) {
+        existing.first.refresh();
+      } else {
+        statusEffects.add(StatusEffect(
+          type: data.type,
+          duration: data.duration,
+          value: data.value,
+          maxStack: data.maxStack,
+          element: element,
+        ));
+      }
+
+      // Visual feedback for status
+      if (data.type == StatusEffectType.stun || data.type == StatusEffectType.freeze) {
+        paint.color = Colors.cyan;
+      } else if (data.type == StatusEffectType.burn) {
+        paint.color = Colors.orange;
+      } else if (data.type == StatusEffectType.poison) {
+        paint.color = Colors.green;
+      }
+    } catch (e) {
+      print("Error applying status: $e");
     }
   }
 
@@ -106,17 +224,15 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasP
   void applyFreeze(double multiplier, double duration) {
     _freezeTimer = duration;
     speed = _originalSpeed * multiplier;
-    // 빙결 색상 적용
     paint.color = Colors.cyan;
   }
 
   void takeDamage(int dmg) {
-    if (isDying) return;
+    if (!isMounted) return;
     hp -= dmg;
     if (hp <= 0) {
       _die();
     } else {
-      // 피격 효과: 하얗게 번쩍임
       add(
         ColorEffect(
           Colors.white,
@@ -148,14 +264,12 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasP
 
   @override
   void render(Canvas canvas) {
-    // HasPaint 믹스인의 paint 필드를 사용
     if (definition.type == 'boss') {
       _drawBossShape(canvas, paint);
     } else {
       canvas.drawRect(size.toRect(), paint);
     }
 
-    // HP 바 (배경색 고정 Paint 사용)
     final hpPercent = (hp / definition.hp).clamp(0.0, 1.0);
     final bgP = Paint()..color = Colors.black54;
     final fgP = Paint()..color = Colors.red;

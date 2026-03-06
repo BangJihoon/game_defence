@@ -1,0 +1,23 @@
+﻿{
+    "id":  "baal",
+    "name":  "Baal",
+    "description":  "파괴의 군주",
+    "iconName":  "bolt",
+    "faction":  "demon",
+    "primaryElement":  "electric",
+    "secondaryElement":  "dark",
+    "role":  "aoeBurst",
+    "baseStats":  {
+                      "hp":  900,
+                      "attack":  140,
+                      "attackSpeed":  0.9,
+                      "critChance":  0.1,
+                      "critDamage":  1.6,
+                      "defense":  40,
+                      "cooldownReduction":  0.0,
+                      "movementSpeed":  95
+                  },
+    "passive":  "Chain Lightning Chance",
+    "trait":  "AoE Damage Increase",
+    "baseSkillId": "SK_BAAL_STORM"
+}

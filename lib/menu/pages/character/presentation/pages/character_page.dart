@@ -28,7 +28,7 @@ class _CharacterPageState extends State<CharacterPage> {
               
               // 2. 탭바
               const TabBar(
-                tabs: [Tab(text: '전체'), Tab(text: '영웅'), Tab(text: '천사'), Tab(text: '악마')],
+                tabs: [Tab(text: '전체'), Tab(text: 'ANGEL'), Tab(text: 'DEMON'), Tab(text: 'ANCIENT')],
                 labelColor: Colors.cyanAccent,
                 unselectedLabelColor: Colors.grey,
                 indicatorColor: Colors.cyanAccent,
@@ -40,9 +40,9 @@ class _CharacterPageState extends State<CharacterPage> {
                 child: TabBarView(
                   children: [
                     _buildCharacterGrid(pdm, null),
-                    _buildCharacterGrid(pdm, CharacterTier.hero),
-                    _buildCharacterGrid(pdm, CharacterTier.celestial), // 천사
-                    _buildCharacterGrid(pdm, CharacterTier.mortal),    // 악마 컨셉
+                    _buildCharacterGrid(pdm, Faction.angel),
+                    _buildCharacterGrid(pdm, Faction.demon),
+                    _buildCharacterGrid(pdm, Faction.ancient),
                   ],
                 ),
               ),
@@ -83,17 +83,21 @@ class _CharacterPageState extends State<CharacterPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(pdm.characterSlots, (index) {
               final charId = index < pdm.equippedCharacterIds.length ? pdm.equippedCharacterIds[index] : null;
-              final char = charId != null ? pdm.masterCharacterList.firstWhere((c) => c.id == charId) : null;
+              final char = charId != null ? pdm.masterCharacterList.firstWhere((c) => c.id == charId, orElse: () => pdm.masterCharacterList.first) : null;
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (char != null) ...[
                     Container(
-                      width: 44, height: 44,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.cyanAccent.withOpacity(0.1), boxShadow: [BoxShadow(color: Colors.cyanAccent.withOpacity(0.2), blurRadius: 10)]),
-                      child: Icon(char.icon, color: Colors.white, size: 24),
+                      width: 80, height: 120,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/${char.idleFrontAssetPath}'),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(char.name, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                   ] else const Icon(Icons.add_circle_outline, color: Colors.white10, size: 36),
                 ],
@@ -105,10 +109,10 @@ class _CharacterPageState extends State<CharacterPage> {
     );
   }
 
-  Widget _buildCharacterGrid(PlayerDataManager pdm, CharacterTier? filterTier) {
-    final filtered = filterTier == null 
+  Widget _buildCharacterGrid(PlayerDataManager pdm, Faction? filterFaction) {
+    final filtered = filterFaction == null 
         ? pdm.masterCharacterList 
-        : pdm.masterCharacterList.where((c) => c.tier == filterTier).toList();
+        : pdm.masterCharacterList.where((c) => c.faction == filterFaction).toList();
 
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -133,7 +137,18 @@ class _CharacterPageState extends State<CharacterPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(char.icon, color: isEquipped ? Colors.white : Colors.grey, size: 28),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/${char.iconAssetPath}'),
+                      fit: BoxFit.cover,
+                      colorFilter: isEquipped ? null : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Text(char.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
                 if (isEquipped) const Text('출전 중', style: TextStyle(fontSize: 9, color: Colors.cyanAccent, fontWeight: FontWeight.bold)),

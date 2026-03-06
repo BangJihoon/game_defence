@@ -1,0 +1,535 @@
+
+
+목표: 아래 예제를 참고하여, 훌륭한 스킬이펙트를 구현하시오.
+
+* ✔ SkillEngine 실제 실행
+* ✔ 캐릭터 컴포넌트
+* ✔ 타겟 선택
+* ✔ 이펙트 스폰
+* ✔ 히트스탑 + 카메라 쉐이크
+* ✔ 바로 붙여 넣고 실행 가능 구조
+
+---
+
+# 📁 폴더 구조 (Flame 기준)
+
+```text
+lib/
+ ├─ main.dart
+ ├─ game/
+ │   ├─ temple_game.dart
+ │   ├─ components/
+ │   │    ├─ character_component.dart
+ │   │    ├─ enemy_component.dart
+ │   │    ├─ fire_explosion.dart
+ │   ├─ combat/
+ │   │    ├─ skill_engine.dart
+ │   │    ├─ damage_calculator.dart
+ │   │    ├─ target_selector.dart
+ │   │    ├─ status_engine.dart
+```
+
+---
+
+# ✅ 1️⃣ main.dart
+
+```dart
+import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
+import 'game/temple_game.dart';
+
+void main() {
+  runApp(
+    GameWidget(
+      game: TempleGame(),
+    ),
+  );
+}
+```
+
+---
+
+# ✅ 2️⃣ TempleGame
+
+```dart
+import 'package:flame/game.dart';
+import 'package:flame/components.dart';
+import 'components/character_component.dart';
+import 'components/enemy_component.dart';
+import 'combat/skill_engine.dart';
+import 'combat/damage_calculator.dart';
+import 'combat/status_engine.dart';
+import 'combat/target_selector.dart';
+
+class TempleGame extends FlameGame {
+  late SkillEngine skillEngine;
+
+  @override
+  Future<void> onLoad() async {
+    skillEngine = SkillEngine(
+      damageCalculator: DamageCalculator(),
+      statusEngine: StatusEngine(),
+      effectSpawner: EffectSpawner(this),
+      feedbackSystem: HitFeedbackSystem(this),
+    );
+
+    final hero = CharacterComponent(
+      position: Vector2(300, 500),
+      attack: 200,
+      element: ElementType.FIRE,
+      game: this,
+    );
+
+    final enemy = EnemyComponent(
+      position: Vector2(800, 500),
+      hp: 1000,
+      defense: 50,
+      element: ElementType.NATURE,
+    );
+
+    add(hero);
+    add(enemy);
+
+    // 2초 후 스킬 발동
+    Future.delayed(const Duration(seconds: 2), () {
+      skillEngine.executeSkill(
+        caster: hero,
+        skill: SkillData.demoFireSkill(),
+        targets: [enemy],
+      );
+    });
+  }
+}
+```
+
+---
+
+# ✅ 3️⃣ CharacterComponent
+
+```dart
+class CharacterComponent extends SpriteComponent {
+  final double attack;
+  final ElementType element;
+  final TempleGame game;
+
+  CharacterComponent({
+    required Vector2 position,
+    required this.attack,
+    required this.element,
+    required this.game,
+  }) : super(position: position, size: Vector2(128, 128));
+
+  void applyDamage(double damage) {
+    // 캐릭터 피해 처리
+  }
+}
+```
+
+---
+
+# ✅ 4️⃣ EnemyComponent
+
+```dart
+class EnemyComponent extends SpriteComponent {
+  double hp;
+  final double defense;
+  final ElementType element;
+
+  EnemyComponent({
+    required Vector2 position,
+    required this.hp,
+    required this.defense,
+    required this.element,
+  }) : super(position: position, size: Vector2(128, 128));
+
+  void applyDamage(double damage) {
+    hp -= damage;
+    print("Enemy HP: $hp");
+  }
+}
+```
+
+---
+
+# ✅ 5️⃣ SkillEngine
+
+```dart
+class SkillEngine {
+  final DamageCalculator damageCalculator;
+  final StatusEngine statusEngine;
+  final EffectSpawner effectSpawner;
+  final HitFeedbackSystem feedbackSystem;
+
+  SkillEngine({
+    required this.damageCalculator,
+    required this.statusEngine,
+    required this.effectSpawner,
+    required this.feedbackSystem,
+  });
+
+  void executeSkill({
+    required CharacterComponent caster,
+    required SkillData skill,
+    required List<EnemyComponent> targets,
+  }) {
+    for (final target in targets) {
+      final damage = damageCalculator.calculate(
+        casterAttack: caster.attack,
+        targetDefense: target.defense,
+        skillMultiplier: skill.multiplier,
+        element: skill.element,
+        targetElement: target.element,
+      );
+
+      target.applyDamage(damage);
+
+      feedbackSystem.playHitFeedback(target.position);
+      effectSpawner.spawnImpactEffect(skill.element, target.position);
+    }
+
+    effectSpawner.spawnCastEffect(skill.element, caster.position);
+  }
+}
+```
+
+---
+
+# ✅ 6️⃣ DamageCalculator
+
+```dart
+class DamageCalculator {
+  double calculate({
+    required double casterAttack,
+    required double targetDefense,
+    required double skillMultiplier,
+    required ElementType element,
+    required ElementType targetElement,
+  }) {
+    double base = casterAttack * skillMultiplier;
+
+    double defenseReduction =
+        1 - (targetDefense / (targetDefense + 100));
+
+    double elementMultiplier =
+        ElementSystem.getMultiplier(element, targetElement);
+
+    return base * defenseReduction * elementMultiplier;
+  }
+}
+```
+
+---
+
+# ✅ 7️⃣ EffectSpawner (🔥 핵심 손맛)
+
+```dart
+class EffectSpawner {
+  final FlameGame game;
+
+  EffectSpawner(this.game);
+
+  void spawnImpactEffect(ElementType element, Vector2 position) {
+    game.add(FireExplosion(position)); // 예시
+  }
+
+  void spawnCastEffect(ElementType element, Vector2 position) {
+    // 캐스팅 이펙트
+  }
+}
+```
+
+---
+
+# ✅ 8️⃣ FireExplosion (이펙트 예시)
+
+```dart
+class FireExplosion extends CircleComponent {
+  FireExplosion(Vector2 position)
+      : super(
+          position: position,
+          radius: 40,
+          paint: Paint()..color = Colors.orange.withOpacity(0.6),
+        );
+
+  @override
+  Future<void> onLoad() async {
+    add(
+      ScaleEffect.to(
+        Vector2.all(2.0),
+        EffectController(duration: 0.3),
+      ),
+    );
+
+    add(
+      OpacityEffect.to(
+        0,
+        EffectController(duration: 0.3),
+      )..onComplete = removeFromParent,
+    );
+  }
+}
+```
+
+---
+
+# ✅ 9️⃣ HitFeedbackSystem (히트스탑 + 쉐이크)
+
+```dart
+class HitFeedbackSystem {
+  final FlameGame game;
+
+  HitFeedbackSystem(this.game);
+
+  void playHitFeedback(Vector2 position) {
+    // 카메라 쉐이크
+    game.camera.shake(duration: 0.2, intensity: 5);
+
+    // 히트스탑
+    Future.microtask(() async {
+      game.pauseEngine();
+      await Future.delayed(const Duration(milliseconds: 50));
+      game.resumeEngine();
+    });
+  }
+}
+```
+
+---
+
+# 🔥 실행하면 뭐가 나오냐?
+
+* 2초 뒤 스킬 발동
+* 적 피해 계산
+* 폭발 이펙트 생성
+* 카메라 흔들림
+* 히트스탑 발생
+
+👉 이게 “손맛의 시작”이다.
+
+
+---
+---
+---
+
+아래는 
+
+> ⚡ 다단히트
+> ⚡ 연쇄 번개
+> ⚡ 타겟 자동 점프
+> ⚡ 히트스탑 + 쉐이크
+> ⚡ 이펙트 자연 연결
+
+Flame에서 바로 붙여 넣을 수 있는 구조로 간다.
+
+---
+
+# 🎯 목표
+
+* ✔ hitCount 기반 다단히트
+* ✔ CHAIN 타입 구현
+* ✔ 가장 가까운 적 자동 점프
+* ✔ 점프할 때마다 이펙트 연결
+* ✔ 타격감 강화
+
+---
+
+# 📁 추가/수정 파일
+
+```text
+lib/game/combat/
+  ├─ skill_engine.dart (수정)
+  ├─ target_selector.dart (추가)
+lib/game/components/
+  ├─ lightning_chain_effect.dart (추가)
+```
+
+---
+
+# 1️⃣ TargetSelector – 연쇄 타겟 선택
+
+```dart
+import 'package:flame/components.dart';
+
+class TargetSelector {
+  List<EnemyComponent> selectChainTargets({
+    required EnemyComponent firstTarget,
+    required List<EnemyComponent> allEnemies,
+    required int maxTargets,
+    required double chainRange,
+  }) {
+    final List<EnemyComponent> result = [];
+    final Set<EnemyComponent> visited = {};
+
+    EnemyComponent? current = firstTarget;
+
+    while (current != null && result.length < maxTargets) {
+      result.add(current);
+      visited.add(current);
+
+      EnemyComponent? next;
+      double closestDistance = chainRange;
+
+      for (final enemy in allEnemies) {
+        if (visited.contains(enemy)) continue;
+
+        final distance =
+            current.position.distanceTo(enemy.position);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          next = enemy;
+        }
+      }
+
+      current = next;
+    }
+
+    return result;
+  }
+}
+```
+
+---
+
+# 2️⃣ SkillEngine – 다단히트 + 연쇄 구현
+
+```dart
+void executeChainSkill({
+  required CharacterComponent caster,
+  required SkillData skill,
+  required EnemyComponent firstTarget,
+  required List<EnemyComponent> allEnemies,
+}) {
+  final selector = TargetSelector();
+
+  final targets = selector.selectChainTargets(
+    firstTarget: firstTarget,
+    allEnemies: allEnemies,
+    maxTargets: skill.hitCount,
+    chainRange: skill.range,
+  );
+
+  EnemyComponent? previous;
+
+  for (final target in targets) {
+    final damage = damageCalculator.calculate(
+      casterAttack: caster.attack,
+      targetDefense: target.defense,
+      skillMultiplier: skill.multiplier,
+      element: skill.element,
+      targetElement: target.element,
+    );
+
+    target.applyDamage(damage);
+
+    // ⚡ 번개 연결 이펙트
+    effectSpawner.spawnLightningChain(
+      from: previous?.position ?? caster.position,
+      to: target.position,
+    );
+
+    feedbackSystem.playHitFeedback(target.position);
+
+    previous = target;
+  }
+}
+```
+
+---
+
+# 3️⃣ LightningChainEffect (시각 이펙트)
+
+```dart
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+
+class LightningChainEffect extends LineComponent {
+  LightningChainEffect({
+    required Vector2 from,
+    required Vector2 to,
+  }) : super(
+          start: from,
+          end: to,
+          paint: Paint()
+            ..color = Colors.cyanAccent
+            ..strokeWidth = 4,
+        );
+
+  @override
+  Future<void> onLoad() async {
+    add(
+      OpacityEffect.to(
+        0,
+        EffectController(duration: 0.25),
+      )..onComplete = removeFromParent,
+    );
+  }
+}
+```
+
+---
+
+# 4️⃣ EffectSpawner – 번개 연결 추가
+
+```dart
+void spawnLightningChain({
+  required Vector2 from,
+  required Vector2 to,
+}) {
+  game.add(
+    LightningChainEffect(from: from, to: to),
+  );
+}
+```
+
+---
+
+# 🔥 손맛 강화 팁
+
+## ⚡ 다단히트 타이밍 분리
+
+```dart
+for (int i = 0; i < targets.length; i++) {
+  Future.delayed(Duration(milliseconds: i * 80), () {
+    applyHit(targets[i]);
+  });
+}
+```
+
+→ 한 번에 터지지 않고
+→ “찌릿 찌릿 찌릿” 느낌 살아남
+
+---
+
+## ⚡ 히트스탑 차등 적용
+
+* 첫 타격: 60ms
+* 이후: 30ms
+
+보스전에서 체감 미쳤다.
+
+---
+
+# 💥 최종 결과
+
+연쇄 번개 발동 시:
+
+1. 첫 타격
+2. 번개 선 연결
+3. 다음 적으로 점프
+4. 다단히트 딜레이
+5. 카메라 미세 흔들림
+6. 번쩍임 이펙트
+
+👉 손맛 제대로 나온다.
+
+---
+
+# 🚀 gemini에게 기대하는 확장 기능
+
+* 번개가 벽에 튀는 효과
+* 치명타 시 굵은 번개
+* 감전 중첩 시 폭발
+* 번개 잔상 효과
+* 궁극기용 거대 번개
+

@@ -1,0 +1,23 @@
+﻿{
+    "id":  "enoch",
+    "name":  "Enoch",
+    "description":  "신의 동행자",
+    "iconName":  "trending_up",
+    "faction":  "ancient",
+    "primaryElement":  "light",
+    "secondaryElement":  "nature",
+    "role":  "scalingDps",
+    "baseStats":  {
+                      "hp":  950,
+                      "attack":  110,
+                      "attackSpeed":  1.2,
+                      "critChance":  0.1,
+                      "critDamage":  1.5,
+                      "defense":  40,
+                      "cooldownReduction":  0.1,
+                      "movementSpeed":  100
+                  },
+    "passive":  "Damage increases over time",
+    "trait":  "Divinity Accumulation",
+    "baseSkillId": "SK_MICHAEL_JUDGMENT"
+}

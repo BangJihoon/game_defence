@@ -96,7 +96,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     final activeCharacterId = playerDataManager.activeCharacterId;
     final activeCharacter = playerDataManager.masterCharacterList.firstWhere((c) => c.id == activeCharacterId);
 
-    playerBase = PlayerBase(hp: activeCharacter.baseHp, height: gameStats.baseSize.height)
+    playerBase = PlayerBase(hp: activeCharacter.baseStats.hp.toInt(), height: gameStats.baseSize.height)
       ..position = Vector2(0, size.y - gameStats.baseSize.height)
       ..onDestroyed = _onBaseDestroyed
       ..onHit = playBaseHitSound;
@@ -112,7 +112,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       locale: locale,
       gameStats: gameStats,
       skillDefinitions: gameStats.skillDefinitions,
-      baseAttackPower: ((activeCharacter.baseAttack + totalAttackPower) * (1.0 + templeBonus)).toInt(),
+      baseAttackPower: ((activeCharacter.baseStats.attack + totalAttackPower) * (1.0 + templeBonus)).toInt(),
     );
 
     altarCharacters.clear();
@@ -201,7 +201,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     add(VictoryOverlay(score: gameScore, locale: locale, onExit: () => onExit?.call()));
   }
 
-  void showSkillInfo(Skill skill) {
+  void showSkillInfo(SkillState skill) {
     if (children.whereType<SkillInfoPopup>().isNotEmpty) return;
     add(SkillInfoPopup(skill: skill, locale: locale));
   }

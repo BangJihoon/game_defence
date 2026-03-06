@@ -1,0 +1,23 @@
+﻿{
+    "id":  "apophis",
+    "name":  "Apophis",
+    "description":  "혼돈의 뱀",
+    "iconName":  "shield_moon",
+    "faction":  "ancient",
+    "primaryElement":  "dark",
+    "secondaryElement":  "water",
+    "role":  "resistanceBreaker",
+    "baseStats":  {
+                      "hp":  1300,
+                      "attack":  115,
+                      "attackSpeed":  0.9,
+                      "critChance":  0.07,
+                      "critDamage":  1.4,
+                      "defense":  70,
+                      "cooldownReduction":  0.05,
+                      "movementSpeed":  85
+                  },
+    "passive":  "Reduces enemy resistances",
+    "trait":  "Corrosive Venom",
+    "baseSkillId": "SK_LEVIATHAN_ABYSS"
+}

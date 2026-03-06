@@ -1,10 +1,11 @@
 {
   "version": "1.0",
   "skills": [
+
     {
       "id": "SK_MICHAEL_JUDGMENT",
       "name": "Judgment Blade",
-      "owner": "michael",
+      "owner": "MICHAEL",
       "element": "LIGHT",
       "damageType": "PHYSICAL",
       "targetType": "FRONT_CONE",
@@ -21,10 +22,11 @@
         }
       ]
     },
+
     {
       "id": "SK_RAPHAEL_SANCTUARY",
       "name": "Divine Sanctuary",
-      "owner": "raphael",
+      "owner": "RAPHAEL",
       "element": "LIGHT",
       "damageType": "NONE",
       "targetType": "ALLY_AREA",
@@ -41,10 +43,11 @@
         }
       ]
     },
+
     {
       "id": "SK_URIEL_THUNDER",
       "name": "Heavenly Thunder",
-      "owner": "uriel",
+      "owner": "URIEL",
       "element": "ELECTRIC",
       "damageType": "MAGIC",
       "targetType": "CHAIN",
@@ -61,10 +64,11 @@
         }
       ]
     },
+
     {
       "id": "SK_GABRIEL_TRUMPET",
       "name": "Final Trumpet",
-      "owner": "gabriel",
+      "owner": "GABRIEL",
       "element": "LIGHT",
       "damageType": "MAGIC",
       "targetType": "GLOBAL",
@@ -81,10 +85,11 @@
         }
       ]
     },
+
     {
       "id": "SK_SERAPHIM_INFERNO",
       "name": "Sacred Inferno",
-      "owner": "seraphim",
+      "owner": "SERAPHIM",
       "element": "FIRE",
       "damageType": "MAGIC",
       "targetType": "AREA",
@@ -101,10 +106,11 @@
         }
       ]
     },
+
     {
       "id": "SK_LUCIFER_CATACLYSM",
       "name": "Fallen Cataclysm",
-      "owner": "lucifer",
+      "owner": "LUCIFER",
       "element": "DARK",
       "damageType": "MAGIC",
       "targetType": "AREA",
@@ -114,10 +120,11 @@
       "hitCount": 1,
       "effects": []
     },
+
     {
       "id": "SK_ASMODEUS_CORRUPTION",
       "name": "Corruption Bloom",
-      "owner": "asmodeus",
+      "owner": "ASMODEUS",
       "element": "NATURE",
       "damageType": "MAGIC",
       "targetType": "AREA",
@@ -134,10 +141,11 @@
         }
       ]
     },
+
     {
       "id": "SK_BAAL_STORM",
       "name": "Thunder Dominion",
-      "owner": "baal",
+      "owner": "BAAL",
       "element": "ELECTRIC",
       "damageType": "MAGIC",
       "targetType": "CHAIN",
@@ -154,10 +162,11 @@
         }
       ]
     },
+
     {
       "id": "SK_LEVIATHAN_ABYSS",
       "name": "Abyss Collapse",
-      "owner": "leviathan",
+      "owner": "LEVIATHAN",
       "element": "WATER",
       "damageType": "PHYSICAL",
       "targetType": "LINE",
@@ -174,10 +183,11 @@
         }
       ]
     },
+
     {
       "id": "SK_BEELZEBUB_PLAGUE",
       "name": "Plague Swarm",
-      "owner": "beelzebub",
+      "owner": "BEELZEBUB",
       "element": "NATURE",
       "damageType": "MAGIC",
       "targetType": "AREA",
@@ -194,5 +204,6 @@
         }
       ]
     }
+
   ]
 }

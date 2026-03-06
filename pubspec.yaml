@@ -40,7 +40,24 @@ flutter:
     - assets/images/
     - assets/config/
     - assets/data/
-    # 실제 파일이 추가되면 위 경로가 자동으로 인식됩니다
+    - assets/images/characters/michael/
+    - assets/images/characters/raphael/
+    - assets/images/characters/uriel/
+    - assets/images/characters/gabriel/
+    - assets/images/characters/metatron/
+    - assets/images/characters/seraphim/
+    - assets/images/characters/lucifer/
+    - assets/images/characters/asmodeus/
+    - assets/images/characters/baal/
+    - assets/images/characters/leviathan/
+    - assets/images/characters/beelzebub/
+    - assets/images/characters/abaddon/
+    - assets/images/characters/enoch/
+    - assets/images/characters/samael/
+    - assets/images/characters/lilith/
+    - assets/images/characters/azazel/
+    - assets/images/characters/gaia/
+    - assets/images/characters/apophis/
 
   fonts:
     - family: NanumGothic

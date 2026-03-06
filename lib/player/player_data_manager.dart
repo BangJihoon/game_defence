@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:game_defence/data/inventory_data.dart';
 import 'package:game_defence/data/character_data.dart';
 import 'package:game_defence/game/events/event_bus.dart';
+import 'package:game_defence/config/game_config.dart';
 
 class PlayerDataManager extends ChangeNotifier {
   late final List<Temple> temples;
   late final List<Offering> allOfferings;
   late final List<GameItem> mysticTools;
-  late final List<Character> masterCharacterList;
+  late final List<CharacterDefinition> masterCharacterList;
   
   String activeTempleId = 'athena';
-  String activeCharacterId = 'hermes';
+  String activeCharacterId = 'michael';
   int gold = 500000;
   int gems = 5000;
 
@@ -19,7 +20,7 @@ class PlayerDataManager extends ChangeNotifier {
   bool vibrationEnabled = true;
 
   int characterSlots = 3;
-  List<String> equippedCharacterIds = ['hermes', 'athena', 'zeus'];
+  List<String> equippedCharacterIds = ['michael', 'lucifer'];
 
   int toolSlots = 3;
   List<String> equippedToolIds = ['tsunami', 'meteor_shower', 'ice_age'];
@@ -38,18 +39,8 @@ class PlayerDataManager extends ChangeNotifier {
   }
 
   void _initCharacters() {
-    masterCharacterList = [
-      const Character(id: 'hermes', name: '헤르메스', description: '전령', tier: CharacterTier.hero, icon: Icons.directions_run, skillId: 'arcane_missile', baseAttack: 25, baseHp: 500, baseDefense: 5),
-      const Character(id: 'athena', name: '아테나', description: '지혜', tier: CharacterTier.hero, icon: Icons.security, skillId: 'frost_nova', baseAttack: 30, baseHp: 600, baseDefense: 10),
-      const Character(id: 'zeus', name: '제우스', description: '올림포스의 왕', tier: CharacterTier.celestial, icon: Icons.bolt, skillId: 'chain_lightning', baseAttack: 40, baseHp: 700, baseDefense: 15),
-      const Character(id: 'ares', name: '아레스', description: '전쟁', tier: CharacterTier.hero, icon: Icons.colorize, skillId: 'fireball', baseAttack: 50, baseHp: 700, baseDefense: 15),
-      const Character(id: 'poseidon', name: '포세이돈', description: '바다', tier: CharacterTier.hero, icon: Icons.waves, skillId: 'frost_nova', baseAttack: 38, baseHp: 750, baseDefense: 12),
-      const Character(id: 'lucifer', name: '루시퍼', description: '타락', tier: CharacterTier.mortal, icon: Icons.brightness_3, skillId: 'poison_cloud', baseAttack: 65, baseHp: 1200, baseDefense: 20),
-      const Character(id: 'michael', name: '미카엘', description: '대천사', tier: CharacterTier.celestial, icon: Icons.auto_awesome, skillId: 'chain_lightning', baseAttack: 55, baseHp: 1000, baseDefense: 30),
-      const Character(id: 'satan', name: '사탄', description: '분노', tier: CharacterTier.mortal, icon: Icons.local_fire_department, skillId: 'fireball', baseAttack: 75, baseHp: 1100, baseDefense: 10),
-      const Character(id: 'raphael', name: '라파엘', description: '치유', tier: CharacterTier.celestial, icon: Icons.healing, skillId: 'healing_aura', baseAttack: 20, baseHp: 1200, baseDefense: 40),
-      const Character(id: 'hades', name: '하데스', description: '지하', tier: CharacterTier.hero, icon: Icons.visibility_off, skillId: 'poison_cloud', baseAttack: 42, baseHp: 650, baseDefense: 10),
-    ];
+    // Load characters from GameStats
+    masterCharacterList = GameStats.instance.characterDefinitions.values.toList();
   }
 
   void _initTemples() {

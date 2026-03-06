@@ -10,6 +10,7 @@ import 'package:game_defence/data/wave_data.dart';
 import 'package:game_defence/data/skill_data.dart';
 import 'package:game_defence/data/enemy_data.dart';
 import 'package:game_defence/data/card_data.dart';
+import 'package:game_defence/data/character_data.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
@@ -34,10 +35,13 @@ class GameStats {
   final Map<String, EnemyDefinition> enemyDefinitions;
 
   // All Skill Definitions
-  final Map<String, SkillDefinition> skillDefinitions;
+  final Map<String, SkillData> skillDefinitions;
 
   // All Card Definitions
   final List<CardDefinition> cards;
+
+  // All Character Definitions
+  final Map<String, CharacterDefinition> characterDefinitions;
 
   // UI stats
   final UiSizeStats baseSize;
@@ -52,6 +56,7 @@ class GameStats {
     required this.enemyDefinitions,
     required this.skillDefinitions,
     required this.cards,
+    required this.characterDefinitions,
     required this.baseSize,
     required this.skillButtonSize,
     required this.skillButtonSpacing,
@@ -61,8 +66,9 @@ class GameStats {
     Map<String, dynamic> json,
     List<CardDefinition> loadedCards,
     Map<String, EnemyDefinition> loadedEnemyDefinitions,
-    Map<String, SkillDefinition> loadedSkillDefinitions,
+    Map<String, SkillData> loadedSkillDefinitions,
     List<WaveDefinition> loadedWaveDefinitions,
+    Map<String, CharacterDefinition> loadedCharacterDefinitions,
   ) {
     return GameStats._internal(
       baseHP: json['game']['baseHP'],
@@ -72,6 +78,7 @@ class GameStats {
       enemyDefinitions: loadedEnemyDefinitions,
       skillDefinitions: loadedSkillDefinitions,
       cards: loadedCards,
+      characterDefinitions: loadedCharacterDefinitions,
       baseSize: UiSizeStats.fromJson(json['ui']['baseSize']),
       skillButtonSize: json['ui']['skillButtonSize'],
       skillButtonSpacing: json['ui']['skillButtonSpacing'],
@@ -112,10 +119,11 @@ class GameStats {
     final skillsJsonString = await rootBundle.loadString(
       'assets/data/skills.json',
     );
-    final List<dynamic> skillsJsonList = json.decode(skillsJsonString);
-    final Map<String, SkillDefinition> loadedSkillDefinitions = {
+    final Map<String, dynamic> skillsJsonMap = json.decode(skillsJsonString);
+    final List<dynamic> skillsJsonList = skillsJsonMap['skills'];
+    final Map<String, SkillData> loadedSkillDefinitions = {
       for (var json in skillsJsonList)
-        json['skillId'] as String: SkillDefinition.fromJson(json),
+        json['id'] as String: SkillData.fromJson(json),
     };
 
     final wavesJsonString = await rootBundle.loadString(
@@ -126,15 +134,34 @@ class GameStats {
         .map((json) => WaveDefinition.fromJson(json))
         .toList();
 
+    final List<String> characterIds = [
+      'michael', 'raphael', 'uriel', 'gabriel', 'metatron', 'seraphim',
+      'lucifer', 'asmodeus', 'baal', 'leviathan', 'beelzebub', 'abaddon',
+      'enoch', 'samael', 'lilith', 'azazel', 'gaia', 'apophis'
+    ];
+
+    final Map<String, CharacterDefinition> loadedCharacterDefinitions = {};
+    for (final id in characterIds) {
+      try {
+        final charJsonString = await rootBundle.loadString('assets/images/characters/$id/character.json');
+        final charJson = json.decode(charJsonString);
+        loadedCharacterDefinitions[id] = CharacterDefinition.fromJson(charJson);
+      } catch (e) {
+        print('Error loading character $id: $e');
+      }
+    }
+
     return GameStats._fromJson(
       gameStatsJsonMap,
       loadedCards,
       loadedEnemyDefinitions,
       loadedSkillDefinitions,
       loadedWaveDefinitions,
+      loadedCharacterDefinitions,
     );
   }
 }
+
 
 class UiSizeStats {
   final int width;
