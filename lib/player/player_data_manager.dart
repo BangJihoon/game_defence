@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:game_defence/data/inventory_data.dart';
 import 'package:game_defence/data/character_data.dart';
@@ -11,12 +12,38 @@ class PlayerDataManager extends ChangeNotifier {
   late final List<GameItem> mysticTools;
   late final List<CharacterDefinition> masterCharacterList;
   final Map<String, PlayerCharacter> ownedCharacters = {};
-  final Map<String, int> characterCards = {}; // 캐릭터별 보유 카드 수
+  final Map<String, int> characterCards = {}; 
   
   String activeTempleId = 'athena';
   String activeCharacterId = 'michael';
-  int gold = 1000000; // 테스트를 위해 골드 증액
+  
+  // 계정 정보
+  String accountId = "GreatArchivist";
+  CharacterRank accountRank = CharacterRank.gold;
+  
+  // 전체 계정 레벨 = 3가지 신전의 전쟁Lv 합계
+  int get currentLevel => temples.fold(0, (sum, t) => sum + t.warLevel);
+  
+  // 기본 재화
+  int gold = 1000000; 
   int gems = 5000;
+  int energy = 40;
+  int maxEnergy = 50;
+
+  // 에너지 회복 시스템
+  DateTime lastEnergyRecoveryTime = DateTime.now();
+  static const int recoveryIntervalMinutes = 5;
+  Timer? _energyTimer;
+
+  // VIP 및 구독 상태
+  bool isVipMonthly = false;
+  bool isVipYearly = false;
+  DateTime? vipExpiration;
+
+  // 상점 제한 및 쿨타임
+  int energyPurchaseCountToday = 0;
+  DateTime? lastFreeCardClaimTime;
+  DateTime? lastVipRewardClaimTime;
 
   bool soundEnabled = true;
   bool vibrationEnabled = true;
@@ -38,6 +65,7 @@ class PlayerDataManager extends ChangeNotifier {
     _initOfferings();
     _initMysticTools();
     _initCharacters();
+    _startEnergyTimer();
   }
 
   void _initCharacters() {
@@ -65,22 +93,25 @@ class PlayerDataManager extends ChangeNotifier {
       Temple(
         id: 'athena', 
         name: '불가사의 고대신전', 
-        description: '고대 거인들이 세운 것으로 알려진 정체불명의 신전입니다. 고대 캐릭터들의 숨겨진 잠재력을 깨웁니다.', 
+        description: '고대 거인들이 세운 것으로 알려진 정체불명의 신전입니다.', 
         type: TempleType.hero, 
+        warLevel: 12,
         isUnlocked: true
       ),
       Temple(
         id: 'babel_darkness', 
         name: '흑암의 바벨', 
-        description: '끝없는 어둠 속에 숨겨진 거대한 금단의 탑입니다. 악마 캐릭터들에게 파괴적인 흑마력을 부여합니다.', 
+        description: '끝없는 어둠 속에 숨겨진 거대한 금단의 탑입니다.', 
         type: TempleType.darkness, 
+        warLevel: 8,
         isUnlocked: true
       ),
       Temple(
         id: 'light_sanctuary', 
         name: '빛의 중앙청', 
-        description: '세상의 정의와 빛을 관장하는 천상의 핵심 의사당입니다. 천사 캐릭터들의 신성을 극대화합니다.', 
+        description: '세상의 정의와 빛을 관장하는 천상의 핵심 의사당입니다.', 
         type: TempleType.light, 
+        warLevel: 15,
         isUnlocked: true
       ),
     ];
@@ -129,6 +160,36 @@ class PlayerDataManager extends ChangeNotifier {
 
   Temple get activeTemple => temples.firstWhere((t) => t.id == activeTempleId);
 
+  void _startEnergyTimer() {
+    _energyTimer?.cancel();
+    _energyTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (energy < maxEnergy) {
+        final now = DateTime.now();
+        final diff = now.difference(lastEnergyRecoveryTime);
+        if (diff.inMinutes >= recoveryIntervalMinutes) {
+          energy++;
+          lastEnergyRecoveryTime = now;
+          notifyListeners();
+        } else {
+          notifyListeners();
+        }
+      } else {
+        lastEnergyRecoveryTime = DateTime.now();
+      }
+    });
+  }
+
+  String get energyTimerText {
+    if (energy >= maxEnergy) return "";
+    final now = DateTime.now();
+    final diffSeconds = now.difference(lastEnergyRecoveryTime).inSeconds;
+    final totalIntervalSeconds = recoveryIntervalMinutes * 60;
+    final remainingSeconds = totalIntervalSeconds - (diffSeconds % totalIntervalSeconds);
+    final minutes = remainingSeconds ~/ 60;
+    final seconds = remainingSeconds % 60;
+    return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+  }
+
   void toggleSound() { soundEnabled = !soundEnabled; notifyListeners(); }
   void toggleVibration() { vibrationEnabled = !vibrationEnabled; notifyListeners(); }
 
@@ -148,6 +209,7 @@ class PlayerDataManager extends ChangeNotifier {
     currentTempleIndex = temples.indexWhere((t) => t.id == id);
     notifyListeners(); 
   }
+  
   void upgradeTemple(String id) {
     final index = temples.indexWhere((t) => t.id == id);
     if (index != -1) {
@@ -164,32 +226,100 @@ class PlayerDataManager extends ChangeNotifier {
   void levelUpCharacter(String charId) {
     final pc = ownedCharacters[charId];
     if (pc == null) return;
-
     int cardCost = 12;
     int goldCost = pc.level * 5000;
-
     if ((characterCards[charId] ?? 0) >= cardCost && gold >= goldCost) {
       characterCards[charId] = characterCards[charId]! - cardCost;
       gold -= goldCost;
       pc.level++;
-
       if ((pc.level - 1) % 12 == 0 && (pc.level > 1)) {
         if (pc.rank == CharacterRank.silver) pc.rank = CharacterRank.gold;
         else if (pc.rank == CharacterRank.gold) pc.rank = CharacterRank.platinum;
         else if (pc.rank == CharacterRank.platinum) pc.rank = CharacterRank.diamond;
       }
-      
       notifyListeners();
     }
   }
 
-  void buyTool(String id) { /* 구현 생략 */ }
-  void equipTool(String id) { /* 구현 생략 */ }
+  void buyTool(String id) { 
+    final tool = mysticTools.firstWhere((t) => t.id == id);
+    if (gold >= tool.goldCost) {
+      gold -= tool.goldCost;
+      ownedToolIds.add(id);
+      notifyListeners();
+    }
+  }
+  
+  void equipTool(String id) { 
+    if (equippedToolIds.length < toolSlots) {
+      equippedToolIds.add(id);
+      notifyListeners();
+    }
+  }
+  
   void unequipTool(String id) { equippedToolIds.remove(id); notifyListeners(); }
   void unlockToolSlot() { if (toolSlots < 5) toolSlots++; notifyListeners(); }
+
+  void updateEventBus(EventBus bus) { }
+
+  void purchaseGems(int amount) { gems += amount; notifyListeners(); }
+  bool purchaseCoins(int coinAmount, int gemCost) {
+    if (gems >= gemCost) { gems -= gemCost; gold += coinAmount; notifyListeners(); return true; }
+    return false;
+  }
+  bool purchaseEnergy() {
+    if (energyPurchaseCountToday < 3 && gems >= 500) { gems -= 500; energy += 25; energyPurchaseCountToday++; notifyListeners(); return true; }
+    return false;
+  }
+  void claimEnergyByAd() { energy += 5; notifyListeners(); }
+  void subscribeVip(bool isYearly) {
+    if (isYearly) { isVipYearly = true; vipExpiration = DateTime.now().add(const Duration(days: 365)); }
+    else { isVipMonthly = true; vipExpiration = DateTime.now().add(const Duration(days: 30)); }
+    notifyListeners();
+  }
+  bool claimFreeCardByAd() {
+    final now = DateTime.now();
+    if (lastFreeCardClaimTime == null || now.difference(lastFreeCardClaimTime!).inMinutes >= 10) {
+      final silverChars = masterCharacterList.where((c) => c.startingRank == CharacterRank.silver).toList();
+      if (silverChars.isNotEmpty) {
+        final randomChar = silverChars[now.millisecond % silverChars.length];
+        int amount = (now.second % 3) + 1;
+        characterCards[randomChar.id] = (characterCards[randomChar.id] ?? 0) + amount;
+        lastFreeCardClaimTime = now;
+        notifyListeners();
+        return true;
+      }
+    }
+    return false;
+  }
+  bool purchaseCharacterCard(String charId, CharacterRank rank) {
+    int price = rank == CharacterRank.gold ? 500 : (rank == CharacterRank.platinum ? 2500 : 100);
+    if (rank == CharacterRank.diamond || gems < price) return false;
+    gems -= price;
+    characterCards[charId] = (characterCards[charId] ?? 0) + 1;
+    notifyListeners();
+    return true;
+  }
+  int get todayDealIndex { return DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays % 10; }
+  bool claimVipDailyReward() {
+    if (!isVipYearly && !isVipMonthly) return false;
+    final now = DateTime.now();
+    if (lastVipRewardClaimTime == null || now.day != lastVipRewardClaimTime!.day) {
+      gems += isVipYearly ? 3000 : 2000;
+      lastVipRewardClaimTime = now;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  void dispose() { 
+    _energyTimer?.cancel();
+    super.dispose(); 
+  }
 
   dynamic get playerData => this; 
   int get totalAttackPower => 10; 
   int get totalHpBonus => 0;
-  void updateEventBus(dynamic bus) {}
 }

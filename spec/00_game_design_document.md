@@ -48,22 +48,22 @@
 
 ## 3. 설계 문서 색인 (Document Index)
 
-*   `00_game_design_document.md`: **(본 문서)** 모든 것을 관장하는 최상위 설계 원칙.
-*   `10_data_flow.md`: 데이터의 생명주기와 흐름을 정의.
-*   `11_card_system.md`: 중독성의 핵심, 다양한 카드 종류와 역할을 정의.
-*   `12_balance_tuning.md`: 난이도와 성장 체감에 대한 수학적/철학적 접근.
-*   `13_content_pipeline.md`: 코드 수정 없이 콘텐츠를 무한 확장하는 방법.
-*   `20_monetization_design.md`: 윤리적이면서도 장기적인 수익 모델.
-*   `21_analytics_kpi.md`: 데이터 기반 운영을 위한 핵심 지표.
-*   `22_live_operation_rules.md`: 감정에 휘둘리지 않는 라이브 운영 규칙.
-*   `23_community_policy.md`: 게임의 중독성을 커뮤니티로 확장하는 방법.
-*   `30_narrative_world.md`: '탐욕'을 정당화하는 세계관과 스토리 전달 방식.
-*   `31_audio_design.md`: '힘'과 '보상'을 소리로 체감시키는 방법.
-*   `32_visual_effect_guidelines.md`: '힘'과 '보상'을 눈으로 극대화하는 방법.
-*   `90_qa_test_cases.md`: '버그'와 '의도'를 구분하는 품질 기준.
-*   `91_release_scope.md`: '더 나은 출시'가 아닌 '빠른 출시'를 위한 범위 정의.
-*   `99_post_launch_roadmap.md`: 끝없는 탐욕과 중독을 위한 장기 계획.
-*   `40_marketing_positioning.md`: 우리가 만든 '힘의 판타지'를 세상에 파는 방법.
+*   `00_MASTER_INDEX.md`: 모든 설계 문서의 중앙 인덱스 및 상태 관리.
+*   `00_game_design_document.md`: **(본 문서)** 핵심 비전 및 설계 철학.
+*   `10_data_flow.md`: Run(인게임)과 Meta(성장) 간의 데이터 흐름 및 절대 규칙.
+*   `character_system_v2.md`: 18종 캐릭터 명세, 12단계 승급 및 복리 성장 시스템.
+*   `combat_engine_spec.md`: 스킬 엔진, 상태이상, 속성 상성 및 타격감 연출 명세.
+*   `11_card_system.md`: 인게임 카드 선택지 및 등급 정의.
+*   `12_balance_tuning.md`: 난이도 곡선 및 밸런스 조정 전략.
+*   `20_monetization_design.md`: 수익화 모델 및 광고/과금 정책.
+*   `21_analytics_kpi.md`: 데이터 기반 의사결정 지표.
+*   `30_narrative_world.md`: "부서진 아카이브" 세계관 및 내러티브 가이드.
+*   `31_audio_design.md`: 사운드 및 BGM 설계 명세.
+*   `32_visual_effect_guidelines.md`: VFX 및 비주얼 연출 가이드.
+*   `90_qa_test_cases.md`: 품질 검증 기준 및 테스트 케이스.
+*   `91_release_scope.md`: 출시 범위 및 마일스톤 정의.
+*   `99_history.md`: 개발 완료 사항 및 변경 이력.
+*   `99.to_do.md`: 현재 잔여 과제 및 향후 로드맵.
 
 ---
 

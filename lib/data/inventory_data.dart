@@ -9,6 +9,7 @@ class Temple {
   final String description;
   final TempleType type;
   int level;
+  int warLevel; // 해당 시나리오의 전쟁 단계 (추가)
   bool isUnlocked;
 
   Temple({
@@ -17,6 +18,7 @@ class Temple {
     required this.description,
     required this.type,
     this.level = 1,
+    this.warLevel = 0, // 기본값 0
     this.isUnlocked = false,
   });
 
@@ -45,6 +47,19 @@ class Temple {
         return 'assets/temple/temple3.png';
       default:
         return 'assets/temple/temple1.png';
+    }
+  }
+
+  String get roadAssetPath {
+    switch (id) {
+      case 'athena':
+        return 'roads/road1.png';
+      case 'babel_darkness':
+        return 'roads/road2.jpg';
+      case 'light_sanctuary':
+        return 'roads/road3.jpg';
+      default:
+        return 'roads/road1.png';
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:game_defence/game/overflow_game.dart';
+import 'package:game_defence/player/player_data_manager.dart';
 
 class SettingsOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame>, TapCallbacks {
   SettingsOverlay() : super(priority: 1000);

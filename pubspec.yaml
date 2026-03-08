@@ -39,6 +39,7 @@ flutter:
     - assets/audio/
     - assets/images/
     - assets/images/characters/
+    - assets/images/roads/
     - assets/temple/
     - assets/badges/elements/
     - assets/badges/ranks/

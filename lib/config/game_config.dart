@@ -2,7 +2,7 @@
 //
 // A singleton configuration manager that loads and provides static game data.
 // Responsibilities:
-// - Loading JSON configuration files (game_stats, cards, enemies, skills, waves) from assets.
+// - Loading JSON configuration files (game_stats, cards, enemies, skills, waves, shop) from assets.
 // - Parsing JSON into strongly-typed data objects (CardDefinition, EnemyDefinition, etc.).
 // - Providing a globally accessible `GameStats.instance` for other systems to access static data.
 
@@ -43,6 +43,9 @@ class GameStats {
   // All Character Definitions
   final Map<String, CharacterDefinition> characterDefinitions;
 
+  // Shop Data
+  final Map<String, dynamic> shopData;
+
   // UI stats
   final UiSizeStats baseSize;
   final int skillButtonSize;
@@ -57,6 +60,7 @@ class GameStats {
     required this.skillDefinitions,
     required this.cards,
     required this.characterDefinitions,
+    required this.shopData,
     required this.baseSize,
     required this.skillButtonSize,
     required this.skillButtonSpacing,
@@ -69,6 +73,7 @@ class GameStats {
     Map<String, SkillData> loadedSkillDefinitions,
     List<WaveDefinition> loadedWaveDefinitions,
     Map<String, CharacterDefinition> loadedCharacterDefinitions,
+    Map<String, dynamic> loadedShopData,
   ) {
     return GameStats._internal(
       baseHP: json['game']['baseHP'],
@@ -79,6 +84,7 @@ class GameStats {
       skillDefinitions: loadedSkillDefinitions,
       cards: loadedCards,
       characterDefinitions: loadedCharacterDefinitions,
+      shopData: loadedShopData,
       baseSize: UiSizeStats.fromJson(json['ui']['baseSize']),
       skillButtonSize: json['ui']['skillButtonSize'],
       skillButtonSpacing: json['ui']['skillButtonSpacing'],
@@ -138,6 +144,9 @@ class GameStats {
         .map((json) => WaveDefinition.fromJson(json))
         .toList();
 
+    final shopJsonString = await rootBundle.loadString('assets/data/shop_data.json');
+    final Map<String, dynamic> loadedShopData = json.decode(shopJsonString);
+
     final List<String> characterIds = [
       'michael', 'raphael', 'uriel', 'gabriel', 'metatron', 'seraphim',
       'lucifer', 'asmodeus', 'baal', 'leviathan', 'beelzebub', 'abaddon',
@@ -162,6 +171,7 @@ class GameStats {
       loadedSkillDefinitions,
       loadedWaveDefinitions,
       loadedCharacterDefinitions,
+      loadedShopData,
     );
   }
 }

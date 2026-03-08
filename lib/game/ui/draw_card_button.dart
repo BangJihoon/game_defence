@@ -1,91 +1,136 @@
-
-// lib/game/ui/draw_card_button.dart
-//
-// A touchable UI component that allows the player to manually draw a card.
-// Responsibilities:
-// - Rendering the button with current cost and available card points.
-// - Handling touch input to trigger the `showCardSelection` method in the game.
-// - Visualizing the enabled/disabled state based on deck initialization.
-
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:game_defence/game/overflow_game.dart';
 
 class DrawCardButton extends PositionComponent with TapCallbacks, HasGameRef<OverflowDefenseGame> {
+  late final TextComponent _pointsComponent;
   late final TextComponent _labelComponent;
-  late final TextComponent _costComponent;
+  
+  double _glowTimer = 0;
 
   DrawCardButton() {
-    anchor = Anchor.bottomCenter;
+    anchor = Anchor.center;
+    priority = 100;
   }
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
-    size = Vector2(140, 50); // 터치 영역 확대
-    position = Vector2(game.size.x / 2, game.size.y - 80); // 스킬 바 위로 이동
+    await super.onLoad();
+    size = Vector2.all(80); // 원형 버튼 크기
+    position = Vector2(game.size.x / 2, game.size.y - 120); // 위치 조정
 
-    // 텍스트 컴포넌트로 변경하여 성능 및 정렬 개선
     _labelComponent = TextComponent(
-      text: '신의 신탁 (Pray)',
+      text: '신탁',
       textRenderer: TextPaint(
         style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
+          color: Colors.white70,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
+          fontFamily: 'NanumGothic',
         ),
       ),
       anchor: Anchor.center,
-      position: Vector2(size.x / 2, size.y / 2 - 8),
+      position: Vector2(size.x / 2, size.y / 2 - 10),
     );
 
-    _costComponent = TextComponent(
-      text: '', // update에서 갱신
+    _pointsComponent = TextComponent(
+      text: '0',
       textRenderer: TextPaint(
         style: const TextStyle(
           color: Colors.amberAccent,
           fontSize: 12,
+          fontWeight: FontWeight.bold,
         ),
       ),
       anchor: Anchor.center,
-      position: Vector2(size.x / 2, size.y / 2 + 10),
+      position: Vector2(size.x / 2, size.y / 2 + 12),
     );
 
     add(_labelComponent);
-    add(_costComponent);
+    add(_pointsComponent);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    _costComponent.text = '신앙: ${game.cardPoints} / ${game.cardDrawCost}';
+    final current = game.cardPoints;
+    final cost = game.cardDrawCost;
+    
+    _pointsComponent.text = '$current/$cost';
+    
+    if (current >= cost) {
+      _glowTimer += dt;
+      _labelComponent.text = '발동 가능';
+      _labelComponent.textRenderer = TextPaint(
+        style: const TextStyle(color: Colors.cyanAccent, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'NanumGothic'),
+      );
+    } else {
+      _glowTimer = 0;
+      _labelComponent.text = '신성한 신탁';
+      _labelComponent.textRenderer = TextPaint(
+        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'NanumGothic'),
+      );
+    }
   }
 
   @override
   void onTapUp(TapUpEvent event) {
-    if (game.cardManager.isDeckInitialized && game.cardPoints >= game.cardDrawCost) {
+    if (game.cardPoints >= game.cardDrawCost) {
       game.showCardSelection();
-    } else {
-      if (!game.cardManager.isDeckInitialized) debugPrint('[DrawCardButton] Deck not ready');
-      if (game.cardPoints < game.cardDrawCost) debugPrint('[DrawCardButton] Not enough CP');
     }
   }
 
   @override
   void render(Canvas canvas) {
-    final isDeckReady = game.cardManager.isDeckInitialized;
-    final canAfford = game.cardPoints >= game.cardDrawCost;
-    final isEnabled = isDeckReady && canAfford;
+    final current = game.cardPoints;
+    final cost = game.cardDrawCost;
+    final progress = math.min(1.0, current / cost);
+    final isFull = current >= cost;
 
-    final paint = Paint()..color = isEnabled ? Colors.blue.withAlpha(200) : Colors.grey.withAlpha(150);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(size.toRect(), const Radius.circular(12)),
-      paint,
+    final center = Offset(size.x / 2, size.y / 2);
+    final radius = size.x / 2 - 5;
+
+    // 1. 배경 가이드 원 (매우 연하게)
+    canvas.drawCircle(
+      center, 
+      radius, 
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.05)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4,
     );
-    
-    // 자식 컴포넌트(텍스트)는 super.render에서 그려짐
+
+    // 2. 프로그레스 원형 게이지
+    final progressPaint = Paint()
+      ..color = isFull ? Colors.cyanAccent : Colors.amberAccent.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 6;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      2 * math.pi * progress,
+      false,
+      progressPaint,
+    );
+
+    // 3. 풀 게이지 시 글로우 효과
+    if (isFull) {
+      final glowOpacity = (math.sin(_glowTimer * 5) + 1) / 2 * 0.4;
+      canvas.drawCircle(
+        center, 
+        radius + 2, 
+        Paint()
+          ..color = Colors.cyanAccent.withValues(alpha: glowOpacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 10
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+    }
+
     super.render(canvas);
   }
 }

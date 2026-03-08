@@ -1,5 +1,5 @@
 
-# 📄 spec/09_data_flow.md
+# 📄 spec/10_data_flow.md
 
 ## Data Flow Specification
 
@@ -39,14 +39,9 @@ Run 시작 시 다음 데이터가 초기화된다:
 ```text
 RunState.init():
 - current_wave = 1
-- elapsed_sec = 0
-- coins_current = 0
-- coins_earned_total = 0
-- coins_spent_total = 0
-
-- castle_state.current_hp = castle_state.max_hp
-- castle_state.shield_hp = meta + rune + item 반영값
-- revive_remaining = meta + item 반영값
+- total_score = 0
+- player_base.hp = Sum(EquippedCharacters.HP * LevelMultiplier)
+- base_attack_power = Avg(EquippedCharacters.Attack * LevelMultiplier) * TempleBonus
 ```
 
 ---
@@ -56,11 +51,9 @@ RunState.init():
 다음 Meta 데이터는 **Run 시작 시 1회만 반영**된다:
 
 ```text
-- 캐릭터 기본 스킬
-- 캐릭터 고유 특성
-- 룬 효과
-- 아이템 효과
-- 스킬 영구 강화 수치
+- 편성된 캐릭터 목록 (equippedCharacterIds)
+- 캐릭터별 현재 레벨 및 랭크
+- 선택된 신전 및 해당 보너스 수치
 ```
 
 > ❗ Run 도중 Meta 데이터는 변경되지 않는다

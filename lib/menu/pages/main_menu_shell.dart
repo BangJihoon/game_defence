@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:game_defence/menu/pages/widgets/top_currency_bar.dart';
 import 'home_page.dart';
 import 'shop/presentation/pages/shop_page.dart';
 import 'character/presentation/pages/character_page.dart';
-import 'inventory_page.dart';
-import 'item_page.dart';
+import 'collection_page.dart';
+import 'profile_page.dart';
 
 class MainMenuShell extends StatelessWidget {
   final int selectedIndex;
@@ -30,13 +31,19 @@ class MainMenuShell extends StatelessWidget {
         onStartGame: onStartGame,
         locale: locale,
         onToggleLocale: onToggleLocale,
+        onNavigateToTab: onTabChanged, // 콜백 전달
       ),
-      const InventoryPage(),
-      const ItemPage(),
+      const CollectionPage(),
+      const ProfilePage(),
     ];
 
     return Scaffold(
-      body: pages[selectedIndex],
+      body: Column(
+        children: [
+          const TopCurrencyBar(),
+          Expanded(child: pages[selectedIndex]),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: onTabChanged,
@@ -48,8 +55,8 @@ class MainMenuShell extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.store), label: '상점'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: '캐릭터'),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance), label: '신전'),
-          BottomNavigationBarItem(icon: Icon(Icons.auto_fix_high), label: '아이템'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: '수집'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: '마이'),
         ],
       ),
     );

@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "daily_deals": [
+    { "day": 1, "item": "COIN", "amount": 1000, "price_krw": 3000 },
+    { "day": 2, "item": "SILVER_CARD", "amount": 10, "price_krw": 5000 },
+    { "day": 3, "item": "COIN", "amount": 3000, "price_krw": 8000 },
+    { "day": 4, "item": "GOLD_CARD", "amount": 3, "price_krw": 12000 },
+    { "day": 5, "item": "GEM", "amount": 5000, "price_krw": 15000 },
+    { "day": 6, "item": "PLATINUM_CARD", "amount": 1, "price_krw": 25000 },
+    { "day": 7, "item": "COIN", "amount": 10000, "price_krw": 30000 },
+    { "day": 8, "item": "DIAMOND_CARD", "amount": 1, "price_krw": 50000 },
+    { "day": 9, "item": "COIN", "amount": 50000, "price_krw": 120000 },
+    { "day": 10, "item": "COIN", "amount": 100000, "price_krw": 200000 }
+  ],
+  "subscriptions": {
+    "monthly_vip": {
+      "id": "sub_monthly",
+      "price_krw": 4900,
+      "daily_gems": 2000,
+      "benefits": ["NO_ADS", "DOUBLE_REWARD"]
+    },
+    "yearly_vip": {
+      "id": "sub_yearly",
+      "price_krw": 49000,
+      "daily_gems": 3000,
+      "benefits": ["NO_ADS", "DOUBLE_REWARD", "VIP_ZONE_ACCESS"]
+    }
+  },
+  "vip_zone": {
+    "daily_rewards": [
+      { "item": "SILVER_FRAGMENT", "amount": 5 },
+      { "item": "GOLD_FRAGMENT", "amount": 1 },
+      { "item": "RUNE", "amount": 1 }
+    ],
+    "gem_packs": [
+      { "gems": 10000, "price_krw": 30000 },
+      { "gems": 50000, "price_krw": 99000 },
+      { "gems": 100000, "price_krw": 198000 }
+    ]
+  },
+  "character_shop": {
+    "silver": { "gem_price": 100 },
+    "gold": { "gem_price": 500 },
+    "platinum": { "gem_price": 2500 },
+    "diamond": { "purchasable": false }
+  },
+  "currency_exchange": {
+    "energy": { "amount": 25, "gem_price": 500, "daily_limit": 3, "ad_reward": 5 },
+    "gem": [
+      { "amount": 500, "price_usd": 1, "price_krw": 3000 },
+      { "amount": 3000, "price_krw": 10000 }
+    ],
+    "coin": [
+      { "amount": 100000, "price_usd": 1, "price_krw": 3000 },
+      { "amount": 500000, "price_krw": 10000 }
+    ]
+  }
+}

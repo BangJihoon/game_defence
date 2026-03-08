@@ -17,7 +17,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await GameStats.initialize(); 
+  await GameStats.initialize();
   runApp(const GameApp());
 }
 

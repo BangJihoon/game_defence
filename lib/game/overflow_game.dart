@@ -8,6 +8,7 @@ import 'package:flame/effects.dart';
 
 import 'player_base.dart';
 import 'enemy_system.dart';
+import 'background.dart'; // 추가
 import 'input/tap_input_layer.dart';
 import 'ui/score_display.dart';
 import 'skills/skill_system.dart';
@@ -287,8 +288,6 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   @override
   void onRemove() { super.onRemove(); }
 }
-
-class GameBackground extends Component {}
 
 class ItemSlotUI extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final List<String> equippedItemIds;
