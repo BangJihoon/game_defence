@@ -95,7 +95,11 @@ class CharacterDefinition {
   final String passive;
   final String trait;
   final String baseSkillId;
-  // TODO: Add awakeningBranches and transcendenceT5
+
+  final String nameLocaleKey;
+  final String descriptionLocaleKey;
+  final String passiveLocaleKey;
+  final String traitLocaleKey;
 
   const CharacterDefinition({
     required this.id,
@@ -110,22 +114,31 @@ class CharacterDefinition {
     required this.passive,
     required this.trait,
     required this.baseSkillId,
+    required this.nameLocaleKey,
+    required this.descriptionLocaleKey,
+    required this.passiveLocaleKey,
+    required this.traitLocaleKey,
   });
 
   factory CharacterDefinition.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
     return CharacterDefinition(
-      id: json['id'],
+      id: id,
       name: json['name'],
       description: json['description'] ?? '',
       iconName: json['iconName'] ?? '',
       faction: Faction.values.firstWhere((e) => e.name == json['faction'].toLowerCase()),
       primaryElement: ElementType.values.firstWhere((e) => e.name == json['primaryElement'].toLowerCase()),
       secondaryElement: ElementType.values.firstWhere((e) => e.name == (json['secondaryElement']?.toLowerCase() ?? 'none')),
-      role: CharacterRole.values.firstWhere((e) => e.name == json['role']), // Assuming camelCase in JSON
+      role: CharacterRole.values.firstWhere((e) => e.name == json['role']),
       baseStats: BaseStats.fromJson(json['baseStats']),
       passive: json['passive'] ?? '',
       trait: json['trait'] ?? '',
       baseSkillId: json['baseSkillId'] ?? '',
+      nameLocaleKey: json['nameLocaleKey'] ?? 'char.$id.name',
+      descriptionLocaleKey: json['descriptionLocaleKey'] ?? 'char.$id.desc',
+      passiveLocaleKey: json['passiveLocaleKey'] ?? 'char.$id.passive',
+      traitLocaleKey: json['traitLocaleKey'] ?? 'char.$id.trait',
     );
   }
 
@@ -157,18 +170,15 @@ class CharacterDefinition {
   }
 
   String get iconAssetPath {
-    final targetId = id == 'michael' ? 'michael' : 'michael';
-    return 'characters/$targetId/icon.png';
+    return 'characters/$id/icon.png';
   }
 
   String get idleFrontAssetPath {
-    final targetId = id == 'michael' ? 'michael' : 'michael';
-    return 'characters/$targetId/idle_front.png';
+    return 'characters/$id/front.png';
   }
 
   String get idleBackAssetPath {
-    final targetId = id == 'michael' ? 'michael' : 'michael';
-    return 'characters/$targetId/idle_back.png';
+    return 'characters/$id/back.png';
   }
 }
 

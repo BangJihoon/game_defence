@@ -30,7 +30,14 @@ class AltarCharacterComponent extends PositionComponent with HasGameRef<Overflow
     aura.add(RotateEffect.by(2 * math.pi, EffectController(duration: 10, infinite: true)));
 
     // 2. 캐릭터 스프라이트 (둥실거리는 효과)
-    final sprite = await gameRef.loadSprite(character.idleBackAssetPath);
+    Sprite sprite;
+    try {
+      sprite = await gameRef.loadSprite(character.idleBackAssetPath);
+    } catch (_) {
+      // 이미지가 없는 경우 fallback 이미지 사용
+      sprite = await gameRef.loadSprite('fallback.png');
+    }
+
     final characterVisual = SpriteComponent(
       sprite: sprite,
       size: Vector2.all(60),
@@ -55,7 +62,7 @@ class AltarCharacterComponent extends PositionComponent with HasGameRef<Overflow
     // 캐릭터 이름 표시 (작게)
     final painter = TextPainter(
       text: TextSpan(
-        text: character.name,
+        text: gameRef.l10n.translate(character.nameLocaleKey),
         style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,

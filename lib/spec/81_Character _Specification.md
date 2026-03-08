@@ -1,1203 +1,232 @@
-# Character System Specification
+# Character & Skill Master Specification
 Project: game_defence
 Theme: Temple Defense – Gods Protecting the Sanctuary
-Version: 1.1 (All 18 Characters Defined)
+Version: 2.1 (Synced with assets/data/skills.json)
+
+This document provides the definitive list of characters and their associated skills, including combat stats, ranges, and effects.
 
 ---
 
 # 1. Element System
 
 ## Elements
+- **FIRE**: Strong vs NATURE, ICE | Weak vs WATER
+- **WATER**: Strong vs FIRE | Weak vs NATURE, ELECTRIC
+- **NATURE**: Strong vs WATER | Weak vs FIRE
+- **ELECTRIC**: Strong vs WATER | Neutral vs Others
+- **ICE**: Strong vs FIRE | Neutral vs Others
+- **LIGHT**: Strong vs DARK (Mutual Counter)
+- **DARK**: Strong vs LIGHT (Mutual Counter)
+- **NONE**: Neutral
 
-- FIRE
-- WATER
-- ICE
-- NATURE
-- ELECTRIC
-- LIGHT
-- DARK
-- NONE
-
----
-
-## Element Relationships
-
-- FIRE > NATURE
-- NATURE > WATER
-- WATER > FIRE
-- ELECTRIC > WATER
-- ICE > FIRE
-- FIRE > ICE
-- LIGHT ↔ DARK (Mutual Counter)
-
-Strong: 1.3x  
-Weak: 0.75x  
-Neutral: 1.0x  
+**Multipliers:** Strong (1.3x) / Weak (0.75x) / Neutral (1.0x)
 
 ---
 
 # 2. Angel Faction
 
----
+## [01] MICHAEL – Archblade of Judgment
+- **Elements**: Primary LIGHT / Secondary FIRE
+- **Role**: BURST_DPS
+- **Stats**: HP 1200 | ATK 180 | SPD 1.2 | CRIT 15%
+- **Passive**: Radiant Blade (Light damage +15%)
+- **Trait**: Dark Slayer (25% bonus damage to DARK enemies)
+- **Skill**: **Judgment Blade**
+  - **Type**: FRONT_CONE | **Range**: 300 | **CD**: 8s
+  - **Power**: 2.8x Multiplier | **Hits**: 1
+  - **Effect**: Reduces Defense by 20% (3s)
 
-## 1. MICHAEL
+## [02] RAPHAEL – Guardian of Restoration
+- **Elements**: Primary LIGHT / Secondary WATER
+- **Role**: HEALER
+- **Stats**: HP 1500 | ATK 90 | SPD 1.0 | CRIT 5%
+- **Passive**: Holy Grace (Healing effect +20%)
+- **Trait**: Guardian Shield (Generate shield below 30% HP)
+- **Skill**: **Divine Sanctuary**
+  - **Type**: ALLY_AREA | **Range**: 400 | **CD**: 10s
+  - **Power**: 0.0x Multiplier | **Hits**: 0
+  - **Effect**: Applies Shield (25% value, 5s)
 
-- Primary: LIGHT
-- Secondary: FIRE
-- Role: Burst DPS
+## [03] URIEL – Thunder Executor
+- **Elements**: Primary LIGHT / Secondary ELECTRIC
+- **Role**: CONTROL_DPS
+- **Stats**: HP 1100 | ATK 140 | SPD 1.4 | CRIT 12%
+- **Passive**: Thunder Will (Increase stun chance)
+- **Trait**: Execution Shock (Bonus damage to stunned enemies)
+- **Skill**: **Heavenly Thunder**
+  - **Type**: CHAIN | **Range**: 500 | **CD**: 7s
+  - **Power**: 2.2x Multiplier | **Hits**: 3
+  - **Effect**: Applies Stun (1.5s)
 
-Passive:
-Light Damage +15%
+## [04] GABRIEL – Herald of Silence
+- **Elements**: Primary LIGHT / Secondary WATER
+- **Role**: DEBUFFER
+- **Stats**: HP 1150 | ATK 130 | SPD 1.1 | CRIT 10%
+- **Passive**: Sacred Calm (Debuff duration on self -30%)
+- **Trait**: Divine Weakening (Reduce enemy attack at wave start)
+- **Skill**: **Final Trumpet**
+  - **Type**: GLOBAL | **Range**: 9999 | **CD**: 12s
+  - **Power**: 1.5x Multiplier | **Hits**: 1
+  - **Effect**: Applies Silence (2s)
 
-Trait:
-Bonus damage vs DARK
+## [05] METATRON – Keeper of Records
+- **Elements**: Primary LIGHT / Secondary ELECTRIC
+- **Role**: UTILITY
+- **Stats**: HP 1100 | ATK 120 | SPD 1.2 | CRIT 10%
+- **Passive**: Chronicle (Cooldown -15%)
+- **Trait**: Skill Echo (Chance to reset skill cooldown)
+- **Skill**: **Chrono Archive**
+  - **Type**: ALLY_GLOBAL | **Range**: 9999 | **CD**: 14s
+  - **Power**: 0.0x Multiplier | **Hits**: 0
+  - **Effect**: Cooldown Reduction (30% value, 5s)
 
-Skill:
-Judgment Blade  
-AoE Light + Fire damage  
-Reduces Dark resistance
-
-Meta:
-Primary Dark Counter / Boss Burst
-
----
-
-## 2. RAPHAEL
-
-- Primary: LIGHT
-- Secondary: WATER
-- Role: Sustain / Healer
-
-Passive:
-Heal +20%
-
-Trait:
-Auto shield below 30% HP
-
-Skill:
-Divine Purification  
-Heal + Cleanse
-
-Meta:
-Long Fight / PvP Sustain
-
----
-
-## 3. URIEL
-
-- Primary: LIGHT
-- Secondary: ELECTRIC
-- Role: Crowd Control
-
-Passive:
-Stun Chance Increase
-
-Skill:
-Heavenly Thunder  
-AoE Electric + Stun
-
-Meta:
-Wave Control Specialist
-
----
-
-## 4. GABRIEL
-
-- Primary: LIGHT
-- Secondary: WATER
-- Role: Silence / Debuff
-
-Passive:
-Debuff duration reduction
-
-Skill:
-Final Trumpet  
-AoE Silence + Damage
-
-Meta:
-Buff Counter / PvP Disruptor
-
----
-
-## 5. METATRON
-
-- Primary: LIGHT
-- Secondary: ELECTRIC
-- Role: Cooldown Manipulator
-
-Passive:
-Cooldown -15%
-
-Skill:
-Heavenly Record  
-Reduces team cooldown
-
-Meta:
-Skill Spam / Combo Engine
-
----
-
-## 6. SERAPHIM
-
-- Primary: FIRE
-- Secondary: LIGHT
-- Role: Burn DPS
-
-Passive:
-Burn Stack +2
-
-Skill:
-Purifying Flame  
-Applies Burn
-
-Meta:
-Boss Damage Over Time
+## [06] SERAPHIM – Flame of Purification
+- **Elements**: Primary FIRE / Secondary LIGHT
+- **Role**: DOT_DPS
+- **Stats**: HP 1000 | ATK 170 | SPD 1.3 | CRIT 10%
+- **Passive**: Sacred Flame (Burn stack +2)
+- **Trait**: Flame Amplify (Burned enemies take extra damage)
+- **Skill**: **Sacred Inferno**
+  - **Type**: AREA | **Range**: 300 | **CD**: 8s
+  - **Power**: 1.2x Multiplier | **Hits**: 1
+  - **Effect**: Applies Burn (15% value, 5s, Max 5 stacks)
 
 ---
 
 # 3. Demon Faction
 
----
+## [07] LUCIFER – Fallen Sovereign
+- **Elements**: Primary DARK / Secondary FIRE
+- **Role**: RISK_DPS
+- **Stats**: HP 950 | ATK 210 | SPD 1.3 | CRIT 20%
+- **Passive**: Fallen Power (Low HP increases attack)
+- **Trait**: Blood Pact (Crit restores HP)
+- **Skill**: **Fallen Cataclysm**
+  - **Type**: AREA | **Range**: 350 | **CD**: 9s
+  - **Power**: 3.5x Multiplier | **Hits**: 1
+  - **Effect**: Applies Life Steal (25% value, 3s)
 
-## 7. LUCIFER
+## [08] ASMODEUS – Plague Monarch
+- **Elements**: Primary DARK / Secondary NATURE
+- **Role**: POISON_DPS
+- **Stats**: HP 1100 | ATK 150 | SPD 1.2 | CRIT 10%
+- **Passive**: Plague Master (Poison damage +30%)
+- **Trait**: Toxic Spread (Poison spreads on kill)
+- **Skill**: **Corruption Bloom**
+  - **Type**: AREA | **Range**: 320 | **CD**: 8s
+  - **Power**: 1.8x Multiplier | **Hits**: 1
+  - **Effect**: Applies Poison (12% value, 6s, Max 3 stacks)
 
-- Primary: DARK
-- Secondary: FIRE
-- Role: Risk Burst
+## [09] BAAL – Storm Tyrant
+- **Elements**: Primary ELECTRIC / Secondary DARK
+- **Role**: AOE_DPS
+- **Stats**: HP 1150 | ATK 170 | SPD 1.2 | CRIT 12%
+- **Passive**: Storm Authority (Electric damage +20%)
+- **Trait**: Shock Amplify (Bonus vs stunned enemies)
+- **Skill**: **Thunder Dominion**
+  - **Type**: CHAIN | **Range**: 500 | **CD**: 7s
+  - **Power**: 2.0x Multiplier | **Hits**: 4
+  - **Effect**: Applies Shock (10% value, 4s, Max 3 stacks)
 
-Passive:
-Low HP → Attack Increase
+## [10] LEVIATHAN – Abyss Leviathan
+- **Elements**: Primary WATER / Secondary DARK
+- **Role**: TANK_BREAKER
+- **Stats**: HP 1600 | ATK 130 | SPD 1.0 | CRIT 5%
+- **Passive**: Abyss Pressure (Ignores defense)
+- **Trait**: Shield Devour (Bonus vs shielded enemies)
+- **Skill**: **Abyss Collapse**
+  - **Type**: LINE | **Range**: 400 | **CD**: 10s
+  - **Power**: 3.0x Multiplier | **Hits**: 1
+  - **Effect**: Armor Ignore (30% value, 4s)
 
-Skill:
-Fallen Radiance  
-Dark AoE Explosion
+## [11] BEELZEBUB – Lord of Decay
+- **Elements**: Primary NATURE / Secondary DARK
+- **Role**: ANTI_HEAL
+- **Stats**: HP 1200 | ATK 140 | SPD 1.1 | CRIT 8%
+- **Passive**: Decay Aura (Healing reduction 40%)
+- **Trait**: Infection Boost (Poison duration increased)
+- **Skill**: **Plague Swarm**
+  - **Type**: AREA | **Range**: 350 | **CD**: 9s
+  - **Power**: 1.6x Multiplier | **Hits**: 1
+  - **Effect**: Healing Reduction (40% value, 5s)
 
-Meta:
-Comeback Carry
-
----
-
-## 8. ASMODEUS
-
-- Primary: DARK
-- Secondary: NATURE
-- Role: Poison DPS
-
-Passive:
-Poison Damage +30%
-
-Skill:
-Corruption Seed  
-Poison + Defense Down
-
-Meta:
-Anti-Heal Meta
-
----
-
-## 9. BAAL
-
-- Primary: ELECTRIC
-- Secondary: DARK
-- Role: AoE Burst
-
-Passive:
-Electric Damage +20%
-
-Skill:
-Infernal Storm  
-Chain Lightning AoE
-
-Meta:
-Wave Clear
-
----
-
-## 10. LEVIATHAN
-
-- Primary: WATER
-- Secondary: DARK
-- Role: Shield Breaker
-
-Passive:
-Defense Ignore
-
-Skill:
-Abyssal Wave  
-Shield Destruction
-
-Meta:
-Tank Counter
-
----
-
-## 11. BEELZEBUB
-
-- Primary: NATURE
-- Secondary: DARK
-- Role: Infection / Healing Reduction
-
-Passive:
-Healing Reduction 40%
-
-Skill:
-Swarm Plague  
-Spread Infection
-
-Meta:
-Healer Shutdown
-
----
-
-## 12. ABADDON
-
-- Primary: DARK
-- Secondary: ELECTRIC
-- Role: Execution
-
-Passive:
-Bonus vs Low HP
-
-Skill:
-Abyss Storm  
-Kill → Explosion
-
-Meta:
-End Wave Finisher
+## [12] ABADDON – Abyss Executioner
+- **Elements**: Primary DARK / Secondary ELECTRIC
+- **Role**: EXECUTIONER
+- **Stats**: HP 1100 | ATK 190 | SPD 1.2 | CRIT 15%
+- **Passive**: Final Judgment (Bonus vs low HP enemies)
+- **Trait**: Death Explosion (Kill triggers explosion)
+- **Skill**: **Abyss Execution**
+  - **Type**: SINGLE | **Range**: 300 | **CD**: 10s
+  - **Power**: 4.0x Multiplier | **Hits**: 1
+  - **Effect**: Execute (Targets below 25% HP)
 
 ---
 
 # 4. Ancient / Special Faction
 
----
-
-## 13. ENOCH
-
-- Primary: LIGHT
-- Secondary: NATURE
-- Role: Scaling DPS
-
-Passive:
-Damage increases over time
-
-Skill:
-Ascension Pulse  
-Damage grows each cast
-
-Meta:
-Long Duration Scaling
-
----
-
-## 14. SAMAEL
-
-- Primary: DARK
-- Secondary: NATURE
-- Role: Execution Specialist
-
-Passive:
-Execute below 20% HP
-
-Skill:
-Death Sentence  
-High single-target burst
-
-Meta:
-Boss Finisher
-
----
-
-## 15. LILITH
-
-- Primary: DARK
-- Secondary: FIRE
-- Role: Chaos Debuff
-
-Passive:
-Damage increased per debuff
-
-Skill:
-Queen of Chaos  
-Applies random debuffs
-
-Meta:
-PvP Control Meta
-
----
-
-## 16. AZAZEL
-
-- Primary: ELECTRIC
-- Secondary: DARK
-- Role: Combo Burst
-
-Passive:
-Crit triggers lightning
-
-Skill:
-Divine Fragment  
-Multi-hit burst
-
-Meta:
-Crit Combo Engine
-
----
-
-## 17. GAIA
-
-- Primary: NATURE
-- Secondary: WATER
-- Role: Defensive Sustain
-
-Passive:
-HP Regen over time
-
-Skill:
-Heart of Earth  
-Creates protective field
-
-Meta:
-Defense Anchor
-
----
-
-## 18. APOPHIS
-
-- Primary: DARK
-- Secondary: WATER
-- Role: Resistance Breaker
-
-Passive:
-Reduces Light resistance
-
-Skill:
-Devour the Sun  
-Dark Beam Attack
-
-Meta:
-Light Counter Boss
-
----
-
-# 5. Growth System Integration
-
-Growth is not card-based.
-
-Character progression includes:
-
-- Divinity Unlock Stage
-- Awakening Branch
-- Transcendence Tier
-- Temple Amplification Bonus
-- Relic Equip Slot
-
----
-
-# 6. Integration Requirements
-
-Each character must:
-
-- Support Element Damage Engine
-- Support Status Effect System
-- Support Temple Multiplier
-- Support PvP Balance Coefficient
-
-# Character Master Definition
-Project: game_defence
-Theme: Temple Defense – Gods Protecting the Sanctuary
-Version: 2.0 (Full Definition – 18 Characters)
-
----
-
-# 1. Angel Faction
-
----
-
-## 1. MICHAEL – Archblade of Judgment
-
-Primary: LIGHT  
-Secondary: FIRE  
-Role: Burst DPS  
-
-Base Stat Profile:
-High Attack / Medium HP / Medium Speed / High Crit  
-
-Passive:
-Light Damage +15%
-
-Trait:
-Deals 25% additional damage to DARK enemies
-
-Skill:
-Judgment Blade  
-AoE Light + Fire damage  
-Reduces DARK resistance by 20% (5s)
-
-Meta:
-Primary Dark Counter / Boss Burst Specialist
-
----
-
-## 2. RAPHAEL – Guardian of Restoration
-
-Primary: LIGHT  
-Secondary: WATER  
-Role: Healer / Sustain  
-
-Base Stat Profile:
-High HP / Low Attack / Medium Speed  
-
-Passive:
-Healing Effect +20%
-
-Trait:
-When HP < 30%, generates shield (10% max HP)
-
-Skill:
-Divine Purification  
-Heals all allies and removes debuffs
-
-Meta:
-Sustain Anchor / PvP Long Fight Core
-
----
-
-## 3. URIEL – Thunder Executor
-
-Primary: LIGHT  
-Secondary: ELECTRIC  
-Role: Crowd Control DPS  
-
-Base Stat Profile:
-Medium HP / Medium Attack / High Speed  
-
-Passive:
-Stun Chance +10%
-
-Trait:
-Stunned enemies receive +30% damage
-
-Skill:
-Heavenly Thunder  
-AoE Electric damage + 1.5s stun
-
-Meta:
-Wave Control / PvP Lockdown
-
----
-
-## 4. GABRIEL – Herald of Silence
-
-Primary: LIGHT  
-Secondary: WATER  
-Role: Debuffer  
-
-Base Stat Profile:
-Medium HP / Medium Attack  
-
-Passive:
-Debuff duration on self -30%
-
-Trait:
-Wave start: Enemy attack -10% (5s)
-
-Skill:
-Final Trumpet  
-AoE Silence (2s)
-
-Meta:
-Buff Counter / Control Support
-
----
-
-## 5. METATRON – Keeper of Records
-
-Primary: LIGHT  
-Secondary: ELECTRIC  
-Role: Cooldown Manipulator  
-
-Base Stat Profile:
-Medium HP / Medium Attack / High Utility  
-
-Passive:
-Skill Cooldown -15%
-
-Trait:
-10% chance to reset skill cooldown
-
-Skill:
-Heavenly Record  
-Reduces ally skill cooldown by 20%
-
-Meta:
-Combo Engine / Skill Spam Meta
-
----
-
-## 6. SERAPHIM – Flame of Purification
-
-Primary: FIRE  
-Secondary: LIGHT  
-Role: Burn DPS  
-
-Base Stat Profile:
-High Attack / Low HP  
-
-Passive:
-Burn Stack +2
-
-Trait:
-Burned enemies take +20% damage
-
-Skill:
-Purifying Flame  
-Applies stacking Burn
-
-Meta:
-Boss Damage Over Time
-
----
-
-# 2. Demon Faction
-
----
-
-## 7. LUCIFER – Fallen Sovereign
-
-Primary: DARK  
-Secondary: FIRE  
-Role: Risk Burst  
-
-Base Stat Profile:
-Very High Attack / Low HP  
-
-Passive:
-Below 50% HP → Attack +30%
-
-Trait:
-Crit restores 5% HP
-
-Skill:
-Fallen Radiance  
-Massive Dark AoE Explosion
-
-Meta:
-Comeback Carry / High Risk Reward
-
----
-
-## 8. ASMODEUS – Plague Monarch
-
-Primary: DARK  
-Secondary: NATURE  
-Role: Poison DPS  
-
-Base Stat Profile:
-Medium Attack / Medium HP  
-
-Passive:
-Poison Damage +30%
-
-Trait:
-Poison spreads on kill
-
-Skill:
-Corruption Seed  
-Applies heavy Poison + Defense Down
-
-Meta:
-Anti-Heal / Sustain Counter
-
----
-
-## 9. BAAL – Storm Tyrant
-
-Primary: ELECTRIC  
-Secondary: DARK  
-Role: AoE Burst  
-
-Base Stat Profile:
-High Attack / Medium HP  
-
-Passive:
-Electric Damage +20%
-
-Trait:
-Bonus damage vs Stunned
-
-Skill:
-Infernal Storm  
-Chain Lightning (Multi-target)
-
-Meta:
-Wave Clear Specialist
-
----
-
-## 10. LEVIATHAN – Abyss Leviathan
-
-Primary: WATER  
-Secondary: DARK  
-Role: Tank Breaker  
-
-Base Stat Profile:
-High HP / Medium Attack  
-
-Passive:
-Ignores 20% Defense
-
-Trait:
-Bonus vs Shielded enemies
-
-Skill:
-Abyssal Wave  
-Destroys shields
-
-Meta:
-Anti-Tank / Shield Counter
-
----
-
-## 11. BEELZEBUB – Lord of Decay
-
-Primary: NATURE  
-Secondary: DARK  
-Role: Infection / Heal Reduction  
-
-Base Stat Profile:
-Medium HP / Medium Attack  
-
-Passive:
-Healing Reduction 40%
-
-Trait:
-Poison duration +3s
-
-Skill:
-Swarm Plague  
-Spreads Infection
-
-Meta:
-Healer Shutdown Core
-
----
-
-## 12. ABADDON – Abyss Executioner
-
-Primary: DARK  
-Secondary: ELECTRIC  
-Role: Execution  
-
-Base Stat Profile:
-High Attack / Medium HP  
-
-Passive:
-Deals +30% to enemies below 30% HP
-
-Trait:
-Kill triggers explosion
-
-Skill:
-Abyss Storm  
-Dark AoE + Execute scaling
-
-Meta:
-End-Wave Finisher
-
----
-
-# 3. Ancient / Special
-
----
-
-## 13. ENOCH – Eternal Ascendant
-
-Primary: LIGHT  
-Secondary: NATURE  
-Role: Scaling DPS  
-
-Passive:
-Damage increases every 10 seconds
-
-Skill:
-Ascension Pulse  
-Scaling Light Beam
-
-Meta:
-Long Duration Growth
-
----
-
-## 14. SAMAEL – Death Arbiter
-
-Primary: DARK  
-Secondary: NATURE  
-Role: Execute Specialist  
-
-Passive:
-Instant kill below 20% HP (Chance-based)
-
-Skill:
-Death Sentence  
-High Single Target Burst
-
-Meta:
-Boss Finisher
-
----
-
-## 15. LILITH – Queen of Chaos
-
-Primary: DARK  
-Secondary: FIRE  
-Role: Debuff Chaos  
-
-Passive:
-Damage +10% per debuff on target
-
-Skill:
-Queen’s Curse  
-Applies random debuffs
-
-Meta:
-PvP Disruption
-
----
-
-## 16. AZAZEL – Lightning Apostle
-
-Primary: ELECTRIC  
-Secondary: DARK  
-Role: Crit Combo DPS  
-
-Passive:
-Crit triggers lightning strike
-
-Skill:
-Divine Fragment  
-Multi-hit burst combo
-
-Meta:
-High Skill Combo
-
----
-
-## 17. GAIA – Earth Mother
-
-Primary: NATURE  
-Secondary: WATER  
-Role: Sustain Defender  
-
-Passive:
-HP Regen 2% per second
-
-Skill:
-Heart of Earth  
-Creates protective field
-
-Meta:
-Defense Anchor
-
----
-
-## 18. APOPHIS – Devourer of Light
-
-Primary: DARK  
-Secondary: WATER  
-Role: Resistance Breaker  
-
-Passive:
-Reduces Light resistance by 25%
-
-Skill:
-Devour the Sun  
-Dark Beam + Resistance Break
-
-Meta:
-Light Counter Boss
-
-
-{
-  "version": "1.0",
-  "characters": [
-
-    {
-      "id": "MICHAEL",
-      "name": "Michael",
-      "faction": "ANGEL",
-      "element": { "primary": "LIGHT", "secondary": "FIRE" },
-      "role": "BURST_DPS",
-      "baseStats": {
-        "hp": 1200, "attack": 180, "attackSpeed": 1.2,
-        "critChance": 0.15, "critDamage": 1.5,
-        "defense": 80, "cooldownReduction": 0.0, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Radiant Blade", "description": "Light damage +15%" },
-      "trait": { "name": "Dark Slayer", "description": "Deal 25% bonus damage to DARK enemies" },
-      "skill": {
-        "name": "Judgment Blade",
-        "element": "LIGHT",
-        "cooldown": 8,
-        "description": "AoE Light + Fire damage, reduces DARK resistance"
-      }
-    },
-
-    {
-      "id": "RAPHAEL",
-      "name": "Raphael",
-      "faction": "ANGEL",
-      "element": { "primary": "LIGHT", "secondary": "WATER" },
-      "role": "HEALER",
-      "baseStats": {
-        "hp": 1500, "attack": 90, "attackSpeed": 1.0,
-        "critChance": 0.05, "critDamage": 1.3,
-        "defense": 100, "cooldownReduction": 0.1, "movementSpeed": 0.9
-      },
-      "passive": { "name": "Holy Grace", "description": "Healing effect +20%" },
-      "trait": { "name": "Guardian Shield", "description": "Generate shield below 30% HP" },
-      "skill": {
-        "name": "Divine Purification",
-        "element": "LIGHT",
-        "cooldown": 10,
-        "description": "Heal all allies and cleanse debuffs"
-      }
-    },
-
-    {
-      "id": "URIEL",
-      "name": "Uriel",
-      "faction": "ANGEL",
-      "element": { "primary": "LIGHT", "secondary": "ELECTRIC" },
-      "role": "CONTROL_DPS",
-      "baseStats": {
-        "hp": 1100, "attack": 140, "attackSpeed": 1.4,
-        "critChance": 0.12, "critDamage": 1.5,
-        "defense": 70, "cooldownReduction": 0.05, "movementSpeed": 1.1
-      },
-      "passive": { "name": "Thunder Will", "description": "Increase stun chance" },
-      "trait": { "name": "Execution Shock", "description": "Deal bonus damage to stunned enemies" },
-      "skill": {
-        "name": "Heavenly Thunder",
-        "element": "ELECTRIC",
-        "cooldown": 7,
-        "description": "AoE Electric damage and stun"
-      }
-    },
-
-    {
-      "id": "GABRIEL",
-      "name": "Gabriel",
-      "faction": "ANGEL",
-      "element": { "primary": "LIGHT", "secondary": "WATER" },
-      "role": "DEBUFFER",
-      "baseStats": {
-        "hp": 1150, "attack": 130, "attackSpeed": 1.1,
-        "critChance": 0.1, "critDamage": 1.4,
-        "defense": 75, "cooldownReduction": 0.05, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Sacred Calm", "description": "Debuff duration on self -30%" },
-      "trait": { "name": "Divine Weakening", "description": "Reduce enemy attack at wave start" },
-      "skill": {
-        "name": "Final Trumpet",
-        "element": "LIGHT",
-        "cooldown": 9,
-        "description": "AoE silence and damage"
-      }
-    },
-
-    {
-      "id": "METATRON",
-      "name": "Metatron",
-      "faction": "ANGEL",
-      "element": { "primary": "LIGHT", "secondary": "ELECTRIC" },
-      "role": "UTILITY",
-      "baseStats": {
-        "hp": 1100, "attack": 120, "attackSpeed": 1.2,
-        "critChance": 0.1, "critDamage": 1.4,
-        "defense": 70, "cooldownReduction": 0.15, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Chronicle", "description": "Cooldown -15%" },
-      "trait": { "name": "Skill Echo", "description": "Chance to reset skill cooldown" },
-      "skill": {
-        "name": "Heavenly Record",
-        "element": "LIGHT",
-        "cooldown": 12,
-        "description": "Reduce team skill cooldown"
-      }
-    },
-
-    {
-      "id": "SERAPHIM",
-      "name": "Seraphim",
-      "faction": "ANGEL",
-      "element": { "primary": "FIRE", "secondary": "LIGHT" },
-      "role": "DOT_DPS",
-      "baseStats": {
-        "hp": 1000, "attack": 170, "attackSpeed": 1.3,
-        "critChance": 0.1, "critDamage": 1.5,
-        "defense": 60, "cooldownReduction": 0.0, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Sacred Flame", "description": "Burn stack +2" },
-      "trait": { "name": "Flame Amplify", "description": "Burned enemies take extra damage" },
-      "skill": {
-        "name": "Purifying Flame",
-        "element": "FIRE",
-        "cooldown": 8,
-        "description": "Applies stacking burn"
-      }
-    },
-
-    {
-      "id": "LUCIFER",
-      "name": "Lucifer",
-      "faction": "DEMON",
-      "element": { "primary": "DARK", "secondary": "FIRE" },
-      "role": "RISK_DPS",
-      "baseStats": {
-        "hp": 950, "attack": 210, "attackSpeed": 1.3,
-        "critChance": 0.2, "critDamage": 1.7,
-        "defense": 50, "cooldownReduction": 0.0, "movementSpeed": 1.1
-      },
-      "passive": { "name": "Fallen Power", "description": "Low HP increases attack" },
-      "trait": { "name": "Blood Pact", "description": "Crit restores HP" },
-      "skill": {
-        "name": "Fallen Radiance",
-        "element": "DARK",
-        "cooldown": 9,
-        "description": "Massive Dark AoE"
-      }
-    },
-
-    {
-      "id": "ASMODEUS",
-      "name": "Asmodeus",
-      "faction": "DEMON",
-      "element": { "primary": "DARK", "secondary": "NATURE" },
-      "role": "POISON_DPS",
-      "baseStats": {
-        "hp": 1100, "attack": 150, "attackSpeed": 1.2,
-        "critChance": 0.1, "critDamage": 1.4,
-        "defense": 70, "cooldownReduction": 0.05, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Plague Master", "description": "Poison damage +30%" },
-      "trait": { "name": "Toxic Spread", "description": "Poison spreads on kill" },
-      "skill": {
-        "name": "Corruption Seed",
-        "element": "NATURE",
-        "cooldown": 8,
-        "description": "Applies poison and defense down"
-      }
-    },
-
-    {
-      "id": "BAAL",
-      "name": "Baal",
-      "faction": "DEMON",
-      "element": { "primary": "ELECTRIC", "secondary": "DARK" },
-      "role": "AOE_DPS",
-      "baseStats": {
-        "hp": 1150, "attack": 170, "attackSpeed": 1.2,
-        "critChance": 0.12, "critDamage": 1.5,
-        "defense": 80, "cooldownReduction": 0.0, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Storm Authority", "description": "Electric damage +20%" },
-      "trait": { "name": "Shock Amplify", "description": "Bonus vs stunned enemies" },
-      "skill": {
-        "name": "Infernal Storm",
-        "element": "ELECTRIC",
-        "cooldown": 7,
-        "description": "Chain lightning AoE"
-      }
-    },
-
-    {
-      "id": "LEVIATHAN",
-      "name": "Leviathan",
-      "faction": "DEMON",
-      "element": { "primary": "WATER", "secondary": "DARK" },
-      "role": "TANK_BREAKER",
-      "baseStats": {
-        "hp": 1600, "attack": 130, "attackSpeed": 1.0,
-        "critChance": 0.05, "critDamage": 1.3,
-        "defense": 120, "cooldownReduction": 0.0, "movementSpeed": 0.8
-      },
-      "passive": { "name": "Abyss Pressure", "description": "Ignores defense" },
-      "trait": { "name": "Shield Devour", "description": "Bonus vs shielded enemies" },
-      "skill": {
-        "name": "Abyssal Wave",
-        "element": "WATER",
-        "cooldown": 10,
-        "description": "Destroys shields"
-      }
-    },
-
-    {
-      "id": "BEELZEBUB",
-      "name": "Beelzebub",
-      "faction": "DEMON",
-      "element": { "primary": "NATURE", "secondary": "DARK" },
-      "role": "ANTI_HEAL",
-      "baseStats": {
-        "hp": 1200, "attack": 140, "attackSpeed": 1.1,
-        "critChance": 0.08, "critDamage": 1.4,
-        "defense": 85, "cooldownReduction": 0.0, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Decay Aura", "description": "Healing reduction 40%" },
-      "trait": { "name": "Infection Boost", "description": "Poison duration increased" },
-      "skill": {
-        "name": "Swarm Plague",
-        "element": "NATURE",
-        "cooldown": 9,
-        "description": "Spreads infection"
-      }
-    },
-
-    {
-      "id": "ABADDON",
-      "name": "Abaddon",
-      "faction": "DEMON",
-      "element": { "primary": "DARK", "secondary": "ELECTRIC" },
-      "role": "EXECUTIONER",
-      "baseStats": {
-        "hp": 1100, "attack": 190, "attackSpeed": 1.2,
-        "critChance": 0.15, "critDamage": 1.6,
-        "defense": 70, "cooldownReduction": 0.0, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Final Judgment", "description": "Bonus vs low HP enemies" },
-      "trait": { "name": "Death Explosion", "description": "Kill triggers explosion" },
-      "skill": {
-        "name": "Abyss Storm",
-        "element": "DARK",
-        "cooldown": 8,
-        "description": "Dark AoE with execute scaling"
-      }
-    },
-
-    {
-      "id": "ENOCH",
-      "name": "Enoch",
-      "faction": "ANCIENT",
-      "element": { "primary": "LIGHT", "secondary": "NATURE" },
-      "role": "SCALING_DPS",
-      "baseStats": {
-        "hp": 1200, "attack": 140, "attackSpeed": 1.1,
-        "critChance": 0.1, "critDamage": 1.4,
-        "defense": 80, "cooldownReduction": 0.05, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Eternal Growth", "description": "Damage increases over time" },
-      "trait": { "name": "Ascendant Force", "description": "Scaling bonus per wave" },
-      "skill": {
-        "name": "Ascension Pulse",
-        "element": "LIGHT",
-        "cooldown": 9,
-        "description": "Scaling Light beam"
-      }
-    },
-
-    {
-      "id": "SAMAEL",
-      "name": "Samael",
-      "faction": "ANCIENT",
-      "element": { "primary": "DARK", "secondary": "NATURE" },
-      "role": "EXECUTE_SPECIALIST",
-      "baseStats": {
-        "hp": 1000, "attack": 200, "attackSpeed": 1.3,
-        "critChance": 0.18, "critDamage": 1.6,
-        "defense": 60, "cooldownReduction": 0.0, "movementSpeed": 1.1
-      },
-      "passive": { "name": "Death Mark", "description": "Execute below threshold" },
-      "trait": { "name": "Fatal Precision", "description": "Bonus single-target damage" },
-      "skill": {
-        "name": "Death Sentence",
-        "element": "DARK",
-        "cooldown": 8,
-        "description": "High burst single-target"
-      }
-    },
-
-    {
-      "id": "LILITH",
-      "name": "Lilith",
-      "faction": "ANCIENT",
-      "element": { "primary": "DARK", "secondary": "FIRE" },
-      "role": "DEBUFF_DPS",
-      "baseStats": {
-        "hp": 1050, "attack": 160, "attackSpeed": 1.2,
-        "critChance": 0.12, "critDamage": 1.5,
-        "defense": 65, "cooldownReduction": 0.05, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Chaos Aura", "description": "Damage increases per debuff" },
-      "trait": { "name": "Dark Seduction", "description": "Random debuff application" },
-      "skill": {
-        "name": "Queen of Chaos",
-        "element": "DARK",
-        "cooldown": 9,
-        "description": "Applies multiple debuffs"
-      }
-    },
-
-    {
-      "id": "AZAZEL",
-      "name": "Azazel",
-      "faction": "ANCIENT",
-      "element": { "primary": "ELECTRIC", "secondary": "DARK" },
-      "role": "CRIT_COMBO",
-      "baseStats": {
-        "hp": 1000, "attack": 185, "attackSpeed": 1.4,
-        "critChance": 0.2, "critDamage": 1.7,
-        "defense": 55, "cooldownReduction": 0.0, "movementSpeed": 1.1
-      },
-      "passive": { "name": "Lightning Reflex", "description": "Crit triggers lightning strike" },
-      "trait": { "name": "Combo Drive", "description": "Increased multi-hit damage" },
-      "skill": {
-        "name": "Divine Fragment",
-        "element": "ELECTRIC",
-        "cooldown": 6,
-        "description": "Multi-hit electric burst"
-      }
-    },
-
-    {
-      "id": "GAIA",
-      "name": "Gaia",
-      "faction": "ANCIENT",
-      "element": { "primary": "NATURE", "secondary": "WATER" },
-      "role": "DEFENDER",
-      "baseStats": {
-        "hp": 1700, "attack": 110, "attackSpeed": 1.0,
-        "critChance": 0.05, "critDamage": 1.3,
-        "defense": 130, "cooldownReduction": 0.0, "movementSpeed": 0.8
-      },
-      "passive": { "name": "Earth Regen", "description": "HP regen over time" },
-      "trait": { "name": "Nature Shield", "description": "Periodic shield generation" },
-      "skill": {
-        "name": "Heart of Earth",
-        "element": "NATURE",
-        "cooldown": 12,
-        "description": "Creates protective field"
-      }
-    },
-
-    {
-      "id": "APOPHIS",
-      "name": "Apophis",
-      "faction": "ANCIENT",
-      "element": { "primary": "DARK", "secondary": "WATER" },
-      "role": "RESIST_BREAKER",
-      "baseStats": {
-        "hp": 1300, "attack": 175, "attackSpeed": 1.1,
-        "critChance": 0.12, "critDamage": 1.5,
-        "defense": 85, "cooldownReduction": 0.0, "movementSpeed": 1.0
-      },
-      "passive": { "name": "Light Devourer", "description": "Reduce Light resistance" },
-      "trait": { "name": "Dark Pressure", "description": "Dark damage amplification" },
-      "skill": {
-        "name": "Devour the Sun",
-        "element": "DARK",
-        "cooldown": 9,
-        "description": "Dark beam with resistance break"
-      }
-    }
-
-  ]
-}
+## [13] ENOCH – Eternal Ascendant
+- **Elements**: Primary LIGHT / Secondary NATURE
+- **Role**: SCALING_DPS
+- **Stats**: HP 1200 | ATK 140 | SPD 1.1 | CRIT 10%
+- **Passive**: Eternal Growth (Damage increases over time)
+- **Trait**: Ascendant Force (Scaling bonus per wave)
+- **Skill**: **Ascension Protocol**
+  - **Type**: SELF | **Range**: 0 | **CD**: 12s
+  - **Power**: 0.0x Multiplier | **Hits**: 0
+  - **Effect**: Stack Damage Boost (10% per stack, 8s, Max 5 stacks)
+
+## [14] SAMAEL – Death Arbiter
+- **Elements**: Primary DARK / Secondary NATURE
+- **Role**: EXECUTE_SPECIALIST
+- **Stats**: HP 1000 | ATK 200 | SPD 1.3 | CRIT 18%
+- **Passive**: Death Mark (Execute below threshold)
+- **Trait**: Fatal Precision (Bonus single-target damage)
+- **Skill**: **Death Mark**
+  - **Type**: SINGLE | **Range**: 400 | **CD**: 8s
+  - **Power**: 1.5x Multiplier | **Hits**: 1
+  - **Effect**: Death Mark (25% damage amplification, 5s)
+
+## [15] LILITH – Queen of Chaos
+- **Elements**: Primary DARK / Secondary FIRE
+- **Role**: DEBUFF_DPS
+- **Stats**: HP 1050 | ATK 160 | SPD 1.2 | CRIT 12%
+- **Passive**: Chaos Aura (Damage increases per debuff)
+- **Trait**: Dark Seduction (Random debuff application)
+- **Skill**: **Queen's Temptation**
+  - **Type**: AREA | **Range**: 350 | **CD**: 9s
+  - **Power**: 1.7x Multiplier | **Hits**: 1
+  - **Effect**: Confusion (Random movement, 4s)
+
+## [16] AZAZEL – Lightning Apostle
+- **Elements**: Primary ELECTRIC / Secondary DARK
+- **Role**: CRIT_COMBO
+- **Stats**: HP 1000 | ATK 185 | SPD 1.4 | CRIT 20%
+- **Passive**: Lightning Reflex (Crit triggers lightning strike)
+- **Trait**: Combo Drive (Increased multi-hit damage)
+- **Skill**: **Fallen Lightning Rush**
+  - **Type**: FRONT_CONE | **Range**: 300 | **CD**: 6s
+  - **Power**: 2.5x Multiplier | **Hits**: 2
+  - **Effect**: Crit Boost (30% value, 4s)
+
+## [17] GAIA – Earth Mother
+- **Elements**: Primary NATURE / Secondary WATER
+- **Role**: DEFENDER
+- **Stats**: HP 1700 | ATK 110 | SPD 1.0 | CRIT 5%
+- **Passive**: Earth Regen (HP regen over time)
+- **Trait**: Nature Shield (Periodic shield generation)
+- **Skill**: **Earth Mother Embrace**
+  - **Type**: ALLY_AREA | **Range**: 400 | **CD**: 11s
+  - **Power**: 0.0x Multiplier | **Hits**: 0
+  - **Effect**: Damage Reduction (25% value, 6s)
+
+## [18] APOPHIS – Devourer of Light
+- **Elements**: Primary DARK / Secondary WATER
+- **Role**: RESIST_BREAKER
+- **Stats**: HP 1300 | ATK 175 | SPD 1.1 | CRIT 12%
+- **Passive**: Light Devourer (Reduce Light resistance)
+- **Trait**: Dark Pressure (Dark damage amplification)
+- **Skill**: **Solar Devourer**
+  - **Type**: LINE | **Range**: 600 | **CD**: 12s
+  - **Power**: 3.2x Multiplier | **Hits**: 1
+  - **Effect**: Penetration (40% value, 4s)

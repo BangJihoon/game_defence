@@ -112,16 +112,20 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
 
       print("DEBUG: TRIGGERING skill: ${skill.data.id} from ${skill.owner.id} at $spawnPos");
       
-      skillEngine.executeSkill(
+      final fired = skillEngine.executeSkill(
         caster: skill.owner,
         skill: skill.data,
         spawnPosition: spawnPos,
       );
       
-      skill.resetCooldown();
+      if (fired) {
+        skill.resetCooldown();
+      } else {
+        // No targets in range, wait a bit before checking again to save CPU
+        skill.cooldownTimer = 0.5;
+      }
     } catch (e, stack) {
       print("DEBUG: ERROR in _triggerSkill: $e\n$stack");
-      skill.resetCooldown(); // Ensure it doesn't loop infinitely if crashing
     }
   }
 

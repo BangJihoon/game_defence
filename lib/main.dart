@@ -9,11 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:game_defence/game/events/event_bus.dart';
 import 'l10n/app_localizations.dart';
 import 'game/overflow_game.dart';
-import 'package:game_defence/menu/pages/home_page.dart';
-import 'package:game_defence/menu/pages/shop/presentation/pages/shop_page.dart';
-import 'package:game_defence/menu/pages/inventory_page.dart';
-import 'package:game_defence/menu/pages/character/presentation/pages/character_page.dart';
-import 'package:game_defence/menu/pages/item_page.dart';
 import 'package:game_defence/menu/pages/main_menu_shell.dart'; 
 
 void main() async {
@@ -96,32 +91,32 @@ class _GameAppState extends State<GameApp> {
             bodyMedium: TextStyle(color: Colors.white),
           ),
         ),
-       home: _showGame
-    ? Material(
-        color: Colors.black,
-        child: GameWidget(
-          key: UniqueKey(),
-          game: OverflowDefenseGame(
-            locale: _locale,
-            onExit: _returnToMenu,
-            playerDataManager: _playerDataManager,
-            eventBus: _gameEventBus,
-          ),
-        ),
-      )
-    : MainMenuShell(
-        selectedIndex: _selectedIndex,
-        onTabChanged: _onItemTapped,
-        locale: _locale,
-        onStartGame: _startGame,
-        onToggleLocale: () {
-          setState(() {
-            _locale = _locale == const Locale('ko')
-                ? const Locale('en')
-                : const Locale('ko');
-          });
-        },
-      ),
+        home: _showGame
+            ? Material(
+                color: Colors.black,
+                child: GameWidget(
+                  key: UniqueKey(),
+                  game: OverflowDefenseGame(
+                    locale: _locale,
+                    onExit: _returnToMenu,
+                    playerDataManager: _playerDataManager,
+                    eventBus: _gameEventBus,
+                  ),
+                ),
+              )
+            : MainMenuShell(
+                selectedIndex: _selectedIndex,
+                onTabChanged: _onItemTapped,
+                locale: _locale,
+                onStartGame: _startGame,
+                onToggleLocale: () {
+                  setState(() {
+                    _locale = _locale == const Locale('ko')
+                        ? const Locale('en')
+                        : const Locale('ko');
+                  });
+                },
+              ),
       ),
     );
   }

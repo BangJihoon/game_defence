@@ -15,6 +15,8 @@ enum TargetType {
   chain,
   global,
   allyArea,
+  allyGlobal,
+  self,
 }
 
 enum StatusEffectType {
@@ -24,6 +26,7 @@ enum StatusEffectType {
   freeze,
   fear,
   knockup,
+  confusion,
 
   // DOT
   burn,
@@ -38,6 +41,8 @@ enum StatusEffectType {
   speedDown,
   resistanceDown,
   healingReduction,
+  armorIgnore,
+  deathMark,
 
   // Buff
   shield,
@@ -45,6 +50,11 @@ enum StatusEffectType {
   defenseUp,
   regeneration,
   cooldownReduction,
+  lifeSteal,
+  stackDamageBoost,
+  critBoost,
+  damageReduction,
+  penetration,
 }
 
 class StatusEffectData {
@@ -82,6 +92,10 @@ class SkillData {
   final double multiplier;
   final int hitCount;
   final List<StatusEffectData> effects;
+  final String description;
+
+  final String nameLocaleKey;
+  final String descriptionLocaleKey;
 
   SkillData({
     required this.id,
@@ -95,9 +109,13 @@ class SkillData {
     required this.multiplier,
     required this.hitCount,
     required this.effects,
+    required this.description,
+    required this.nameLocaleKey,
+    required this.descriptionLocaleKey,
   });
 
   factory SkillData.fromJson(Map<String, dynamic> json) {
+    final String id = json['id'];
     final String targetTypeStr = json['targetType'] ?? 'SINGLE';
     final TargetType mappedType = {
       "SINGLE": TargetType.single,
@@ -107,20 +125,42 @@ class SkillData {
       "CHAIN": TargetType.chain,
       "GLOBAL": TargetType.global,
       "ALLY_AREA": TargetType.allyArea,
+      "ALLY_GLOBAL": TargetType.allyGlobal,
+      "SELF": TargetType.self,
     }[targetTypeStr] ?? TargetType.single;
 
+    ElementType parsedElement = ElementType.none;
+    final elementData = json['element'];
+    if (elementData is List && elementData.isNotEmpty) {
+      parsedElement = ElementType.values.firstWhere(
+        (e) => e.name == elementData[0].toString().toLowerCase(),
+        orElse: () => ElementType.none
+      );
+    } else if (elementData is String) {
+      parsedElement = ElementType.values.firstWhere(
+        (e) => e.name == elementData.toLowerCase(),
+        orElse: () => ElementType.none
+      );
+    }
+
     return SkillData(
-      id: json['id'],
+      id: id,
       name: json['name'],
       owner: json['owner'],
-      element: ElementType.values.firstWhere((e) => e.name == json['element'].toLowerCase()),
-      damageType: DamageType.values.firstWhere((e) => e.name == json['damageType'].toLowerCase()),
+      element: parsedElement,
+      damageType: DamageType.values.firstWhere(
+        (e) => e.name == (json['damageType']?.toString().toLowerCase() ?? 'none'),
+        orElse: () => DamageType.none
+      ),
       targetType: mappedType,
       range: (json['range'] ?? 0).toDouble(),
       cooldown: (json['cooldown'] ?? 0).toDouble(),
       multiplier: (json['multiplier'] ?? 0).toDouble(),
       hitCount: json['hitCount'] ?? 1,
       effects: (json['effects'] as List?)?.map((e) => StatusEffectData.fromJson(e)).toList() ?? [],
+      description: json['description'] ?? '',
+      nameLocaleKey: json['nameLocaleKey'] ?? 'skill.$id.name',
+      descriptionLocaleKey: json['descriptionLocaleKey'] ?? 'skill.$id.desc',
     );
   }
 }

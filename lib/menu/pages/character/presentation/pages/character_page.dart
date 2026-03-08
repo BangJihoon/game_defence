@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_defence/data/character_data.dart';
 import 'package:game_defence/player/player_data_manager.dart';
+import 'package:game_defence/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class CharacterPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class _CharacterPageState extends State<CharacterPage> {
   @override
   Widget build(BuildContext context) {
     final pdm = Provider.of<PlayerDataManager>(context);
+    final l10n = AppLocalizations.of(context)!;
     
     return DefaultTabController(
       length: 4,
@@ -24,11 +26,16 @@ class _CharacterPageState extends State<CharacterPage> {
           child: Column(
             children: [
               // 1. 상단 신전 기둥 배치 영역
-              _buildTemplePillars(pdm),
+              _buildTemplePillars(pdm, l10n),
               
               // 2. 탭바
-              const TabBar(
-                tabs: [Tab(text: '전체'), Tab(text: 'ANGEL'), Tab(text: 'DEMON'), Tab(text: 'ANCIENT')],
+              TabBar(
+                tabs: [
+                  Tab(text: l10n.translate('tab.all')),
+                  Tab(text: l10n.translate('faction.angel')),
+                  Tab(text: l10n.translate('faction.demon')),
+                  Tab(text: l10n.translate('faction.ancient')),
+                ],
                 labelColor: Colors.cyanAccent,
                 unselectedLabelColor: Colors.grey,
                 indicatorColor: Colors.cyanAccent,
@@ -39,10 +46,10 @@ class _CharacterPageState extends State<CharacterPage> {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _buildCharacterGrid(pdm, null),
-                    _buildCharacterGrid(pdm, Faction.angel),
-                    _buildCharacterGrid(pdm, Faction.demon),
-                    _buildCharacterGrid(pdm, Faction.ancient),
+                    _buildCharacterGrid(pdm, null, l10n),
+                    _buildCharacterGrid(pdm, Faction.angel, l10n),
+                    _buildCharacterGrid(pdm, Faction.demon, l10n),
+                    _buildCharacterGrid(pdm, Faction.ancient, l10n),
                   ],
                 ),
               ),
@@ -53,7 +60,7 @@ class _CharacterPageState extends State<CharacterPage> {
     );
   }
 
-  Widget _buildTemplePillars(PlayerDataManager pdm) {
+  Widget _buildTemplePillars(PlayerDataManager pdm, AppLocalizations l10n) {
     return Container(
       height: 200,
       width: double.infinity,
@@ -88,17 +95,18 @@ class _CharacterPageState extends State<CharacterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (char != null) ...[
-                    Container(
-                      width: 80, height: 120,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage('assets/images/${char.idleFrontAssetPath}'),
-                          fit: BoxFit.contain,
-                        ),
+                    SizedBox(
+                      width: 80,
+                      height: 120,
+                      child: Image.asset(
+                        'assets/images/${char.idleFrontAssetPath}',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset('assets/images/fallback.png', fit: BoxFit.contain),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(char.name, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text(l10n.translate(char.nameLocaleKey), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                   ] else const Icon(Icons.add_circle_outline, color: Colors.white10, size: 36),
                 ],
               );
@@ -109,7 +117,7 @@ class _CharacterPageState extends State<CharacterPage> {
     );
   }
 
-  Widget _buildCharacterGrid(PlayerDataManager pdm, Faction? filterFaction) {
+  Widget _buildCharacterGrid(PlayerDataManager pdm, Faction? filterFaction, AppLocalizations l10n) {
     final filtered = filterFaction == null 
         ? pdm.masterCharacterList 
         : pdm.masterCharacterList.where((c) => c.faction == filterFaction).toList();
@@ -137,21 +145,21 @@ class _CharacterPageState extends State<CharacterPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/${char.iconAssetPath}'),
+                ClipOval(
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Image.asset(
+                      'assets/images/${char.iconAssetPath}',
                       fit: BoxFit.cover,
-                      colorFilter: isEquipped ? null : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.asset('assets/images/fallback.png', fit: BoxFit.cover),
                     ),
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(char.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                if (isEquipped) const Text('출전 중', style: TextStyle(fontSize: 9, color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
+                Text(l10n.translate(char.nameLocaleKey), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                if (isEquipped) Text(l10n.translate('ui.equipped'), style: const TextStyle(fontSize: 9, color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
               ],
             ),
           ),

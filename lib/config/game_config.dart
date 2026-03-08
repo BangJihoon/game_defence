@@ -121,10 +121,14 @@ class GameStats {
     );
     final Map<String, dynamic> skillsJsonMap = json.decode(skillsJsonString);
     final List<dynamic> skillsJsonList = skillsJsonMap['skills'];
-    final Map<String, SkillData> loadedSkillDefinitions = {
-      for (var json in skillsJsonList)
-        json['id'] as String: SkillData.fromJson(json),
-    };
+    final Map<String, SkillData> loadedSkillDefinitions = {};
+    for (var json in skillsJsonList) {
+      try {
+        loadedSkillDefinitions[json['id'] as String] = SkillData.fromJson(json);
+      } catch (e) {
+        print('Error loading skill ${json['id']}: $e');
+      }
+    }
 
     final wavesJsonString = await rootBundle.loadString(
       'assets/data/waves.json',
