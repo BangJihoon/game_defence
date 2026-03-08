@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:game_defence/data/inventory_data.dart';
 import 'package:game_defence/player/player_data_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:game_defence/menu/pages/temple/presentation/widgets/temple_detail_popup.dart';
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -44,6 +45,7 @@ class _InventoryPageState extends State<InventoryPage> {
           elevation: 0,
           actions: [
             _buildCurrencyInfo(Icons.monetization_on, pdm.gold.toString(), Colors.yellow),
+            _buildCurrencyInfo(Icons.diamond, pdm.gems.toString(), Colors.cyanAccent),
             const SizedBox(width: 10),
           ],
         ),
@@ -52,17 +54,17 @@ class _InventoryPageState extends State<InventoryPage> {
             // 1. 장착된 캐릭터 (기둥 컨셉과 연동)
             _buildEquippedCharacters(pdm),
 
-            // 2. 신전 캐러설 (수리됨)
+            // 2. 신전 캐러설
             SizedBox(
-              height: 200,
+              height: 250, // 높이 약간 증가
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: pdm.temples.length,
                 onPageChanged: (index) => pdm.updateTempleIndex(index),
                 itemBuilder: (context, index) {
                   final temple = pdm.temples[index];
-                  final isSelected = pdm.activeTempleId == temple.id;
-                  return _buildTempleCard(temple, isSelected, pdm);
+                  final isActive = pdm.activeTempleId == temple.id;
+                  return _buildTempleCard(temple, isActive, pdm);
                 },
               ),
             ),
@@ -140,28 +142,69 @@ class _InventoryPageState extends State<InventoryPage> {
     );
   }
 
-  Widget _buildTempleCard(Temple temple, bool isSelected, PlayerDataManager pdm) {
-    return Container(
-      margin: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.amber.withOpacity(0.1) : Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? Colors.amberAccent : Colors.white24, width: 2),
+  Widget _buildTempleCard(Temple temple, bool isActive, PlayerDataManager pdm) {
+    return GestureDetector(
+      onTap: () => _showTempleDetail(context, temple),
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isActive ? Colors.amberAccent : Colors.white24, width: 2),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                temple.imagePath,
+                fit: BoxFit.cover,
+                color: Colors.black.withOpacity(0.5),
+                colorBlendMode: BlendMode.darken,
+                errorBuilder: (context, error, stackTrace) =>
+                    Image.asset('assets/images/fallback.png', fit: BoxFit.cover),
+              ),
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(temple.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, shadows: [Shadow(color: Colors.black, blurRadius: 4)])),
+                  const SizedBox(height: 4),
+                  Text('Lv.${temple.level}', style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.amber.withOpacity(0.8) : Colors.black54,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(isActive ? '현재 제단' : '자세히 보기', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(temple.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 5),
-          Text('Lv.${temple.level}', style: const TextStyle(color: Colors.cyanAccent)),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: isSelected ? null : () => pdm.setActiveTemple(temple.id),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber.shade800, minimumSize: const Size(100, 30)),
-            child: Text(isSelected ? '적용중' : '선택'),
-          )
-        ],
-      ),
+    );
+  }
+
+  void _showTempleDetail(BuildContext context, Temple temple) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Temple Detail',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return TempleDetailPopup(temple: temple);
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          child: child,
+        );
+      },
     );
   }
 

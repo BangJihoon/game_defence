@@ -93,10 +93,43 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
     modifierManager = ModifierManager();
 
-    final activeCharacterId = playerDataManager.activeCharacterId;
-    final activeCharacter = playerDataManager.masterCharacterList.firstWhere((c) => c.id == activeCharacterId);
+    final equippedIds = playerDataManager.equippedCharacterIds;
+    final masterList = playerDataManager.masterCharacterList;
+    final ownedMap = playerDataManager.ownedCharacters;
+    final activeTemple = playerDataManager.activeTemple;
+    final templeBonus = activeTemple.currentBonus;
+    final supportedFaction = activeTemple.supportedFaction;
+    
+    // 1. 모든 출전 캐릭터의 HP/공격력 합산
+    double totalBaseHp = 0;
+    double totalWeightedAttack = 0;
 
-    playerBase = PlayerBase(hp: activeCharacter.baseStats.hp.toInt(), height: gameStats.baseSize.height)
+    for (var id in equippedIds) {
+      final charDef = masterList.firstWhere((c) => c.id == id);
+      final pc = ownedMap[id] ?? PlayerCharacter(characterId: id, rank: charDef.startingRank);
+      
+      // HP 성장: 레벨당 10% (선형)
+      final hpMultiplier = 1.0 + (pc.level - 1) * 0.1;
+      totalBaseHp += charDef.baseStats.hp * hpMultiplier;
+      
+      // 공격력 성장: 레벨당 8% 복리 성장 (강력한 후반 성장)
+      final attackMultiplier = pow(1.08, pc.level - 1);
+      double charAttack = charDef.baseStats.attack * attackMultiplier;
+      
+      if (charDef.faction == supportedFaction) {
+        charAttack *= (1.0 + templeBonus);
+      }
+      totalWeightedAttack += charAttack;
+    }
+
+    // 공격력은 보정된 값들의 평균 사용
+    final avgAttack = equippedIds.isNotEmpty ? (totalWeightedAttack / equippedIds.length) : 0.0;
+    
+    // 밸런스 패치: 초반 공격력을 0.3배로 낮추어 성장하는 맛을 강화
+    const double attackBalanceMultiplier = 0.3;
+    final totalAttackPower = (avgAttack * attackBalanceMultiplier + playerDataManager.totalAttackPower);
+
+    playerBase = PlayerBase(hp: totalBaseHp.toInt(), height: gameStats.baseSize.height)
       ..position = Vector2(0, size.y - gameStats.baseSize.height)
       ..onDestroyed = _onBaseDestroyed
       ..onHit = playBaseHitSound;
@@ -105,18 +138,14 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     tapInputLayer = TapInputLayer();
     scoreDisplay = ScoreDisplay(locale: locale);
 
-    final totalAttackPower = playerDataManager.totalAttackPower;
-    final templeBonus = playerDataManager.activeTemple.currentBonus;
-
     skillSystem = SkillSystem(
       locale: locale,
       gameStats: gameStats,
       skillDefinitions: gameStats.skillDefinitions,
-      baseAttackPower: ((activeCharacter.baseStats.attack + totalAttackPower) * (1.0 + templeBonus)).toInt(),
+      baseAttackPower: totalAttackPower.toInt(),
     );
 
     altarCharacters.clear();
-    final equippedIds = playerDataManager.equippedCharacterIds;
     final altarY = size.y - gameStats.baseSize.height - 40;
     final spacing = size.x / (equippedIds.length + 1);
 

@@ -1,23 +1,24 @@
-﻿{
-    "id":  "gaia",
-    "name":  "Gaia",
-    "description":  "대지의 어머니",
-    "iconName":  "terrain",
-    "faction":  "ancient",
-    "primaryElement":  "nature",
-    "secondaryElement":  "water",
-    "role":  "sustainDefender",
-    "baseStats":  {
-                      "hp":  2000,
-                      "attack":  60,
-                      "attackSpeed":  0.8,
-                      "critChance":  0.05,
-                      "critDamage":  1.1,
-                      "defense":  100,
-                      "cooldownReduction":  0.05,
-                      "movementSpeed":  80
-                  },
-    "passive":  "HP Regen +2%",
-    "trait":  "Defense Increase per Level",
+{
+    "id": "gaia",
+    "name": "Gaia",
+    "description": "대지의 어머니",
+    "iconName": "terrain",
+    "faction": "ancient",
+    "primaryElement": "nature",
+    "secondaryElement": "water",
+    "role": "sustainDefender",
+    "startingRank": "Silver",
+    "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "attackSpeed": 0.8,
+        "critChance": 0.05,
+        "critDamage": 1.1,
+        "defense": 50,
+        "cooldownReduction": 0.05,
+        "movementSpeed": 80
+    },
+    "passive": "HP Regen +2%",
+    "trait": "Defense Increase per Level",
     "baseSkillId": "SK_BEELZEBUB_PLAGUE"
 }

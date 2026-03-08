@@ -1,23 +1,24 @@
-﻿{
-    "id":  "leviathan",
-    "name":  "Leviathan",
-    "description":  "질투의 해수",
-    "iconName":  "waves",
-    "faction":  "demon",
-    "primaryElement":  "water",
-    "secondaryElement":  "dark",
-    "role":  "shieldBreaker",
-    "baseStats":  {
-                      "hp":  1400,
-                      "attack":  100,
-                      "attackSpeed":  0.85,
-                      "critChance":  0.08,
-                      "critDamage":  1.3,
-                      "defense":  80,
-                      "cooldownReduction":  0.0,
-                      "movementSpeed":  85
-                  },
-    "passive":  "Defense Ignore 20%",
-    "trait":  "Bonus vs Shielded",
+{
+    "id": "leviathan",
+    "name": "Leviathan",
+    "description": "질투의 해수",
+    "iconName": "waves",
+    "faction": "demon",
+    "primaryElement": "water",
+    "secondaryElement": "dark",
+    "role": "shieldBreaker",
+    "startingRank": "Silver",
+    "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "attackSpeed": 0.85,
+        "critChance": 0.08,
+        "critDamage": 1.3,
+        "defense": 50,
+        "cooldownReduction": 0.0,
+        "movementSpeed": 85
+    },
+    "passive": "Defense Ignore 20%",
+    "trait": "Bonus vs Shielded",
     "baseSkillId": "SK_LEVIATHAN_ABYSS"
 }

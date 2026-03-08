@@ -1,23 +1,24 @@
-﻿{
-    "id":  "lilith",
-    "name":  "Lilith",
-    "description":  "밤의 여왕",
-    "iconName":  "psychology",
-    "faction":  "ancient",
-    "primaryElement":  "dark",
-    "secondaryElement":  "fire",
-    "role":  "chaosDebuff",
-    "baseStats":  {
-                      "hp":  1000,
-                      "attack":  105,
-                      "attackSpeed":  1.1,
-                      "critChance":  0.1,
-                      "critDamage":  1.5,
-                      "defense":  45,
-                      "cooldownReduction":  0.1,
-                      "movementSpeed":  100
-                  },
-    "passive":  "Apply Chaos to enemies",
-    "trait":  "Nightmare Aura",
+{
+    "id": "lilith",
+    "name": "Lilith",
+    "description": "밤의 여왕",
+    "iconName": "psychology",
+    "faction": "ancient",
+    "primaryElement": "dark",
+    "secondaryElement": "fire",
+    "role": "chaosDebuff",
+    "startingRank": "Silver",
+    "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "attackSpeed": 1.1,
+        "critChance": 0.1,
+        "critDamage": 1.5,
+        "defense": 50,
+        "cooldownReduction": 0.1,
+        "movementSpeed": 100
+    },
+    "passive": "Apply Chaos to enemies",
+    "trait": "Nightmare Aura",
     "baseSkillId": "SK_LUCIFER_CATACLYSM"
 }

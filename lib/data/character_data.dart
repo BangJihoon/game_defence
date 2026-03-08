@@ -23,6 +23,14 @@ enum Faction {
   ancient,
 }
 
+/// Ranks for characters (Tier)
+enum CharacterRank {
+  silver,
+  gold,
+  platinum,
+  diamond,
+}
+
 /// Roles for characters.
 enum CharacterRole {
   burstDps,
@@ -88,6 +96,7 @@ class CharacterDefinition {
   final String description;
   final String iconName;
   final Faction faction;
+  final CharacterRank startingRank;
   final ElementType primaryElement;
   final ElementType secondaryElement;
   final CharacterRole role;
@@ -107,6 +116,7 @@ class CharacterDefinition {
     required this.description,
     required this.iconName,
     required this.faction,
+    required this.startingRank,
     required this.primaryElement,
     required this.secondaryElement,
     required this.role,
@@ -128,6 +138,10 @@ class CharacterDefinition {
       description: json['description'] ?? '',
       iconName: json['iconName'] ?? '',
       faction: Faction.values.firstWhere((e) => e.name == json['faction'].toLowerCase()),
+      startingRank: CharacterRank.values.firstWhere(
+        (e) => e.name == (json['startingRank']?.toLowerCase() ?? 'silver'),
+        orElse: () => CharacterRank.silver,
+      ),
       primaryElement: ElementType.values.firstWhere((e) => e.name == json['primaryElement'].toLowerCase()),
       secondaryElement: ElementType.values.firstWhere((e) => e.name == (json['secondaryElement']?.toLowerCase() ?? 'none')),
       role: CharacterRole.values.firstWhere((e) => e.name == json['role']),
@@ -179,6 +193,18 @@ class CharacterDefinition {
 
   String get idleBackAssetPath {
     return 'characters/$id/back.png';
+  }
+
+  String get elementBadgePath {
+    switch (primaryElement) {
+      case ElementType.fire: return 'assets/badges/elements/FIRE.PNG';
+      case ElementType.water: return 'assets/badges/elements/WATER.PNG';
+      case ElementType.nature: return 'assets/badges/elements/NATURE.PNG';
+      case ElementType.electric: return 'assets/badges/elements/ELECTRIC.PNG';
+      case ElementType.light: return 'assets/badges/elements/LIGHT.PNG';
+      case ElementType.dark: return 'assets/badges/elements/DARK.PNG';
+      default: return 'assets/badges/elements/LIGHT.PNG';
+    }
   }
 }
 
@@ -237,13 +263,28 @@ class ElementSystem {
 class PlayerCharacter {
   final String characterId;
   int level;
-  DivinityStage divinityStage;
+  CharacterRank rank;
   bool isUnlocked;
 
   PlayerCharacter({
     required this.characterId,
     this.level = 1,
-    this.divinityStage = DivinityStage.none,
+    required this.rank,
     this.isUnlocked = false,
   });
+
+  // 12단계 레벨업 중 현재 진행도 (0.0 ~ 1.0)
+  double get rankProgress => ((level - 1) % 12) / 12.0;
+  
+  // 현재 등급 내에서의 단계 (1~12)
+  int get currentStage => ((level - 1) % 12) + 1;
+
+  String get rankBadgePath {
+    switch (rank) {
+      case CharacterRank.silver: return 'assets/badges/ranks/SLIVER.PNG';
+      case CharacterRank.gold: return 'assets/badges/ranks/GOLD.PNG';
+      case CharacterRank.platinum: return 'assets/badges/ranks/PLATIUM.PNG';
+      case CharacterRank.diamond: return 'assets/badges/ranks/DIAMOND.PNG';
+    }
+  }
 }

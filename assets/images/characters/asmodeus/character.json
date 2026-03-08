@@ -1,23 +1,24 @@
-﻿{
-    "id":  "asmodeus",
-    "name":  "Asmodeus",
-    "description":  "욕망의 군주",
-    "iconName":  "pest_control",
-    "faction":  "demon",
-    "primaryElement":  "dark",
-    "secondaryElement":  "nature",
-    "role":  "poisonDps",
-    "baseStats":  {
-                      "hp":  1000,
-                      "attack":  110,
-                      "attackSpeed":  1.1,
-                      "critChance":  0.05,
-                      "critDamage":  1.4,
-                      "defense":  50,
-                      "cooldownReduction":  0.05,
-                      "movementSpeed":  95
-                  },
-    "passive":  "Poison Spread on Kill",
-    "trait":  "Poison Resistance Ignore",
+{
+    "id": "asmodeus",
+    "name": "Asmodeus",
+    "description": "욕망의 군주",
+    "iconName": "pest_control",
+    "faction": "demon",
+    "primaryElement": "dark",
+    "secondaryElement": "nature",
+    "role": "poisonDps",
+    "startingRank": "Silver",
+    "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "attackSpeed": 1.1,
+        "critChance": 0.05,
+        "critDamage": 1.4,
+        "defense": 50,
+        "cooldownReduction": 0.05,
+        "movementSpeed": 95
+    },
+    "passive": "Poison Spread on Kill",
+    "trait": "Poison Resistance Ignore",
     "baseSkillId": "SK_ASMODEUS_CORRUPTION"
 }

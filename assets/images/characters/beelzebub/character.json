@@ -1,23 +1,24 @@
-﻿{
-    "id":  "beelzebub",
-    "name":  "Beelzebub",
-    "description":  "폭식의 군주",
-    "iconName":  "bug_report",
-    "faction":  "demon",
-    "primaryElement":  "nature",
-    "secondaryElement":  "dark",
-    "role":  "healingReduction",
-    "baseStats":  {
-                      "hp":  1200,
-                      "attack":  115,
-                      "attackSpeed":  1.05,
-                      "critChance":  0.1,
-                      "critDamage":  1.4,
-                      "defense":  60,
-                      "cooldownReduction":  0.05,
-                      "movementSpeed":  100
-                  },
-    "passive":  "Healing Reduction 50%",
-    "trait":  "Life Steal",
+{
+    "id": "beelzebub",
+    "name": "Beelzebub",
+    "description": "폭식의 군주",
+    "iconName": "bug_report",
+    "faction": "demon",
+    "primaryElement": "nature",
+    "secondaryElement": "dark",
+    "role": "healingReduction",
+    "startingRank": "Gold",
+    "baseStats": {
+        "hp": 1500,
+        "attack": 220,
+        "attackSpeed": 1.05,
+        "critChance": 0.1,
+        "critDamage": 1.4,
+        "defense": 75,
+        "cooldownReduction": 0.05,
+        "movementSpeed": 100
+    },
+    "passive": "Healing Reduction 50%",
+    "trait": "Life Steal",
     "baseSkillId": "SK_BEELZEBUB_PLAGUE"
 }
