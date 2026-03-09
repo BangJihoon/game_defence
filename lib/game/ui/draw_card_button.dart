@@ -24,16 +24,17 @@ class DrawCardButton extends PositionComponent with TapCallbacks, HasGameRef<Ove
   Future<void> onLoad() async {
     super.onLoad();
     size = Vector2(140, 50); // 터치 영역 확대
-    position = Vector2(game.size.x / 2, game.size.y - 20);
+    position = Vector2(game.size.x / 2, game.size.y - 80); // 스킬 바 위로 이동
 
     // 텍스트 컴포넌트로 변경하여 성능 및 정렬 개선
     _labelComponent = TextComponent(
-      text: 'Draw Card',
+      text: '신의 신탁 (Pray)',
       textRenderer: TextPaint(
         style: const TextStyle(
           color: Colors.white,
           fontSize: 16,
           fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
         ),
       ),
       anchor: Anchor.center,
@@ -59,7 +60,7 @@ class DrawCardButton extends PositionComponent with TapCallbacks, HasGameRef<Ove
   @override
   void update(double dt) {
     super.update(dt);
-    _costComponent.text = 'CP: ${game.cardPoints} / ${game.cardDrawCost}';
+    _costComponent.text = '신앙: ${game.cardPoints} / ${game.cardDrawCost}';
   }
 
   @override

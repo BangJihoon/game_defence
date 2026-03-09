@@ -1,0 +1,24 @@
+{
+    "id": "raphael",
+    "name": "Raphael",
+    "description": "치유의 천사",
+    "iconName": "healing",
+    "faction": "angel",
+    "primaryElement": "light",
+    "secondaryElement": "water",
+    "role": "healer",
+    "startingRank": "Gold",
+    "baseStats": {
+        "hp": 1500,
+        "attack": 220,
+        "attackSpeed": 1.0,
+        "critChance": 0.05,
+        "critDamage": 1.2,
+        "defense": 75,
+        "cooldownReduction": 0.1,
+        "movementSpeed": 90
+    },
+    "passive": "Heal Effect +20%",
+    "trait": "Purify Debuffs",
+    "baseSkillId": "SK_RAPHAEL_SANCTUARY"
+}

@@ -1,0 +1,24 @@
+{
+    "id": "uriel",
+    "name": "Uriel",
+    "description": "심판의 불꽃",
+    "iconName": "bolt",
+    "faction": "angel",
+    "primaryElement": "light",
+    "secondaryElement": "electric",
+    "role": "crowdControl",
+    "startingRank": "Gold",
+    "baseStats": {
+        "hp": 1500,
+        "attack": 220,
+        "attackSpeed": 1.1,
+        "critChance": 0.08,
+        "critDamage": 1.4,
+        "defense": 75,
+        "cooldownReduction": 0.05,
+        "movementSpeed": 95
+    },
+    "passive": "Increased Stun Chance",
+    "trait": "Lightning Chain",
+    "baseSkillId": "SK_URIEL_THUNDER"
+}

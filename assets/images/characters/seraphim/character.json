@@ -1,0 +1,24 @@
+{
+    "id": "seraphim",
+    "name": "Seraphim",
+    "description": "타오르는 권능",
+    "iconName": "local_fire_department",
+    "faction": "angel",
+    "primaryElement": "fire",
+    "secondaryElement": "light",
+    "role": "burnDps",
+    "startingRank": "Gold",
+    "baseStats": {
+        "hp": 1500,
+        "attack": 220,
+        "attackSpeed": 0.95,
+        "critChance": 0.12,
+        "critDamage": 1.7,
+        "defense": 75,
+        "cooldownReduction": 0.0,
+        "movementSpeed": 90
+    },
+    "passive": "Burn Damage +20%",
+    "trait": "Fire Aura",
+    "baseSkillId": "SK_SERAPHIM_INFERNO"
+}

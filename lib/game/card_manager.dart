@@ -36,16 +36,37 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
     _isDeckInitialized = true;
   }
 
-  /// Draws 3 unique cards to present as a choice to the player.
+  /// 기준 등급/타입을 먼저 정한 뒤, 해당 카테고리에서 3장을 뽑습니다.
   List<CardDefinition> drawHand() {
     if (!_isDeckInitialized || cardDeck.isEmpty) {
       return [];
     }
 
-    final hand = <CardDefinition>{}; // Use a Set to ensure unique cards
-    while (hand.length < 3 && hand.length < cardDeck.length) {
-      final card = weightedRandomDraw();
-      hand.add(card);
+    // 1. 기준 카드를 하나 뽑아서 기준 카테고리를 결정 (기존 가중치 확률 적용)
+    final baseCard = weightedRandomDraw();
+    
+    // 2. 기준 카드와 같은 랭크 또는 같은 타입(skillLevel)인 카드들을 필터링
+    List<CardDefinition> pool;
+    if (baseCard.type == CardType.skillLevel) {
+      pool = cardDeck.where((c) => c.type == CardType.skillLevel).toList();
+    } else {
+      pool = cardDeck.where((c) => c.rank == baseCard.rank && c.type != CardType.skillLevel).toList();
+    }
+
+    // 만약 풀이 너무 작으면 (3장 미만) 전체 덱에서 기준 랭크만 필터링
+    if (pool.length < 3) {
+      pool = cardDeck.where((c) => c.rank == baseCard.rank).toList();
+    }
+
+    // 3. 필터링된 풀에서 3장 랜덤 선택 (중복 제거)
+    final hand = <CardDefinition>{};
+    final targetCount = min(3, pool.length);
+    
+    final poolCopy = List<CardDefinition>.from(pool);
+    poolCopy.shuffle(_random);
+    
+    for (int i = 0; i < targetCount; i++) {
+      hand.add(poolCopy[i]);
     }
 
     return hand.toList();
@@ -103,7 +124,7 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
         _eventBus.fire(StatModifierAppliedEvent(
           target: effect['target'],
           stat: effect['stat'],
-          value: effect['value'],
+          value: (effect['value'] as num).toDouble(),
         ));
         break;
       case 'skill_modifier':
@@ -111,7 +132,7 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
           target: 'skill',
           skillId: effect['skillId'],
           stat: effect['stat'],
-          value: effect['value'],
+          value: (effect['value'] as num).toDouble(),
         ));
         break;
       case 'apply_variant':
@@ -121,16 +142,19 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
         ));
         break;
       case 'instant_heal_wall_percent':
-        _eventBus.fire(WallHealedEvent(effect['value']));
+        _eventBus.fire(WallHealedEvent((effect['value'] as num).toDouble()));
         break;
       case 'add_shield_percent':
-        _eventBus.fire(ShieldGainedEvent(effect['value']));
+        _eventBus.fire(ShieldGainedEvent((effect['value'] as num).toDouble()));
         break;
       case 'gain_rerolls':
-        _eventBus.fire(RerollsGainedEvent(effect['value']));
+        _eventBus.fire(RerollsGainedEvent((effect['value'] as num).toInt()));
         break;
       case 'unlock_skill_slot':
         _eventBus.fire(SkillSlotUnlockedEvent());
+        break;
+      case 'level_up_skill':
+        _eventBus.fire(LevelUpSkillEvent(effect['skillId']));
         break;
       case 'disable_coin_gain':
         _eventBus.fire(CoinGainDisabledEvent());
@@ -152,7 +176,7 @@ class CardManager extends Component with HasGameRef<OverflowDefenseGame> {
         _eventBus.fire(StatModifierAppliedEvent(
           target: risk['target'],
           stat: risk['stat'],
-          value: -risk['value'], // Negative value for reduction
+          value: -(risk['value'] as num).toDouble(), // Negative value for reduction
         ));
         break;
       case 'disable_coin_gain':

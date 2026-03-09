@@ -48,7 +48,7 @@ class EnemySystem extends Component with HasGameRef<OverflowDefenseGame> {
       enemies.remove(enemy);
 
       if (wasKilledByPlayer) {
-        _eventBus.fire(EnemyKilledEvent(enemy.score)); // Fire event
+        _eventBus.fire(EnemyKilledEvent(enemy.definition.coinReward)); // Fire event
       }
     }
   }

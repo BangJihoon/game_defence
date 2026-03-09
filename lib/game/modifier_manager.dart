@@ -5,6 +5,7 @@ class ModifierManager extends Component {
   // Global modifiers
   double globalDamageMultiplier = 1.0;
   double globalCooldownMultiplier = 1.0;
+  double projectileSpeedMultiplier = 1.0;
   double coinGainMultiplier = 1.0;
   bool isCoinGainDisabled = false; // New field for disabling coin gain
 
@@ -21,6 +22,9 @@ class ModifierManager extends Component {
         break;
       case 'cooldown':
         globalCooldownMultiplier += value;
+        break;
+      case 'projectile_speed':
+        projectileSpeedMultiplier += value;
         break;
       case 'coin_gain':
         coinGainMultiplier += value;

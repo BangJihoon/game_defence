@@ -2,18 +2,14 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:game_defence/config/game_config.dart'; // Import GameStats
+import 'package:game_defence/config/game_config.dart'; 
 import 'package:game_defence/player/player_data_manager.dart';
 import 'package:provider/provider.dart';
 
 import 'package:game_defence/game/events/event_bus.dart';
 import 'l10n/app_localizations.dart';
 import 'game/overflow_game.dart';
-import 'menu/pages/home_page.dart';
-import 'menu/pages/shop/presentation/pages/shop_page.dart';
-import 'menu/pages/inventory_page.dart';
-import 'menu/pages/character_page.dart';
-import 'menu/pages/skill_page.dart';
+import 'package:game_defence/menu/pages/main_menu_shell.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +17,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await GameStats.initialize(); // Preload game stats
+  await GameStats.initialize(); 
   runApp(const GameApp());
 }
 
@@ -34,15 +30,14 @@ class GameApp extends StatefulWidget {
 
 class _GameAppState extends State<GameApp> {
   late final PlayerDataManager _playerDataManager;
-  late final EventBus _gameEventBus;
+  EventBus _gameEventBus = EventBus();
   bool _showGame = false;
-  int _selectedIndex = 2; // Default to Home
-  Locale _locale = const Locale('ko'); // 기본값은 한국어
+  int _selectedIndex = 2; 
+  Locale _locale = const Locale('ko'); 
 
   @override
   void initState() {
     super.initState();
-    _gameEventBus = EventBus();
     _playerDataManager = PlayerDataManager(eventBus: _gameEventBus);
   }
 
@@ -56,6 +51,9 @@ class _GameAppState extends State<GameApp> {
   void _returnToMenu() {
     setState(() {
       _showGame = false;
+      _gameEventBus.dispose(); 
+      _gameEventBus = EventBus(); 
+      _playerDataManager.updateEventBus(_gameEventBus);
     });
   }
 
@@ -73,22 +71,6 @@ class _GameAppState extends State<GameApp> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      const ShopPage(),
-      const InventoryPage(),
-      HomePage(
-        onStartGame: _startGame,
-        locale: _locale,
-        onToggleLocale: () => setState(() {
-          _locale = _locale == const Locale('ko')
-              ? const Locale('en')
-              : const Locale('ko');
-        }),
-      ),
-      const CharacterPage(),
-      const SkillPage(),
-    ];
-
     return MultiProvider(
       providers: [ChangeNotifierProvider.value(value: _playerDataManager)],
       child: MaterialApp(
@@ -110,44 +92,30 @@ class _GameAppState extends State<GameApp> {
           ),
         ),
         home: _showGame
-            ? GameWidget(
-                key: UniqueKey(), // 게임 재시작 시 완전한 초기화를 보장
-                game: OverflowDefenseGame(
-                  locale: _locale,
-                  onExit: _returnToMenu,
-                  playerDataManager: _playerDataManager,
-                  eventBus: _gameEventBus,
+            ? Material(
+                color: Colors.black,
+                child: GameWidget(
+                  key: UniqueKey(),
+                  game: OverflowDefenseGame(
+                    locale: _locale,
+                    onExit: _returnToMenu,
+                    playerDataManager: _playerDataManager,
+                    eventBus: _gameEventBus,
+                  ),
                 ),
               )
-            : Scaffold(
-                body: pages[_selectedIndex],
-                bottomNavigationBar: BottomNavigationBar(
-                  items: const <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.store),
-                      label: '상점',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.inventory),
-                      label: '인벤토리',
-                    ),
-                    BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person),
-                      label: '캐릭터',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.star),
-                      label: '스킬',
-                    ),
-                  ],
-                  currentIndex: _selectedIndex,
-                  selectedItemColor: Colors.amber[800],
-                  unselectedItemColor: Colors.grey,
-                  backgroundColor: const Color(0xFF1a1a2e),
-                  type: BottomNavigationBarType.fixed,
-                  onTap: _onItemTapped,
-                ),
+            : MainMenuShell(
+                selectedIndex: _selectedIndex,
+                onTabChanged: _onItemTapped,
+                locale: _locale,
+                onStartGame: _startGame,
+                onToggleLocale: () {
+                  setState(() {
+                    _locale = _locale == const Locale('ko')
+                        ? const Locale('en')
+                        : const Locale('ko');
+                  });
+                },
               ),
       ),
     );

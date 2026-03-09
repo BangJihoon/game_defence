@@ -40,12 +40,15 @@ class FrostNovaEffect extends PositionComponent
       Vector2.all(radius / 10), // The circle component has a radius of 10
       EffectController(duration: 0.5),
       onComplete: () {
-        final enemies = game.enemySystem.enemies.where(
-          (enemy) => enemy.position.distanceTo(position) < radius,
-        );
+        // Use toList() to avoid concurrent modification errors
+        final enemies = game.enemySystem.enemies
+            .where((enemy) => enemy.position.distanceTo(position) < radius)
+            .toList();
+            
         for (final enemy in enemies) {
-          enemy.takeDamage(damage);
-          // TODO: Add slow effect
+          if (enemy.isMounted && !enemy.isDying) {
+            enemy.takeDamage(damage);
+          }
         }
         removeFromParent();
       },

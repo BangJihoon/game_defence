@@ -1,140 +1,275 @@
-[
-  {
-    "skillId": "fireball",
-    "titleLocaleKey": "skill.fireball.title",
-    "descriptionLocaleKey": "skill.fireball.desc",
-    "skillType": "projectile",
-    "baseCooldown": 3.0,
-    "baseDamage": 40.0,
-    "baseRange": 50.0,
-    "maxLevel": 10,
-    "variants": [
-      {
-        "variantId": "fireball_meteor",
-        "titleLocaleKey": "variant.fireball_meteor.title",
-        "descriptionLocaleKey": "variant.fireball_meteor.desc",
-        "effect": {
-          "type": "change_projectile",
-          "projectileId": "meteor"
-        }
-      }
-    ]
-  },
-  {
-    "skillId": "chain_lightning",
-    "titleLocaleKey": "skill.chain_lightning.title",
-    "descriptionLocaleKey": "skill.chain_lightning.desc",
-    "skillType": "chaining",
-    "baseCooldown": 4.0,
-    "baseDamage": 25.0,
-    "baseRange": 0.0,
-    "maxLevel": 10,
-    "variants": [
-      {
-        "variantId": "chain_lightning_static_field",
-        "titleLocaleKey": "variant.chain_lightning_static_field.title",
-        "descriptionLocaleKey": "variant.chain_lightning_static_field.desc",
-        "effect": {
-          "type": "create_aoe",
-          "aoeId": "static_field"
-        }
-      }
-    ]
-  },
-  {
-    "skillId": "arcane_missile",
-    "titleLocaleKey": "skill.arcane_missile.title",
-    "descriptionLocaleKey": "skill.arcane_missile.desc",
-    "skillType": "projectile",
-    "baseCooldown": 2.0,
-    "baseDamage": 15.0,
-    "baseRange": 0.0,
-    "maxLevel": 10,
-    "variants": [
-      {
-        "variantId": "arcane_missile_homing",
-        "titleLocaleKey": "variant.arcane_missile_homing.title",
-        "descriptionLocaleKey": "variant.arcane_missile_homing.desc",
-        "effect": {
-          "type": "add_homing"
-        }
-      }
-    ]
-  },
-  {
-    "skillId": "frost_nova",
-    "titleLocaleKey": "skill.frost_nova.title",
-    "descriptionLocaleKey": "skill.frost_nova.desc",
-    "skillType": "aoe",
-    "baseCooldown": 8.0,
-    "baseDamage": 30.0,
-    "baseRange": 150.0,
-    "maxLevel": 5,
-    "variants": [
-      {
-        "variantId": "frost_nova_expanding",
-        "titleLocaleKey": "variant.frost_nova_expanding.title",
-        "descriptionLocaleKey": "variant.frost_nova_expanding.desc",
-        "effect": {
-          "type": "expanding_aoe"
-        }
-      }
-    ]
-  },
-  {
-    "skillId": "poison_cloud",
-    "titleLocaleKey": "skill.poison_cloud.title",
-    "descriptionLocaleKey": "skill.poison_cloud.desc",
-    "skillType": "aoe",
-    "baseCooldown": 10.0,
-    "baseDamage": 5.0,
-    "baseRange": 100.0,
-    "maxLevel": 5,
-    "variants": []
-  },
-  {
-    "skillId": "healing_aura",
-    "titleLocaleKey": "skill.healing_aura.title",
-    "descriptionLocaleKey": "skill.healing_aura.desc",
-    "skillType": "utility",
-    "baseCooldown": 20.0,
-    "baseDamage": 0.0,
-    "amount": 50,
-    "maxLevel": 3,
-    "variants": []
-  },
-  {
-    "skillId": "shield_barrier",
-    "titleLocaleKey": "skill.shield_barrier.title",
-    "descriptionLocaleKey": "skill.shield_barrier.desc",
-    "skillType": "utility",
-    "baseCooldown": 15.0,
-    "baseDamage": 0.0,
-    "duration": 5.0,
-    "amount": 100,
-    "maxLevel": 3,
-    "variants": []
-  },
-  {
-    "skillId": "berserk_rage",
-    "titleLocaleKey": "skill.berserk_rage.title",
-    "descriptionLocaleKey": "skill.berserk_rage.desc",
-    "skillType": "utility",
-    "baseCooldown": 30.0,
-    "baseDamage": 0.0,
-    "duration": 7.0,
-    "maxLevel": 1,
-    "variants": [
-      {
-        "variantId": "berserk_rage_unleashed",
-        "titleLocaleKey": "variant.berserk_rage_unleashed.title",
-        "descriptionLocaleKey": "variant.berserk_rage_unleashed.desc",
-        "effect": {
-          "type": "add_global_modifier",
-          "damage_multiplier": 0.5,
-          "cooldown_multiplier": -0.3
-        }
-      }
-    ]
-  }
-]
+{
+  "version": "1.0",
+  "skills": [
+    {
+      "id": "SK_MICHAEL_JUDGMENT",
+      "name": "Judgment Blade",
+      "owner": "MICHAEL",
+      "element": ["LIGHT"],
+      "damageType": "PHYSICAL",
+      "targetType": "FRONT_CONE",
+      "range": 300,
+      "cooldown": 8,
+      "multiplier": 2.8,
+      "hitCount": 1,
+      "effects": [
+        { "type": "defenseDown", "duration": 3, "value": 0.2, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_RAPHAEL_SANCTUARY",
+      "name": "Divine Sanctuary",
+      "owner": "RAPHAEL",
+      "element": ["LIGHT"],
+      "damageType": "NONE",
+      "targetType": "ALLY_AREA",
+      "range": 400,
+      "cooldown": 10,
+      "multiplier": 0,
+      "hitCount": 0,
+      "effects": [
+        { "type": "shield", "duration": 5, "value": 0.25, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_URIEL_THUNDER",
+      "name": "Heavenly Thunder",
+      "owner": "URIEL",
+      "element": ["ELECTRIC", "LIGHT"],
+      "damageType": "MAGIC",
+      "targetType": "CHAIN",
+      "range": 500,
+      "cooldown": 7,
+      "multiplier": 2.2,
+      "hitCount": 3,
+      "effects": [
+        { "type": "stun", "duration": 1.5, "value": 0, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_GABRIEL_TRUMPET",
+      "name": "Final Trumpet",
+      "owner": "GABRIEL",
+      "element": ["LIGHT"],
+      "damageType": "MAGIC",
+      "targetType": "GLOBAL",
+      "range": 9999,
+      "cooldown": 12,
+      "multiplier": 1.5,
+      "hitCount": 1,
+      "effects": [
+        { "type": "silence", "duration": 2, "value": 0, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_SERAPHIM_INFERNO",
+      "name": "Sacred Inferno",
+      "owner": "SERAPHIM",
+      "element": ["FIRE"],
+      "damageType": "MAGIC",
+      "targetType": "AREA",
+      "range": 300,
+      "cooldown": 8,
+      "multiplier": 1.2,
+      "hitCount": 1,
+      "effects": [
+        { "type": "burn", "duration": 5, "value": 0.15, "maxStack": 5 }
+      ]
+    },
+    {
+      "id": "SK_METATRON_CHRONO",
+      "name": "Chrono Archive",
+      "owner": "METATRON",
+      "element": ["LIGHT"],
+      "damageType": "MAGIC",
+      "targetType": "ALLY_GLOBAL",
+      "range": 9999,
+      "cooldown": 14,
+      "multiplier": 0,
+      "hitCount": 0,
+      "effects": [
+        { "type": "cooldownReduction", "duration": 5, "value": 0.3, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_LUCIFER_CATACLYSM",
+      "name": "Fallen Cataclysm",
+      "owner": "LUCIFER",
+      "element": ["DARK"],
+      "damageType": "MAGIC",
+      "targetType": "AREA",
+      "range": 350,
+      "cooldown": 9,
+      "multiplier": 3.5,
+      "hitCount": 1,
+      "effects": [
+        { "type": "lifeSteal", "duration": 3, "value": 0.25, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_ASMODEUS_CORRUPTION",
+      "name": "Corruption Bloom",
+      "owner": "ASMODEUS",
+      "element": ["NATURE", "DARK"],
+      "damageType": "MAGIC",
+      "targetType": "AREA",
+      "range": 320,
+      "cooldown": 8,
+      "multiplier": 1.8,
+      "hitCount": 1,
+      "effects": [
+        { "type": "poison", "duration": 6, "value": 0.12, "maxStack": 3 }
+      ]
+    },
+    {
+      "id": "SK_BAAL_STORM",
+      "name": "Thunder Dominion",
+      "owner": "BAAL",
+      "element": ["ELECTRIC"],
+      "damageType": "MAGIC",
+      "targetType": "CHAIN",
+      "range": 500,
+      "cooldown": 7,
+      "multiplier": 2.0,
+      "hitCount": 4,
+      "effects": [
+        { "type": "shock", "duration": 4, "value": 0.1, "maxStack": 3 }
+      ]
+    },
+    {
+      "id": "SK_LEVIATHAN_ABYSS",
+      "name": "Abyss Collapse",
+      "owner": "LEVIATHAN",
+      "element": ["WATER"],
+      "damageType": "PHYSICAL",
+      "targetType": "LINE",
+      "range": 400,
+      "cooldown": 10,
+      "multiplier": 3.0,
+      "hitCount": 1,
+      "effects": [
+        { "type": "armorIgnore", "duration": 4, "value": 0.3, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_BEELZEBUB_PLAGUE",
+      "name": "Plague Swarm",
+      "owner": "BEELZEBUB",
+      "element": ["NATURE"],
+      "damageType": "MAGIC",
+      "targetType": "AREA",
+      "range": 350,
+      "cooldown": 9,
+      "multiplier": 1.6,
+      "hitCount": 1,
+      "effects": [
+        { "type": "healingReduction", "duration": 5, "value": 0.4, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_ABADDON_EXECUTE",
+      "name": "Abyss Execution",
+      "owner": "ABADDON",
+      "element": ["DARK"],
+      "damageType": "PHYSICAL",
+      "targetType": "SINGLE",
+      "range": 300,
+      "cooldown": 10,
+      "multiplier": 4.0,
+      "hitCount": 1,
+      "effects": [
+        { "type": "execute", "duration": 0, "value": 0.25, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_ENOCH_ASCENSION",
+      "name": "Ascension Protocol",
+      "owner": "ENOCH",
+      "element": ["LIGHT"],
+      "damageType": "NONE",
+      "targetType": "SELF",
+      "range": 0,
+      "cooldown": 12,
+      "multiplier": 0,
+      "hitCount": 0,
+      "effects": [
+        { "type": "stackDamageBoost", "duration": 8, "value": 0.1, "maxStack": 5 }
+      ]
+    },
+    {
+      "id": "SK_SAMAEL_MARK",
+      "name": "Death Mark",
+      "owner": "SAMAEL",
+      "element": ["DARK"],
+      "damageType": "MAGIC",
+      "targetType": "SINGLE",
+      "range": 400,
+      "cooldown": 8,
+      "multiplier": 1.5,
+      "hitCount": 1,
+      "effects": [
+        { "type": "deathMark", "duration": 5, "value": 0.25, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_LILITH_CHAOS",
+      "name": "Queen's Temptation",
+      "owner": "LILITH",
+      "element": ["DARK"],
+      "damageType": "MAGIC",
+      "targetType": "AREA",
+      "range": 350,
+      "cooldown": 9,
+      "multiplier": 1.7,
+      "hitCount": 1,
+      "effects": [
+        { "type": "confusion", "duration": 4, "value": 0, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_AZAZEL_CRITICAL",
+      "name": "Fallen Lightning Rush",
+      "owner": "AZAZEL",
+      "element": ["ELECTRIC"],
+      "damageType": "PHYSICAL",
+      "targetType": "FRONT_CONE",
+      "range": 300,
+      "cooldown": 6,
+      "multiplier": 2.5,
+      "hitCount": 2,
+      "effects": [
+        { "type": "critBoost", "duration": 4, "value": 0.3, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_GAIA_GUARDIAN",
+      "name": "Earth Mother Embrace",
+      "owner": "GAIA",
+      "element": ["NATURE"],
+      "damageType": "NONE",
+      "targetType": "ALLY_AREA",
+      "range": 400,
+      "cooldown": 11,
+      "multiplier": 0,
+      "hitCount": 0,
+      "effects": [
+        { "type": "damageReduction", "duration": 6, "value": 0.25, "maxStack": 1 }
+      ]
+    },
+    {
+      "id": "SK_APOPHIS_VOID",
+      "name": "Solar Devourer",
+      "owner": "APOPHIS",
+      "element": ["DARK"],
+      "damageType": "MAGIC",
+      "targetType": "LINE",
+      "range": 600,
+      "cooldown": 12,
+      "multiplier": 3.2,
+      "hitCount": 1,
+      "effects": [
+        { "type": "penetration", "duration": 4, "value": 0.4, "maxStack": 1 }
+      ]
+    }
+  ]
+}

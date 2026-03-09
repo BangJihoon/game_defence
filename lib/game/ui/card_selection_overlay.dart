@@ -1,3 +1,4 @@
+// lib/game/ui/card_selection_overlay.dart
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
@@ -5,157 +6,157 @@ import 'package:game_defence/data/card_data.dart';
 import 'package:game_defence/game/overflow_game.dart';
 import 'package:game_defence/l10n/app_localizations.dart';
 
-/// This overlay component pauses the game and displays a selection of cards for the player to choose from.
-/// It covers the entire screen with a semi-transparent background.
-class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame> {
+class CardSelectionOverlay extends PositionComponent with HasGameRef<OverflowDefenseGame>, TapCallbacks {
   final List<CardDefinition> cards;
   final AppLocalizations l10n;
+  final bool isSpecial; // 보스 클리어용 스페셜 오퍼
 
-  CardSelectionOverlay({required this.cards, required this.l10n}) : super(priority: 200);
+  CardSelectionOverlay({
+    required this.cards, 
+    required this.l10n,
+    this.isSpecial = false,
+  }) : super(priority: 500);
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    size = game.size; // Cover the whole screen
+    size = gameRef.size;
 
-    // This loop creates and positions the visual display for each card.
-    final cardWidth = 200.0;
-    final cardHeight = 300.0;
-    final gap = 20.0;
+    // 1. 배경 연출 (스페셜일 때 황금빛 효과 추가)
+    add(RectangleComponent(
+      size: size,
+      paint: Paint()..color = isSpecial 
+        ? Colors.amber.withValues(alpha: 0.2) 
+        : Colors.black.withValues(alpha: 0.8),
+    ));
     
-    // 화면 중앙 정렬 계산
-    final totalWidth = (cardWidth * cards.length) + (gap * (cards.length - 1));
-    final startX = (size.x - totalWidth) / 2 + cardWidth / 2;
-    final centerY = size.y / 2;
+    if (isSpecial) {
+      // 황금빛 파티클 효과 같은 걸 추가하면 좋음 (생략)
+    }
 
-    for (int i = 0; i < cards.length; i++) {
-      add(
-        CardDisplay(
-          card: cards[i],
-          l10n: l10n, // Pass down the localization instance
-          position: Vector2(startX + i * (cardWidth + gap), centerY),
-          size: Vector2(cardWidth, cardHeight),
+    // 2. 타이틀 (중앙 정렬)
+    add(TextComponent(
+      text: isSpecial ? '✨ 보스 클리어: 신비로운 제안 ✨' : '신의 신탁 (Divine Oracle)',
+      textRenderer: TextPaint(
+        style: TextStyle(
+          color: isSpecial ? Colors.yellowAccent : Colors.amberAccent,
+          fontSize: isSpecial ? 28 : 24,
+          fontWeight: FontWeight.bold,
+          shadows: [Shadow(color: isSpecial ? Colors.orange : Colors.black, blurRadius: 15)],
         ),
-      );
+      ),
+      anchor: Anchor.center,
+      position: Vector2(size.x / 2, size.y * 0.2),
+    ));
+
+    // 3. 석판 배치 (세로 정렬 및 중앙 집중)
+    final double tabletWidth = size.x * 0.7;
+    final double tabletHeight = 100;
+    final double spacing = 15;
+    
+    for (int i = 0; i < cards.length; i++) {
+      add(OracleTablet(
+        card: cards[i],
+        l10n: l10n,
+        isFree: isSpecial, // 스페셜 오퍼는 무료
+        size: Vector2(tabletWidth, tabletHeight),
+        position: Vector2(size.x / 2, size.y * 0.4 + (i * (tabletHeight + spacing))),
+      ));
     }
   }
 
   @override
   void onMount() {
     super.onMount();
-    // 컴포넌트가 게임 트리에 완전히 추가된(Mount) 직후에 게임을 멈춥니다.
-    game.paused = true;
-  }
-
-  /// This render method provides the dark, semi-transparent background for the overlay.
-  @override
-  void render(Canvas canvas) {
-    // 1. 배경을 먼저 그립니다.
-    canvas.drawRect(
-      size.toRect(),
-      Paint()..color = Colors.black.withOpacity(0.7),
-    );
-    // 2. 그 위에 자식 컴포넌트(카드들)를 그립니다.
-    super.render(canvas);
+    gameRef.paused = true;
   }
 }
 
-/// This component represents a single card visually on the screen.
-/// It handles rendering the card's details and processing tap events.
-class CardDisplay extends PositionComponent with TapCallbacks, HoverCallbacks, HasGameRef<OverflowDefenseGame> {
+class OracleTablet extends PositionComponent with TapCallbacks, HasGameRef<OverflowDefenseGame> {
   final CardDefinition card;
-  final AppLocalizations l10n; // Use the passed-in localization instance
+  final AppLocalizations l10n;
+  final bool isFree;
 
-  CardDisplay({
-    required this.card,
-    required this.l10n,
+  OracleTablet({
+    required this.card, 
+    required this.l10n, 
+    required Vector2 size, 
     required Vector2 position,
-    required Vector2 size,
-  }) : super(position: position, size: size, anchor: Anchor.center);
+    this.isFree = false,
+  }) : super(size: size, position: position, anchor: Anchor.center);
 
-  /// When a card is tapped, this method calls the main game's `selectCard` function.
-  @override
-  void onTapUp(TapUpEvent event) {
-    game.selectCard(card);
-  }
-
-  @override
-  void onHoverEnter() {
-    scale = Vector2.all(1.05); // 마우스 오버 시 확대 효과
-  }
-
-  @override
-  void onHoverExit() {
-    scale = Vector2.all(1.0);
-  }
-
-  /// This render method draws the card's background, title, and description.
   @override
   void render(Canvas canvas) {
-    super.render(canvas);
-    final paint = Paint()..color = _getColorForRank(card.rank);
+    final RRect rrect = RRect.fromRectAndRadius(size.toRect(), const Radius.circular(15));
     
-    // 카드 배경
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(size.toRect(), const Radius.circular(12)),
-      paint,
-    );
+    // 배경
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [Colors.black87, _getRankColor(card.rank).withValues(alpha: 0.3)],
+      ).createShader(size.toRect());
+    canvas.drawRRect(rrect, paint);
     
-    // 내부 컨텐츠 배경 (가독성 확보)
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(6, 6, size.x - 12, size.y - 12),
-        const Radius.circular(8),
-      ),
-      Paint()..color = const Color(0xFF222222),
-    );
-
-    // Card Title
-    TextPainter(
-        text: TextSpan(
-          text: l10n.translate(card.titleLocaleKey) ?? card.cardId.toUpperCase(),
-          style: TextStyle(
-            color: _getColorForRank(card.rank), // 등급 색상 적용
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      )
-      ..layout(maxWidth: size.x - 20, minWidth: size.x - 20)
-      ..paint(canvas, Offset(10, 20)); // 위치 조정
-
-    // Card Description
-    TextPainter(
-        text: TextSpan(
-          text: l10n.translate(card.descriptionLocaleKey) ?? card.effect.toString(),
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        ),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      )
-      ..layout(maxWidth: size.x - 20, minWidth: size.x - 20)
-      ..paint(canvas, Offset(10, 60)); // 위치 조정
+    // 테두리
+    canvas.drawRRect(rrect, Paint()
+      ..color = _getRankColor(card.rank).withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5);
   }
 
-  /// This is a helper function to determine the card's color based on its rarity (rank).
-  Color _getColorForRank(CardRank rank) {
+  @override
+  Future<void> onLoad() async {
+    // 등급 아이콘/룬 (좌측)
+    add(TextComponent(
+      text: 'ᛟ', 
+      textRenderer: TextPaint(style: TextStyle(color: _getRankColor(card.rank), fontSize: 30)),
+      anchor: Anchor.centerLeft,
+      position: Vector2(20, size.y / 2),
+    ));
+
+    // 텍스트 정보 (중앙)
+    add(TextComponent(
+      text: l10n.translate(card.titleLocaleKey),
+      textRenderer: TextPaint(style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+      anchor: Anchor.centerLeft,
+      position: Vector2(60, size.y * 0.3),
+    ));
+
+    add(TextComponent(
+      text: l10n.translate(card.descriptionLocaleKey),
+      textRenderer: TextPaint(style: const TextStyle(color: Colors.white54, fontSize: 11)),
+      anchor: Anchor.centerLeft,
+      position: Vector2(60, size.y * 0.7),
+    ));
+
+    // "무료" 또는 "선택" 표시 (우측)
+    if (isFree) {
+      add(TextComponent(
+        text: 'FREE',
+        textRenderer: TextPaint(style: const TextStyle(color: Colors.greenAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+        anchor: Anchor.centerRight,
+        position: Vector2(size.x - 20, size.y / 2),
+      ));
+    }
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    gameRef.selectCard(card);
+    gameRef.paused = false;
+    (parent as CardSelectionOverlay).removeFromParent();
+  }
+
+  Color _getRankColor(CardRank rank) {
     switch (rank) {
-      case CardRank.normal:
-        return Colors.grey.shade700;
-      case CardRank.bronze:
-        return Colors.brown;
-      case CardRank.silver:
-        return Colors.blueGrey;
-      case CardRank.gold:
-        return Colors.amber.shade700;
-      case CardRank.platinum:
-        return Colors.teal;
-      case CardRank.diamond:
-        return Colors.lightBlue;
-      case CardRank.master:
-        return Colors.purple.shade700;
+      case CardRank.normal: return Colors.white38;
+      case CardRank.bronze: return Colors.orange;
+      case CardRank.silver: return Colors.blueGrey;
+      case CardRank.gold: return Colors.amber;
+      case CardRank.platinum: return Colors.cyanAccent;
+      case CardRank.diamond: return Colors.lightBlueAccent;
+      case CardRank.master: return Colors.purpleAccent;
     }
   }
 }

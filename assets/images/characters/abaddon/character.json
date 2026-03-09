@@ -1,0 +1,24 @@
+{
+    "id": "abaddon",
+    "name": "Abaddon",
+    "description": "무저갱의 왕",
+    "iconName": "dangerous",
+    "faction": "demon",
+    "primaryElement": "dark",
+    "secondaryElement": "electric",
+    "role": "execution",
+    "startingRank": "Platinum",
+    "baseStats": {
+        "hp": 2000,
+        "attack": 320,
+        "attackSpeed": 1.1,
+        "critChance": 0.15,
+        "critDamage": 1.9,
+        "defense": 100,
+        "cooldownReduction": 0.0,
+        "movementSpeed": 105
+    },
+    "passive": "Bonus vs Low HP Targets",
+    "trait": "Kill Reset Chance",
+    "baseSkillId": "SK_LUCIFER_CATACLYSM"
+}

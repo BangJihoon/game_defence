@@ -38,17 +38,23 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
 
     if (currentWaveEnemiesCleared) {
       if (!_waveClearEventFired) {
-        game.eventBus.fire(WaveClearedEvent(_currentWaveIndex));
+        game.eventBus.fire(WaveClearedEvent(currentWaveNumber));
         _waveClearEventFired = true;
+        // Increment wave index ONLY after it's cleared
+        _currentWaveIndex++;
       }
 
       if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) {
-        // All waves cleared
+        // All waves cleared - Victory!
+        game.showVictoryOverlay();
         return;
       }
+      
       _waveTimer += dt;
-      if (_waveTimer >=
-          game.gameStats.waveDefinitions[_currentWaveIndex].delayBeforeNextWave) {
+      final currentWaveDef = game.gameStats.waveDefinitions[_currentWaveIndex];
+      final delay = currentWaveDef.delayBeforeNextWave;
+      
+      if (_waveTimer >= delay) {
         _startWave();
         _waveTimer = 0;
       }
@@ -56,6 +62,8 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
   }
 
   void _startWave() {
+    if (_currentWaveIndex >= game.gameStats.waveDefinitions.length) return;
+    
     _isSpawning = true;
     _waveClearEventFired = false;
     final wave = game.gameStats.waveDefinitions[_currentWaveIndex];
@@ -79,11 +87,9 @@ class WaveManager extends Component with HasGameRef<OverflowDefenseGame> {
     // Set a timer for when all enemies from this wave should have spawned
     add(
       TimerComponent(
-        period:
-            spawnDelayAccumulator, // Total time for all enemies in this wave to spawn
+        period: spawnDelayAccumulator,
         onTick: () {
           _isSpawning = false; // All enemies for this wave are now released
-          _currentWaveIndex++;
         },
         removeOnFinish: true,
       ),
