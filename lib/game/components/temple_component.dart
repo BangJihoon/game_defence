@@ -18,7 +18,12 @@ class TempleComponent extends SpriteComponent with HasGameRef {
     await super.onLoad();
     
     // Load temple image based on level
-    sprite = await gameRef.loadSprite('temple/temple$level.png');
+    try {
+      sprite = await gameRef.loadSprite('temple/temple$level.png');
+    } catch (e) {
+      print('Warning: Temple asset missing, using fallback');
+      // No-op or use a generic sprite if available
+    }
     
     // 1. Floating effect
     add(MoveByEffect(

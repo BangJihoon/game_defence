@@ -1,6 +1,7 @@
 // lib/game/overflow_game.dart
 import 'package:flame/game.dart';
-import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_audio/flame_audio.dart' hide PlayerState;
+import 'package:audioplayers/audioplayers.dart' hide PlayerState;
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flame/components.dart';
@@ -34,6 +35,9 @@ import 'package:flame/events.dart';
 
 import 'ui/victory_overlay.dart';
 import 'components/altar_character.dart';
+import 'components/temple_component.dart';
+import '../features/player/player_component.dart';
+import '../features/player/player_state.dart';
 import 'enemy.dart'; // Add Enemy import
 import 'effects/explosion_effect.dart'; // Add ExplosionEffect import
 
@@ -52,8 +56,9 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late AttackPowerDisplay attackPowerDisplay;
   late GameStateManager gameStateManager;
   late AppLocalizations l10n;
+  late TempleComponent templeBackground;
 
-  final List<AltarCharacterComponent> altarCharacters = [];
+  final List<PlayerComponent> playerCharacters = [];
   final Random _random = Random();
   final Locale locale;
   late GameStats gameStats;
@@ -143,6 +148,13 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
           ..onDestroyed = _onBaseDestroyed
           ..onHit = playBaseHitSound;
 
+    // Temple background dynamic component
+    templeBackground = TempleComponent(
+      level: 1, // Assume level 1 for now
+      position: Vector2(size.x / 2, size.y - gameStats.baseSize.height - 120),
+      size: Vector2(size.x, 240),
+    );
+
     enemySystem = EnemySystem(
       playerBase,
       gameStats.enemyDefinitions,
@@ -158,7 +170,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       baseAttackPower: totalAttackPower.toInt(),
     );
 
-    altarCharacters.clear();
+    playerCharacters.clear();
     final altarY = size.y - gameStats.baseSize.height - 40;
     final spacing = size.x / (equippedIds.length + 1);
 
@@ -166,12 +178,14 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       final char = playerDataManager.masterCharacterList.firstWhere(
         (c) => c.id == equippedIds[i],
       );
-      final charComp = AltarCharacterComponent(
-        character: char,
+      // Use new PlayerComponent with animation support
+      final playerComp = PlayerComponent(
+        characterPath: 'characters/${char.id}', // Path to character's spritesheets
         position: Vector2(spacing * (i + 1), altarY),
+        size: Vector2.all(80),
       );
-      altarCharacters.add(charComp);
-      add(charComp);
+      playerCharacters.add(playerComp);
+      add(playerComp);
     }
 
     add(
@@ -207,6 +221,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
 
     addAll([
       GameBackground(),
+      templeBackground,
       playerBase,
       enemySystem,
       tapInputLayer,
@@ -264,6 +279,13 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       else
         showMessage("${l10n.waveCleared} +20 Faith");
     });
+
+    // Example: trigger attack animation on skill use
+    eventBus.on<SkillTriggeredEvent>((event) {
+      for (final player in playerCharacters) {
+        player.attack();
+      }
+    });
   }
 
   void _showSpecialOracleOffer() {
@@ -288,10 +310,16 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     cardManager.applyCard(card);
     gameStateManager.deductFaith(gameStateManager.oracleCost);
     gameStateManager.updateOracleCost(gameStateManager.oracleCost + 1);
+    
+    // Trigger player animations when getting cards
+    for (final player in playerCharacters) {
+      player.updateState(PlayerState.run);
+      add(TimerComponent(period: 1.0, onTick: () => player.updateState(PlayerState.idle), removeOnFinish: true));
+    }
   }
 
   Vector2 getCharacterPosition(int index) {
-    if (index < altarCharacters.length) return altarCharacters[index].position;
+    if (index < playerCharacters.length) return playerCharacters[index].position;
     return size / 2;
   }
 

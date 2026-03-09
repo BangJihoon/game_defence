@@ -4,8 +4,9 @@ import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'player_animation.dart';
 import 'player_state.dart';
+import '../../game/overflow_game.dart';
 
-class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState> with HasGameRef {
+class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState> with HasGameRef<OverflowDefenseGame> {
   final String characterPath;
   final Map<PlayerState, int>? frameCounts;
   
@@ -26,7 +27,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState> with Ha
     
     // Load animations using the animation manager
     animations = await PlayerAnimationManager.loadAnimations(
-      gameRef: gameRef,
+      gameRef: this,
       basePath: characterPath,
       frameCounts: frameCounts,
     );
@@ -38,21 +39,19 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState> with Ha
   void updateState(PlayerState newState) {
     if (current == newState) return;
     
-    // Logic for state transitions if needed
     current = newState;
     
+    // Reset the animation to start from the first frame
+    animationTicker?.reset();
+
     // If it's a non-looping animation, we return to idle after it finishes
     if (newState == PlayerState.attack || newState == PlayerState.hit) {
-      final animation = animations?[newState];
-      if (animation != null) {
-        animation.onComplete = () {
-          if (current == newState) {
-            current = PlayerState.idle;
-            // Reset animation to start frame for next time
-            animation.reset();
-          }
-        };
-      }
+      animationTicker?.onComplete = () {
+        if (current == newState) {
+          current = PlayerState.idle;
+          animationTicker?.reset();
+        }
+      };
     }
   }
 

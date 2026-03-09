@@ -98,3 +98,8 @@ class LevelUpSkillEvent extends GameEvent {
   final String skillId;
   LevelUpSkillEvent(this.skillId);
 }
+
+class SkillTriggeredEvent extends GameEvent {
+  final String skillId;
+  SkillTriggeredEvent(this.skillId);
+}

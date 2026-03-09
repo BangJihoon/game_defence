@@ -145,8 +145,8 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
         
         // 캐릭터 공격 연출 (attack.png 변경 및 반짝임)
         try {
-          final charComp = game.altarCharacters.firstWhere((c) => c.character.id == skill.owner.id);
-          charComp.playAttackEffect();
+          final charComp = game.playerCharacters.firstWhere((c) => c.characterPath.contains(skill.owner.id));
+          charComp.attack();
         } catch (_) {
           // 캐릭터 컴포넌트를 찾지 못한 경우 무시
         }

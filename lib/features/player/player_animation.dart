@@ -1,12 +1,14 @@
 // lib/features/player/player_animation.dart
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
+import 'package:flame/game.dart';
 import 'player_state.dart';
 import '../../core/constants/animation_constants.dart';
+import '../../game/overflow_game.dart';
 
 class PlayerAnimationManager {
   static Future<Map<PlayerState, SpriteAnimation>> loadAnimations({
-    required HasGameRef gameRef,
+    required HasGameRef<OverflowDefenseGame> gameRef,
     required String basePath, // e.g., 'characters/michael'
     Map<PlayerState, int>? frameCounts,
   }) async {
@@ -21,32 +23,48 @@ class PlayerAnimationManager {
     };
 
     for (final state in PlayerState.values) {
-      String fileName = state.name; // This will use 'idle', 'run', 'attack', 'hit'
+      List<String> possibleFileNames = [state.name];
       
+      if (state == PlayerState.idle) {
+        possibleFileNames = ['idle_front', 'front', 'idle'];
+      } else if (state == PlayerState.run) {
+        possibleFileNames = ['idle_back', 'back', 'run'];
+      }
+
       final int frameCount = frames[state] ?? 1;
       
-      try {
-        final image = await gameRef.images.load('$basePath/$fileName.png');
-        
-        // Assuming the SpriteSheet is a single row of frames
-        // We calculate srcSize based on image width / frameCount if it's unknown
-        // For now, let's assume frames are square or fixed size
-        final double frameWidth = image.width / frameCount;
-        final double frameHeight = image.height.toDouble();
+      bool loaded = false;
+      for (final fileName in possibleFileNames) {
+        try {
+          final image = await gameRef.game.images.load('$basePath/$fileName.png');
+          
+          final double frameWidth = image.width / frameCount;
+          final double frameHeight = image.height.toDouble();
 
-        final SpriteSheet spriteSheet = SpriteSheet(
-          image: image,
-          srcSize: Vector2(frameWidth, frameHeight),
-        );
+          final SpriteSheet spriteSheet = SpriteSheet(
+            image: image,
+            srcSize: Vector2(frameWidth, frameHeight),
+          );
 
-        animations[state] = spriteSheet.createAnimation(
-          row: 0,
-          stepTime: AnimationConstants.stepTime,
-          to: frameCount,
-          loop: state == PlayerState.idle || state == PlayerState.run,
-        );
-      } catch (e) {
-        print('Error loading animation $fileName for $basePath: $e');
+          animations[state] = spriteSheet.createAnimation(
+            row: 0,
+            stepTime: AnimationConstants.stepTime,
+            to: frameCount,
+            loop: state == PlayerState.idle || state == PlayerState.run,
+          );
+          loaded = true;
+          break; // Exit filenames loop once loaded
+        } catch (_) {
+          // Continue to next possible filename
+        }
+      }
+
+      if (!loaded) {
+        print('Error: Could not load animation for state ${state.name} in $basePath. Using fallback.');
+        // Create a simple placeholder animation (single transparent frame or similar)
+        // Since we can't easily create an image in memory without a platform, 
+        // we'll just skip adding this animation to the map.
+        // The Component will need to handle missing animations gracefully.
       }
     }
 
