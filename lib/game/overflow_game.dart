@@ -34,6 +34,9 @@ import 'package:flame/events.dart';
 
 import 'ui/victory_overlay.dart';
 import 'components/altar_character.dart';
+import 'components/temple_component.dart';
+import '../features/player/player_component.dart';
+import '../features/player/player_state.dart';
 import 'enemy.dart'; // Add Enemy import
 import 'effects/explosion_effect.dart'; // Add ExplosionEffect import
 
@@ -52,8 +55,9 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
   late AttackPowerDisplay attackPowerDisplay;
   late GameStateManager gameStateManager;
   late AppLocalizations l10n;
+  late TempleComponent templeBackground;
 
-  final List<AltarCharacterComponent> altarCharacters = [];
+  final List<PlayerComponent> playerCharacters = [];
   final Random _random = Random();
   final Locale locale;
   late GameStats gameStats;
@@ -101,6 +105,13 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       ..onDestroyed = _onBaseDestroyed
       ..onHit = playBaseHitSound;
 
+    // Temple background dynamic component
+    templeBackground = TempleComponent(
+      level: 1, // Assume level 1 for now
+      position: Vector2(size.x / 2, size.y - gameStats.baseSize.height - 120),
+      size: Vector2(size.x, 240),
+    );
+
     enemySystem = EnemySystem(playerBase, gameStats.enemyDefinitions, eventBus: eventBus);
     tapInputLayer = TapInputLayer();
     scoreDisplay = ScoreDisplay(locale: locale);
@@ -115,16 +126,21 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       baseAttackPower: ((activeCharacter.baseStats.attack + totalAttackPower) * (1.0 + templeBonus)).toInt(),
     );
 
-    altarCharacters.clear();
+    playerCharacters.clear();
     final equippedIds = playerDataManager.equippedCharacterIds;
     final altarY = size.y - gameStats.baseSize.height - 40;
     final spacing = size.x / (equippedIds.length + 1);
 
     for (int i = 0; i < equippedIds.length; i++) {
       final char = playerDataManager.masterCharacterList.firstWhere((c) => c.id == equippedIds[i]);
-      final charComp = AltarCharacterComponent(character: char, position: Vector2(spacing * (i + 1), altarY));
-      altarCharacters.add(charComp);
-      add(charComp);
+      // Use new PlayerComponent with animation support
+      final playerComp = PlayerComponent(
+        characterPath: 'characters/${char.id}', // Path to character's spritesheets
+        position: Vector2(spacing * (i + 1), altarY),
+        size: Vector2.all(80),
+      );
+      playerCharacters.add(playerComp);
+      add(playerComp);
     }
 
     add(ItemSlotUI(equippedItemIds: playerDataManager.equippedToolIds, availableItems: playerDataManager.mysticTools));
@@ -140,7 +156,7 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
     add(TopNavButton(icon: Icons.home, position: Vector2(20, 20), onTap: () => onExit?.call()));
     add(TopNavButton(icon: Icons.settings, position: Vector2(size.x - 60, 20), onTap: showSettings));
 
-    addAll([GameBackground(), playerBase, enemySystem, tapInputLayer, skillSystem, skillUI, waveManager, modifierManager, scoreDisplay, waveDisplay, cardManager, drawCardButton, attackPowerDisplay]);
+    addAll([GameBackground(), templeBackground, playerBase, enemySystem, tapInputLayer, skillSystem, skillUI, waveManager, modifierManager, scoreDisplay, waveDisplay, cardManager, drawCardButton, attackPowerDisplay]);
 
     _subscribeToEvents();
   }
@@ -168,31 +184,29 @@ class OverflowDefenseGame extends FlameGame with HasCollisionDetection {
       if (event.waveNumber % 10 == 0) _showSpecialOracleOffer();
       else showMessage("${l10n.waveCleared} +20 Faith");
     });
-  }
-
-  void _showSpecialOracleOffer() {
-    showMessage("보스 클리어! 특별한 신탁이 내려집니다!");
-    final specialHand = cardManager.drawHand();
-    add(CardSelectionOverlay(cards: specialHand, l10n: l10n, isSpecial: true));
-  }
-
-  void showCardSelection() {
-    try {
-      if (paused || children.whereType<CardSelectionOverlay>().isNotEmpty) return;
-      playCardDrawSound();
-      final hand = cardManager.drawHand();
-      if (hand.isNotEmpty) add(CardSelectionOverlay(cards: hand, l10n: l10n));
-    } catch (e) { paused = false; }
+    
+    // Example: trigger attack animation on skill use
+    eventBus.on<SkillTriggeredEvent>((event) {
+      for (final player in playerCharacters) {
+        player.attack();
+      }
+    });
   }
 
   void selectCard(CardDefinition card) {
     cardManager.applyCard(card);
     gameStateManager.deductFaith(gameStateManager.oracleCost);
     gameStateManager.updateOracleCost(gameStateManager.oracleCost + 1);
+    
+    // Trigger player animations when getting cards
+    for (final player in playerCharacters) {
+      player.updateState(PlayerState.run);
+      add(TimerComponent(period: 1.0, onTick: () => player.updateState(PlayerState.idle), removeOnFinish: true));
+    }
   }
 
   Vector2 getCharacterPosition(int index) {
-    if (index < altarCharacters.length) return altarCharacters[index].position;
+    if (index < playerCharacters.length) return playerCharacters[index].position;
     return size / 2;
   }
 
