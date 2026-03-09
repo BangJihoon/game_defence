@@ -1,23 +1,24 @@
-﻿{
-    "id":  "samael",
-    "name":  "Samael",
-    "description":  "죽음의 천사",
-    "iconName":  "content_cut",
-    "faction":  "ancient",
-    "primaryElement":  "dark",
-    "secondaryElement":  "nature",
-    "role":  "executionSpecialist",
-    "baseStats":  {
-                      "hp":  1050,
-                      "attack":  140,
-                      "attackSpeed":  1.15,
-                      "critChance":  0.2,
-                      "critDamage":  2.0,
-                      "defense":  35,
-                      "cooldownReduction":  0.0,
-                      "movementSpeed":  110
-                  },
-    "passive":  "Instant Kill below 10% HP",
-    "trait":  "Shadow Step",
+{
+    "id": "samael",
+    "name": "Samael",
+    "description": "죽음의 천사",
+    "iconName": "content_cut",
+    "faction": "ancient",
+    "primaryElement": "dark",
+    "secondaryElement": "nature",
+    "role": "executionSpecialist",
+    "startingRank": "Gold",
+    "baseStats": {
+        "hp": 1500,
+        "attack": 220,
+        "attackSpeed": 1.15,
+        "critChance": 0.2,
+        "critDamage": 2.0,
+        "defense": 75,
+        "cooldownReduction": 0.0,
+        "movementSpeed": 110
+    },
+    "passive": "Instant Kill below 10% HP",
+    "trait": "Shadow Step",
     "baseSkillId": "SK_LUCIFER_CATACLYSM"
 }

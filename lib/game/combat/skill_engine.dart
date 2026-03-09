@@ -17,22 +17,23 @@ class SkillEngine {
   final TargetSelector targetSelector;
 
   SkillEngine(this.game)
-      : damageCalculator = DamageCalculator(),
+      : damageCalculator = DamageCalculator(game),
         statusEngine = StatusEngine(),
         effectSpawner = EffectSpawner(game),
         feedbackSystem = HitFeedbackSystem(game),
         targetSelector = TargetSelector(game);
 
-  void executeSkill({
+  bool executeSkill({
     required CharacterDefinition caster,
     required SkillData skill,
     required Vector2 spawnPosition,
   }) {
     try {
       final targets = targetSelector.selectTargets(skill, spawnPosition);
-      print("DEBUG: Skill ${skill.id} (Owner: ${caster.id}). Targets found: ${targets.length}");
       
-      if (targets.isEmpty) return;
+      if (targets.isEmpty) return false;
+
+      print("DEBUG: Skill ${skill.id} (Owner: ${caster.id}). Targets found: ${targets.length}");
 
       if (skill.targetType == TargetType.chain) {
         _executeChain(caster, skill, targets, spawnPosition);
@@ -43,8 +44,10 @@ class SkillEngine {
       }
 
       effectSpawner.spawnCastEffect(skill.element, spawnPosition);
+      return true;
     } catch (e, stack) {
       print("DEBUG: CRITICAL ERROR in executeSkill: $e\n$stack");
+      return false;
     }
   }
 
@@ -107,14 +110,37 @@ class SkillEngine {
 }
 
 class DamageCalculator {
+  final OverflowDefenseGame game;
+  DamageCalculator(this.game);
+
   double calculate({
     required CharacterDefinition caster,
     required Enemy target,
     required SkillData skill,
   }) {
-    double base = (caster.baseStats.attack) * (skill.multiplier > 0 ? skill.multiplier : 1.0);
+    // 1. Base attack from character
+    double charAttack = caster.baseStats.attack;
+    
+    // 2. Global flat bonuses from permanent upgrades
+    int totalFlatBonus = game.playerDataManager.totalAttackPower;
+    
+    // 3. Temple percentage bonus
+    double templeBonus = game.playerDataManager.activeTemple.currentBonus;
+    
+    // 4. In-game dynamic modifiers (from cards/buffs)
+    double globalDmgMult = game.modifierManager.globalDamageMultiplier;
+    double skillSpecificMult = game.modifierManager.getSkillModifier(skill.id, 'damage');
+    
+    // Formula: (Base + Flat) * (1 + TempleBonus) * GlobalMult * SkillMult * SkillMultiplier
+    double basePower = (charAttack + totalFlatBonus) * (1.0 + templeBonus);
+    double finalMultiplier = globalDmgMult * skillSpecificMult * (skill.multiplier > 0 ? skill.multiplier : 1.0);
+    
+    // 5. Elemental multiplier
     double elementMultiplier = ElementSystem.getMultiplier(skill.element, ElementType.none);
-    return math.max(1.0, base * elementMultiplier);
+    
+    double finalDamage = basePower * finalMultiplier * elementMultiplier;
+    
+    return math.max(1.0, finalDamage);
   }
 }
 
@@ -124,35 +150,31 @@ class TargetSelector {
 
   List<Enemy> selectTargets(SkillData skill, Vector2 origin) {
     try {
-      // descendants() finds components even if they are nested inside EnemySystem
       final activeEnemies = game.descendants().whereType<Enemy>().where((e) => e.isAlive).toList();
       
       if (activeEnemies.isEmpty) return [];
 
       switch (skill.targetType) {
         case TargetType.single:
-          activeEnemies.sort((a, b) => a.position.distanceTo(origin).compareTo(b.position.distanceTo(origin)));
-          return [activeEnemies.first];
+          final inRange = activeEnemies.where((e) => e.position.distanceTo(origin) <= skill.range).toList();
+          if (inRange.isEmpty) return [];
+          inRange.sort((a, b) => a.position.distanceTo(origin).compareTo(b.position.distanceTo(origin)));
+          return [inRange.first];
         
         case TargetType.area:
         case TargetType.frontCone:
-          // For defense game, just hit everything in sight (range 2000)
-          return activeEnemies.where((e) => e.position.distanceTo(origin) <= 2000).toList();
+        case TargetType.line:
+          return activeEnemies.where((e) => e.position.distanceTo(origin) <= skill.range).toList();
 
         case TargetType.global:
           return activeEnemies;
 
         case TargetType.chain:
-          return _selectChain(activeEnemies, origin, 5, 2000);
+          return _selectChain(activeEnemies, origin, 5, skill.range);
 
         default:
-          return [activeEnemies.first];
-      }
-    } catch (e) {
-      print("DEBUG: Error in selectTargets: $e");
-      return [];
-    }
-  }
+          final inRange = activeEnemies.where((e) => e.position.distanceTo(origin) <= skill.range).toList();
+          return inRange.isNotEmpty ? [inRange.first] : [];
       }
     } catch (e) {
       print("DEBUG: Error in selectTargets: $e");

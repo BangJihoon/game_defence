@@ -12,10 +12,14 @@ class SkillState {
   final SkillData data;
   final CharacterDefinition owner;
   double cooldownTimer = 0;
+  
+  // 밸런스 패치용 배수
+  static const double rangeMultiplier = 1.5;
+  static const double cooldownMultiplier = 0.5;
 
   SkillState({required this.data, required this.owner}) {
-    // Start with a small initial delay so skills don't all fire at 0.0s
-    cooldownTimer = 1.0 + (owner.id.length % 3).toDouble();
+    // 초기 딜레이도 쿨타임 배수 적용
+    cooldownTimer = (1.0 + (owner.id.length % 3).toDouble()) * cooldownMultiplier;
   }
 
   bool get isReady => cooldownTimer <= 0;
@@ -25,7 +29,7 @@ class SkillState {
   }
 
   void resetCooldown() {
-    cooldownTimer = data.cooldown;
+    cooldownTimer = data.cooldown * cooldownMultiplier;
   }
 }
 
@@ -112,16 +116,46 @@ class SkillSystem extends Component with HasGameRef<OverflowDefenseGame> {
 
       print("DEBUG: TRIGGERING skill: ${skill.data.id} from ${skill.owner.id} at $spawnPos");
       
-      skillEngine.executeSkill(
+      // 밸런스 패치가 적용된 스킬 데이터 임시 생성 (사거리 보정)
+      final balancedSkill = SkillData(
+        id: skill.data.id,
+        name: skill.data.name,
+        owner: skill.data.owner,
+        element: skill.data.element,
+        damageType: skill.data.damageType,
+        targetType: skill.data.targetType,
+        range: skill.data.range * SkillState.rangeMultiplier,
+        cooldown: skill.data.cooldown * SkillState.cooldownMultiplier,
+        multiplier: skill.data.multiplier,
+        hitCount: skill.data.hitCount,
+        effects: skill.data.effects,
+        description: skill.data.description,
+        nameLocaleKey: skill.data.nameLocaleKey,
+        descriptionLocaleKey: skill.data.descriptionLocaleKey,
+      );
+
+      final fired = skillEngine.executeSkill(
         caster: skill.owner,
-        skill: skill.data,
+        skill: balancedSkill,
         spawnPosition: spawnPos,
       );
       
-      skill.resetCooldown();
+      if (fired) {
+        skill.resetCooldown();
+        
+        // 캐릭터 공격 연출 (attack.png 변경 및 반짝임)
+        try {
+          final charComp = game.altarCharacters.firstWhere((c) => c.character.id == skill.owner.id);
+          charComp.playAttackEffect();
+        } catch (_) {
+          // 캐릭터 컴포넌트를 찾지 못한 경우 무시
+        }
+      } else {
+        // No targets in range, wait a bit before checking again to save CPU
+        skill.cooldownTimer = 0.5;
+      }
     } catch (e, stack) {
       print("DEBUG: ERROR in _triggerSkill: $e\n$stack");
-      skill.resetCooldown(); // Ensure it doesn't loop infinitely if crashing
     }
   }
 

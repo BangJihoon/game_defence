@@ -8,6 +8,10 @@ import 'package:game_defence/game/overflow_game.dart';
 
 class AltarCharacterComponent extends PositionComponent with HasGameRef<OverflowDefenseGame> {
   final CharacterDefinition character;
+  late final SpriteComponent characterVisual;
+  late final Sprite idleSprite;
+  Sprite? attackSprite;
+  bool _isAttacking = false;
   
   AltarCharacterComponent({required this.character, required Vector2 position}) 
     : super(position: position, size: Vector2.all(80), anchor: Anchor.center);
@@ -30,10 +34,22 @@ class AltarCharacterComponent extends PositionComponent with HasGameRef<Overflow
     aura.add(RotateEffect.by(2 * math.pi, EffectController(duration: 10, infinite: true)));
 
     // 2. 캐릭터 스프라이트 (둥실거리는 효과)
-    final sprite = await gameRef.loadSprite(character.idleBackAssetPath);
-    final characterVisual = SpriteComponent(
-      sprite: sprite,
-      size: Vector2.all(60),
+    try {
+      idleSprite = await gameRef.loadSprite(character.idleBackAssetPath);
+    } catch (_) {
+      idleSprite = await gameRef.loadSprite('fallback.png');
+    }
+
+    // 공격 스프라이트 미리 로드
+    try {
+      attackSprite = await gameRef.loadSprite('characters/${character.id}/attack.png');
+    } catch (_) {
+      attackSprite = null;
+    }
+
+    characterVisual = SpriteComponent(
+      sprite: idleSprite,
+      size: Vector2(60 * (idleSprite.srcSize.x / idleSprite.srcSize.y), 60),
       anchor: Anchor.center,
       position: Vector2(size.x / 2, size.y / 2),
     );
@@ -49,13 +65,41 @@ class AltarCharacterComponent extends PositionComponent with HasGameRef<Overflow
     characterVisual.add(GlowEffectComponent()..priority = -1);
   }
 
+  void playAttackEffect() {
+    if (_isAttacking) return;
+    _isAttacking = true;
+
+    // 1. 공격 이미지로 변경 (존재할 경우)
+    if (attackSprite != null) {
+      characterVisual.sprite = attackSprite;
+    }
+
+    // 2. 반짝이는 효과 (White Flash)
+    characterVisual.add(
+      ColorEffect(
+        Colors.white,
+        EffectController(duration: 0.1, reverseDuration: 0.1, repeatCount: 2),
+      )
+    );
+
+    // 3. 0.5초 후 다시 idle 이미지로 복귀
+    add(TimerComponent(
+      period: 0.5,
+      onTick: () {
+        characterVisual.sprite = idleSprite;
+        _isAttacking = false;
+      },
+      removeOnFinish: true,
+    ));
+  }
+
   @override
   void render(Canvas canvas) {
     super.render(canvas);
     // 캐릭터 이름 표시 (작게)
     final painter = TextPainter(
       text: TextSpan(
-        text: character.name,
+        text: gameRef.l10n.translate(character.nameLocaleKey),
         style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,

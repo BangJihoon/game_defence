@@ -106,17 +106,11 @@ class SkillIconComponent extends PositionComponent with TapCallbacks, HasGameRef
   }
 
   String _getSkillShortName(String skillId) {
-    if (skillId.contains('JUDGMENT')) return '심판';
-    if (skillId.contains('SANCTUARY')) return '성역';
-    if (skillId.contains('THUNDER')) return '천둥';
-    if (skillId.contains('TRUMPET')) return '나팔';
-    if (skillId.contains('INFERNO')) return '인페르노';
-    if (skillId.contains('CATACLYSM')) return '대재앙';
-    if (skillId.contains('CORRUPTION')) return '부패';
-    if (skillId.contains('STORM')) return '폭풍';
-    if (skillId.contains('ABYSS')) return '심연';
-    if (skillId.contains('PLAGUE')) return '역병';
-    return 'SKL';
+    final fullName = l10n.translate(skill.data.nameLocaleKey);
+    if (fullName.length > 4) {
+      return fullName.substring(0, 4);
+    }
+    return fullName;
   }
 
   Color _getSkillColor(String skillId) {
@@ -158,20 +152,40 @@ class SkillIconComponent extends PositionComponent with TapCallbacks, HasGameRef
 class SkillInfoPopup extends PositionComponent with HasGameRef<OverflowDefenseGame>, TapCallbacks {
   final SkillState skill;
   final Locale locale;
+  late final AppLocalizations l10n;
+
   SkillInfoPopup({required this.skill, required this.locale}) : super(priority: 600);
+
   @override
   Future<void> onLoad() async {
-    super.onLoad();
+    await super.onLoad();
+    l10n = AppLocalizations(locale);
     size = gameRef.size;
     add(RectangleComponent(size: size, paint: Paint()..color = Colors.black.withValues(alpha: 0.7)));
     final center = size / 2;
-    const popupWidth = 260.0;
-    const popupHeight = 220.0;
+    const popupWidth = 280.0;
+    const popupHeight = 260.0;
     add(RectangleComponent(size: Vector2(popupWidth, popupHeight), position: center, anchor: Anchor.center, paint: Paint()..color = const Color(0xFF222222))..add(RectangleComponent(size: Vector2(popupWidth, popupHeight), paint: Paint()..color = Colors.white.withValues(alpha: 0.3)..style = PaintingStyle.stroke..strokeWidth = 2)));
-    add(TextComponent(text: skill.data.name, textRenderer: TextPaint(style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), anchor: Anchor.topCenter, position: center - Vector2(0, popupHeight / 2 - 20)));
+    
+    // Title (Localized Skill Name)
+    add(TextComponent(
+      text: l10n.translate(skill.data.nameLocaleKey), 
+      textRenderer: TextPaint(style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), 
+      anchor: Anchor.topCenter, 
+      position: center - Vector2(0, popupHeight / 2 - 20)
+    ));
+
+    // Description (Localized)
+    add(TextComponent(
+      text: l10n.translate(skill.data.descriptionLocaleKey),
+      textRenderer: TextPaint(style: const TextStyle(color: Colors.grey, fontSize: 12)),
+      anchor: Anchor.topCenter,
+      position: center - Vector2(0, popupHeight / 2 - 50),
+    ));
+
     final isKo = locale.languageCode == 'ko';
     String detailText = '${isKo ? '속성' : 'Elem'}: ${skill.data.element.name.toUpperCase()}\n${isKo ? '계수' : 'Mult'}: x${skill.data.multiplier.toStringAsFixed(1)}\n${isKo ? '쿨타임' : 'CD'}: ${skill.data.cooldown.toStringAsFixed(1)}s';
-    add(TextComponent(text: detailText, textRenderer: TextPaint(style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5)), anchor: Anchor.center, position: center + Vector2(0, 10)));
+    add(TextComponent(text: detailText, textRenderer: TextPaint(style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5)), anchor: Anchor.center, position: center + Vector2(0, 30)));
     add(TextComponent(text: isKo ? '탭하여 닫기' : 'Tap to close', textRenderer: TextPaint(style: const TextStyle(color: Colors.blueAccent, fontSize: 12)), anchor: Anchor.bottomCenter, position: center + Vector2(0, popupHeight / 2 - 20)));
   }
   @override

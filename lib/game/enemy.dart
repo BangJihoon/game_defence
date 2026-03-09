@@ -63,7 +63,8 @@ class Enemy extends PositionComponent with HasGameRef<OverflowDefenseGame>, HasP
     this.onDestroyed,
   })  : hp = definition.hp.toDouble(),
         speed = definition.speed,
-        damage = definition.damage * 3;
+        // 기본 50 데미지에 정의된 데미지 추가 (약 50~200 범위)
+        damage = 50 + (definition.damage * 5);
 
   bool get isAlive => !isDying && hp > 0;
 

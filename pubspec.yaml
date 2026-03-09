@@ -38,6 +38,10 @@ flutter:
   assets:
     - assets/audio/
     - assets/images/
+    - assets/images/characters/
+    - assets/temple/
+    - assets/badges/elements/
+    - assets/badges/ranks/
     - assets/config/
     - assets/data/
     - assets/images/characters/michael/
@@ -58,6 +62,8 @@ flutter:
     - assets/images/characters/azazel/
     - assets/images/characters/gaia/
     - assets/images/characters/apophis/
+    - assets/badges/elements/
+    - assets/badges/ranks/
 
   fonts:
     - family: NanumGothic

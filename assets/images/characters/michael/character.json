@@ -1,23 +1,24 @@
-﻿{
-    "id":  "michael",
-    "name":  "Michael",
-    "description":  "대천사",
-    "iconName":  "auto_awesome",
-    "faction":  "angel",
-    "primaryElement":  "light",
-    "secondaryElement":  "fire",
-    "role":  "burstDps",
-    "baseStats":  {
-                      "hp":  1000,
-                      "attack":  120,
-                      "attackSpeed":  1.2,
-                      "critChance":  0.1,
-                      "critDamage":  1.5,
-                      "defense":  50,
-                      "cooldownReduction":  0.0,
-                      "movementSpeed":  100
-                  },
-    "passive":  "Light Damage +15%",
-    "trait":  "Bonus Damage vs DARK",
+{
+    "id": "michael",
+    "name": "Michael",
+    "description": "대천사",
+    "iconName": "auto_awesome",
+    "faction": "angel",
+    "primaryElement": "light",
+    "secondaryElement": "fire",
+    "role": "burstDps",
+    "startingRank": "Silver",
+    "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "attackSpeed": 1.2,
+        "critChance": 0.1,
+        "critDamage": 1.5,
+        "defense": 50,
+        "cooldownReduction": 0.0,
+        "movementSpeed": 100
+    },
+    "passive": "Light Damage +15%",
+    "trait": "Bonus Damage vs DARK",
     "baseSkillId": "SK_MICHAEL_JUDGMENT"
 }

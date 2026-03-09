@@ -1,7 +1,7 @@
-// lib/player/player_data_manager.dart
 import 'package:flutter/material.dart';
 import 'package:game_defence/data/inventory_data.dart';
 import 'package:game_defence/data/character_data.dart';
+import 'package:game_defence/game/events/game_events.dart';
 import 'package:game_defence/game/events/event_bus.dart';
 import 'package:game_defence/config/game_config.dart';
 
@@ -10,10 +10,12 @@ class PlayerDataManager extends ChangeNotifier {
   late final List<Offering> allOfferings;
   late final List<GameItem> mysticTools;
   late final List<CharacterDefinition> masterCharacterList;
+  final Map<String, PlayerCharacter> ownedCharacters = {};
+  final Map<String, int> characterCards = {}; // 캐릭터별 보유 카드 수
   
   String activeTempleId = 'athena';
   String activeCharacterId = 'michael';
-  int gold = 500000;
+  int gold = 1000000; // 테스트를 위해 골드 증액
   int gems = 5000;
 
   bool soundEnabled = true;
@@ -39,15 +41,48 @@ class PlayerDataManager extends ChangeNotifier {
   }
 
   void _initCharacters() {
-    // Load characters from GameStats
     masterCharacterList = GameStats.instance.characterDefinitions.values.toList();
+    masterCharacterList.sort((a, b) => a.startingRank.index.compareTo(b.startingRank.index));
+
+    for (var char in masterCharacterList) {
+      int startLevel = 1;
+      if (char.startingRank == CharacterRank.gold) startLevel = 13;
+      else if (char.startingRank == CharacterRank.platinum) startLevel = 25;
+      else if (char.startingRank == CharacterRank.diamond) startLevel = 37;
+
+      ownedCharacters[char.id] = PlayerCharacter(
+        characterId: char.id, 
+        isUnlocked: true,
+        rank: char.startingRank,
+        level: startLevel,
+      );
+      characterCards[char.id] = 100;
+    }
   }
 
   void _initTemples() {
     temples = [
-      Temple(id: 'athena', name: '아테네 신전', description: '영웅과 신화 캐릭터 공격력 보너스', type: TempleType.hero, isUnlocked: true),
-      Temple(id: 'light_sanctuary', name: '빛의 성전', description: '천사 캐릭터 공격력 보너스', type: TempleType.light, isUnlocked: true),
-      Temple(id: 'babel_darkness', name: '어둠의 바벨', description: '악마 캐릭터 공격력 보너스', type: TempleType.darkness, isUnlocked: true),
+      Temple(
+        id: 'athena', 
+        name: '불가사의 고대신전', 
+        description: '고대 거인들이 세운 것으로 알려진 정체불명의 신전입니다. 고대 캐릭터들의 숨겨진 잠재력을 깨웁니다.', 
+        type: TempleType.hero, 
+        isUnlocked: true
+      ),
+      Temple(
+        id: 'babel_darkness', 
+        name: '흑암의 바벨', 
+        description: '끝없는 어둠 속에 숨겨진 거대한 금단의 탑입니다. 악마 캐릭터들에게 파괴적인 흑마력을 부여합니다.', 
+        type: TempleType.darkness, 
+        isUnlocked: true
+      ),
+      Temple(
+        id: 'light_sanctuary', 
+        name: '빛의 중앙청', 
+        description: '세상의 정의와 빛을 관장하는 천상의 핵심 의사당입니다. 천사 캐릭터들의 신성을 극대화합니다.', 
+        type: TempleType.light, 
+        isUnlocked: true
+      ),
     ];
   }
 
@@ -113,7 +148,41 @@ class PlayerDataManager extends ChangeNotifier {
     currentTempleIndex = temples.indexWhere((t) => t.id == id);
     notifyListeners(); 
   }
-  void upgradeTemple(String id) { /* 구현 생략 */ }
+  void upgradeTemple(String id) {
+    final index = temples.indexWhere((t) => t.id == id);
+    if (index != -1) {
+      final temple = temples[index];
+      if (gold >= temple.upgradeGoldCost && gems >= temple.upgradeGemCost) {
+        gold -= temple.upgradeGoldCost;
+        gems -= temple.upgradeGemCost;
+        temple.level++;
+        notifyListeners();
+      }
+    }
+  }
+
+  void levelUpCharacter(String charId) {
+    final pc = ownedCharacters[charId];
+    if (pc == null) return;
+
+    int cardCost = 12;
+    int goldCost = pc.level * 5000;
+
+    if ((characterCards[charId] ?? 0) >= cardCost && gold >= goldCost) {
+      characterCards[charId] = characterCards[charId]! - cardCost;
+      gold -= goldCost;
+      pc.level++;
+
+      if ((pc.level - 1) % 12 == 0 && (pc.level > 1)) {
+        if (pc.rank == CharacterRank.silver) pc.rank = CharacterRank.gold;
+        else if (pc.rank == CharacterRank.gold) pc.rank = CharacterRank.platinum;
+        else if (pc.rank == CharacterRank.platinum) pc.rank = CharacterRank.diamond;
+      }
+      
+      notifyListeners();
+    }
+  }
+
   void buyTool(String id) { /* 구현 생략 */ }
   void equipTool(String id) { /* 구현 생략 */ }
   void unequipTool(String id) { equippedToolIds.remove(id); notifyListeners(); }

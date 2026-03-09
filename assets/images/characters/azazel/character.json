@@ -1,23 +1,24 @@
-﻿{
-    "id":  "azazel",
-    "name":  "Azazel",
-    "description":  "속죄의 염소",
-    "iconName":  "electric_bolt",
-    "faction":  "ancient",
-    "primaryElement":  "electric",
-    "secondaryElement":  "dark",
-    "role":  "comboBurst",
-    "baseStats":  {
-                      "hp":  1100,
-                      "attack":  125,
-                      "attackSpeed":  1.3,
-                      "critChance":  0.12,
-                      "critDamage":  1.6,
-                      "defense":  50,
-                      "cooldownReduction":  0.05,
-                      "movementSpeed":  105
-                  },
-    "passive":  "Combo Meter increases damage",
-    "trait":  "Overload Mode",
+{
+    "id": "azazel",
+    "name": "Azazel",
+    "description": "속죄의 염소",
+    "iconName": "electric_bolt",
+    "faction": "ancient",
+    "primaryElement": "electric",
+    "secondaryElement": "dark",
+    "role": "comboBurst",
+    "startingRank": "Gold",
+    "baseStats": {
+        "hp": 1500,
+        "attack": 220,
+        "attackSpeed": 1.3,
+        "critChance": 0.12,
+        "critDamage": 1.6,
+        "defense": 75,
+        "cooldownReduction": 0.05,
+        "movementSpeed": 105
+    },
+    "passive": "Combo Meter increases damage",
+    "trait": "Overload Mode",
     "baseSkillId": "SK_BAAL_STORM"
 }

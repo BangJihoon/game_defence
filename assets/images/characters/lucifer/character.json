@@ -1,23 +1,24 @@
-﻿{
-    "id":  "lucifer",
-    "name":  "Lucifer",
-    "description":  "타락한 자",
-    "iconName":  "brightness_3",
-    "faction":  "demon",
-    "primaryElement":  "dark",
-    "secondaryElement":  "fire",
-    "role":  "riskBurst",
-    "baseStats":  {
-                      "hp":  800,
-                      "attack":  150,
-                      "attackSpeed":  1.1,
-                      "critChance":  0.15,
-                      "critDamage":  1.8,
-                      "defense":  30,
-                      "cooldownReduction":  0.0,
-                      "movementSpeed":  110
-                  },
-    "passive":  "Low HP -\u003e Attack Increase",
-    "trait":  "Bonus Damage vs LIGHT",
+{
+    "id": "lucifer",
+    "name": "Lucifer",
+    "description": "타락한 자",
+    "iconName": "brightness_3",
+    "faction": "demon",
+    "primaryElement": "dark",
+    "secondaryElement": "fire",
+    "role": "riskBurst",
+    "startingRank": "Silver",
+    "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "attackSpeed": 1.1,
+        "critChance": 0.15,
+        "critDamage": 1.8,
+        "defense": 50,
+        "cooldownReduction": 0.0,
+        "movementSpeed": 110
+    },
+    "passive": "Low HP -> Attack Increase",
+    "trait": "Bonus Damage vs LIGHT",
     "baseSkillId": "SK_LUCIFER_CATACLYSM"
 }

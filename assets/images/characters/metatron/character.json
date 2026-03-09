@@ -1,23 +1,24 @@
-﻿{
-    "id":  "metatron",
-    "name":  "Metatron",
-    "description":  "천상의 서기관",
-    "iconName":  "history",
-    "faction":  "angel",
-    "primaryElement":  "light",
-    "secondaryElement":  "electric",
-    "role":  "cooldownManipulation",
-    "baseStats":  {
-                      "hp":  950,
-                      "attack":  100,
-                      "attackSpeed":  1.25,
-                      "critChance":  0.1,
-                      "critDamage":  1.5,
-                      "defense":  40,
-                      "cooldownReduction":  0.15,
-                      "movementSpeed":  110
-                  },
-    "passive":  "Global CDR +5%",
-    "trait":  "Instant Skill Reset Chance",
+{
+    "id": "metatron",
+    "name": "Metatron",
+    "description": "천상의 서기관",
+    "iconName": "history",
+    "faction": "angel",
+    "primaryElement": "light",
+    "secondaryElement": "electric",
+    "role": "cooldownManipulation",
+    "startingRank": "Platinum",
+    "baseStats": {
+        "hp": 2000,
+        "attack": 320,
+        "attackSpeed": 1.25,
+        "critChance": 0.1,
+        "critDamage": 1.5,
+        "defense": 100,
+        "cooldownReduction": 0.15,
+        "movementSpeed": 110
+    },
+    "passive": "Global CDR +5%",
+    "trait": "Instant Skill Reset Chance",
     "baseSkillId": "SK_GABRIEL_TRUMPET"
 }

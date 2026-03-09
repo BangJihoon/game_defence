@@ -38,6 +38,7 @@ class AppLocalizations {
   String get waveCleared => _localizedValues[locale.languageCode]?['waveCleared'] ?? 'Wave Cleared!';
 
   String translate(String key) {
+    if (key.isEmpty) return "";
     return _localizedValues[locale.languageCode]?[key] ?? key;
   }
 
@@ -60,6 +61,160 @@ class AppLocalizations {
       'wave': 'Wave',
       'nextWaveIn': 'Next Wave In',
       'waveCleared': 'Wave Cleared!',
+
+      // --- UI ---
+      'ui.equipped': 'Equipped',
+      'tab.all': 'ALL',
+      'faction.angel': 'ANGEL',
+      'faction.demon': 'DEMON',
+      'faction.ancient': 'ANCIENT',
+
+      // --- Characters ---
+      'char.michael.name': 'Michael',
+      'char.michael.desc': 'Archangel of Judgment',
+      'char.michael.passive': 'Light Damage +15%',
+      'char.michael.trait': 'Bonus damage vs DARK',
+      
+      'char.raphael.name': 'Raphael',
+      'char.raphael.desc': 'Guardian of Restoration',
+      'char.raphael.passive': 'Heal +20%',
+      'char.raphael.trait': 'Auto shield below 30% HP',
+
+      'char.uriel.name': 'Uriel',
+      'char.uriel.desc': 'Thunder Executor',
+      'char.uriel.passive': 'Stun Chance Increase',
+      'char.uriel.trait': 'Stunned enemies receive +30% damage',
+
+      'char.gabriel.name': 'Gabriel',
+      'char.gabriel.desc': 'Herald of Silence',
+      'char.gabriel.passive': 'Debuff duration reduction',
+      'char.gabriel.trait': 'Enemy attack -10% at wave start',
+
+      'char.metatron.name': 'Metatron',
+      'char.metatron.desc': 'Keeper of Records',
+      'char.metatron.passive': 'Cooldown -15%',
+      'char.metatron.trait': 'Chance to reset cooldown',
+
+      'char.seraphim.name': 'Seraphim',
+      'char.seraphim.desc': 'Flame of Purification',
+      'char.seraphim.passive': 'Burn Stack +2',
+      'char.seraphim.trait': 'Bonus damage vs Burned enemies',
+
+      'char.lucifer.name': 'Lucifer',
+      'char.lucifer.desc': 'Fallen Sovereign',
+      'char.lucifer.passive': 'Low HP -> Attack Increase',
+      'char.lucifer.trait': 'Crit restores HP',
+
+      'char.asmodeus.name': 'Asmodeus',
+      'char.asmodeus.desc': 'Plague Monarch',
+      'char.asmodeus.passive': 'Poison Damage +30%',
+      'char.asmodeus.trait': 'Poison spreads on kill',
+
+      'char.baal.name': 'Baal',
+      'char.baal.desc': 'Storm Tyrant',
+      'char.baal.passive': 'Electric Damage +20%',
+      'char.baal.trait': 'Bonus damage vs Stunned',
+
+      'char.leviathan.name': 'Leviathan',
+      'char.leviathan.desc': 'Abyss Leviathan',
+      'char.leviathan.passive': 'Defense Ignore',
+      'char.leviathan.trait': 'Bonus vs Shielded enemies',
+
+      'char.beelzebub.name': 'Beelzebub',
+      'char.beelzebub.desc': 'Lord of Decay',
+      'char.beelzebub.passive': 'Healing Reduction 40%',
+      'char.beelzebub.trait': 'Poison duration +3s',
+
+      'char.abaddon.name': 'Abaddon',
+      'char.abaddon.desc': 'Abyss Executioner',
+      'char.abaddon.passive': 'Bonus vs Low HP',
+      'char.abaddon.trait': 'Kill triggers explosion',
+
+      'char.enoch.name': 'Enoch',
+      'char.enoch.desc': 'Eternal Ascendant',
+      'char.enoch.passive': 'Damage increases over time',
+      'char.enoch.trait': 'Scaling bonus per wave',
+
+      'char.samael.name': 'Samael',
+      'char.samael.desc': 'Death Arbiter',
+      'char.samael.passive': 'Execute below 20% HP',
+      'char.samael.trait': 'Bonus single-target damage',
+
+      'char.lilith.name': 'Lilith',
+      'char.lilith.desc': 'Queen of Chaos',
+      'char.lilith.passive': 'Damage increased per debuff',
+      'char.lilith.trait': 'Applies random debuffs',
+
+      'char.azazel.name': 'Azazel',
+      'char.azazel.desc': 'Lightning Apostle',
+      'char.azazel.passive': 'Crit triggers lightning',
+      'char.azazel.trait': 'Multi-hit combo bonus',
+
+      'char.gaia.name': 'Gaia',
+      'char.gaia.desc': 'Earth Mother',
+      'char.gaia.passive': 'HP Regen over time',
+      'char.gaia.trait': 'Periodic shield generation',
+
+      'char.apophis.name': 'Apophis',
+      'char.apophis.desc': 'Devourer of Light',
+      'char.apophis.passive': 'Reduce Light resistance',
+      'char.apophis.trait': 'Dark damage amplification',
+
+      // --- Skills ---
+      'skill.SK_MICHAEL_JUDGMENT.name': 'Judgment Blade',
+      'skill.SK_MICHAEL_JUDGMENT.desc': 'AoE Light + Fire damage, reduces Defense',
+      
+      'skill.SK_RAPHAEL_SANCTUARY.name': 'Divine Sanctuary',
+      'skill.SK_RAPHAEL_SANCTUARY.desc': 'Applies a powerful holy shield to all allies',
+
+      'skill.SK_URIEL_THUNDER.name': 'Heavenly Thunder',
+      'skill.SK_URIEL_THUNDER.desc': 'AoE Electric damage and stun enemies',
+
+      'skill.SK_GABRIEL_TRUMPET.name': 'Final Trumpet',
+      'skill.SK_GABRIEL_TRUMPET.desc': 'AoE silence and magic damage to all enemies',
+
+      'skill.SK_SERAPHIM_INFERNO.name': 'Sacred Inferno',
+      'skill.SK_SERAPHIM_INFERNO.desc': 'Applies stacking burn in a targeted area',
+
+      'skill.SK_METATRON_CHRONO.name': 'Chrono Archive',
+      'skill.SK_METATRON_CHRONO.desc': 'Reduces cooldowns of all allies',
+
+      'skill.SK_LUCIFER_CATACLYSM.name': 'Fallen Cataclysm',
+      'skill.SK_LUCIFER_CATACLYSM.desc': 'Massive Dark explosion with life steal',
+
+      'skill.SK_ASMODEUS_CORRUPTION.name': 'Corruption Bloom',
+      'skill.SK_ASMODEUS_CORRUPTION.desc': 'Applies poison and defense down',
+
+      'skill.BAAL_STORM.name': 'Thunder Dominion',
+      'skill.BAAL_STORM.desc': 'Chain lightning that shocks multiple enemies',
+
+      'skill.SK_LEVIATHAN_ABYSS.name': 'Abyss Collapse',
+      'skill.SK_LEVIATHAN_ABYSS.desc': 'Ignores armor and destroys enemy shields',
+
+      'skill.SK_BEELZEBUB_PLAGUE.name': 'Plague Swarm',
+      'skill.SK_BEELZEBUB_PLAGUE.desc': 'Spreads infection and reduces healing',
+
+      'skill.SK_ABADDON_EXECUTE.name': 'Abyss Execution',
+      'skill.SK_ABADDON_EXECUTE.desc': 'Executes low HP targets with high physical damage',
+
+      'skill.SK_ENOCH_ASCENSION.name': 'Ascension Protocol',
+      'skill.SK_ENOCH_ASCENSION.desc': 'Increases own damage through stacking buffs',
+
+      'skill.SK_SAMAEL_MARK.name': 'Death Mark',
+      'skill.SK_SAMAEL_MARK.desc': 'Marks a single target for massive damage amplification',
+
+      'skill.SK_LILITH_CHAOS.name': 'Queen\'s Temptation',
+      'skill.SK_LILITH_CHAOS.desc': 'Applies confusion and random debuffs',
+
+      'skill.SK_AZAZEL_CRITICAL.name': 'Fallen Lightning Rush',
+      'skill.SK_AZAZEL_CRITICAL.desc': 'Fast multi-hit combo with crit boost',
+
+      'skill.SK_GAIA_GUARDIAN.name': 'Earth Mother Embrace',
+      'skill.SK_GAIA_GUARDIAN.desc': 'Reduces damage taken for all allies',
+
+      'skill.SK_APOPHIS_VOID.name': 'Solar Devourer',
+      'skill.SK_APOPHIS_VOID.desc': 'Dark beam attack with high penetration',
+
       'skill.fireball.title': 'Fireball',
       'skill.chain_lightning.title': 'Chain Lightning',
       'skill.ice_wall.title': 'Ice Wall',
@@ -215,6 +370,160 @@ class AppLocalizations {
       'wave': '웨이브',
       'nextWaveIn': '다음 웨이브까지',
       'waveCleared': '웨이브 클리어!',
+
+      // --- UI ---
+      'ui.equipped': '출전 중',
+      'tab.all': '전체',
+      'faction.angel': '천사',
+      'faction.demon': '악마',
+      'faction.ancient': '고대',
+
+      // --- Characters ---
+      'char.michael.name': '미카엘',
+      'char.michael.desc': '심판의 대천사',
+      'char.michael.passive': '빛 속성 피해 +15%',
+      'char.michael.trait': '어둠 속성 적에게 추가 피해',
+
+      'char.raphael.name': '라파엘',
+      'char.raphael.desc': '회복의 수호자',
+      'char.raphael.passive': '치유 효과 +20%',
+      'char.raphael.trait': '체력 30% 이하 시 자동 보호막 생성',
+
+      'char.uriel.name': '우리엘',
+      'char.uriel.desc': '천벌의 집행자',
+      'char.uriel.passive': '기절 확률 증가',
+      'char.uriel.trait': '기절한 적에게 +30% 추가 피해',
+
+      'char.gabriel.name': '가브리엘',
+      'char.gabriel.desc': '침묵의 전령',
+      'char.gabriel.passive': '자신에게 걸린 디버프 지속 시간 감소',
+      'char.gabriel.trait': '웨이브 시작 시 적 공격력 -10% (5초)',
+
+      'char.metatron.name': '메타트론',
+      'char.metatron.desc': '기록의 보관자',
+      'char.metatron.passive': '스킬 재사용 대기시간 -15%',
+      'char.metatron.trait': '스킬 사용 시 낮은 확률로 쿨타임 초기화',
+
+      'char.seraphim.name': '세라핌',
+      'char.seraphim.desc': '정화의 불꽃',
+      'char.seraphim.passive': '화상 중첩 한도 +2',
+      'char.seraphim.trait': '화상 상태인 적에게 추가 피해',
+
+      'char.lucifer.name': '루시퍼',
+      'char.lucifer.desc': '타락한 군주',
+      'char.lucifer.passive': '낮은 체력에서 공격력 증가',
+      'char.lucifer.trait': '치명타 발생 시 체력 회복',
+
+      'char.asmodeus.name': '아스모데우스',
+      'char.asmodeus.desc': '역병의 군주',
+      'char.asmodeus.passive': '독 피해 +30%',
+      'char.asmodeus.trait': '처치 시 주변 적에게 독 전염',
+
+      'char.baal.name': '바알',
+      'char.baal.desc': '폭풍의 폭군',
+      'char.baal.passive': '번개 피해 +20%',
+      'char.baal.trait': '기절한 적에게 추가 피해',
+
+      'char.leviathan.name': '레비아탄',
+      'char.leviathan.desc': '심연의 레비아탄',
+      'char.leviathan.passive': '방어력 관통',
+      'char.leviathan.trait': '보호막이 있는 적에게 추가 피해',
+
+      'char.beelzebub.name': '바알세불',
+      'char.beelzebub.desc': '부패의 주인',
+      'char.beelzebub.passive': '치유 감소 40%',
+      'char.beelzebub.trait': '독 지속 시간 +3초',
+
+      'char.abaddon.name': '아바돈',
+      'char.abaddon.desc': '심연의 처형자',
+      'char.abaddon.passive': '낮은 체력의 적에게 추가 피해',
+      'char.abaddon.trait': '처치 시 폭발 발생',
+
+      'char.enoch.name': '에녹',
+      'char.enoch.desc': '영원한 승천자',
+      'char.enoch.passive': '시간이 지남에 따라 피해량 증가',
+      'char.enoch.trait': '웨이브마다 성장 보너스 중첩',
+
+      'char.samael.name': '사마엘',
+      'char.samael.desc': '죽음의 중재자',
+      'char.samael.passive': '체력 20% 이하 적 즉사 (확률)',
+      'char.samael.trait': '단일 대상 추가 피해',
+
+      'char.lilith.name': '릴리스',
+      'char.lilith.desc': '혼돈의 여왕',
+      'char.lilith.passive': '대상의 디버프 개수당 피해량 증가',
+      'char.lilith.trait': '무작위 디버프 부여',
+
+      'char.azazel.name': '아자젤',
+      'char.azazel.desc': '번개의 사도',
+      'char.azazel.passive': '치명타 발생 시 번개 타격',
+      'char.azazel.trait': '다단 히트 콤보 보너스',
+
+      'char.gaia.name': '가이아',
+      'char.gaia.desc': '대지의 어머니',
+      'char.gaia.passive': '지속적인 체력 재생',
+      'char.gaia.trait': '주기적으로 보호막 생성',
+
+      'char.apophis.name': '아포피스',
+      'char.apophis.desc': '빛을 삼키는 자',
+      'char.apophis.passive': '빛 저항력 감소',
+      'char.apophis.trait': '어둠 속성 피해 증폭',
+
+      // --- Skills ---
+      'skill.SK_MICHAEL_JUDGMENT.name': '심판의 칼날',
+      'skill.SK_MICHAEL_JUDGMENT.desc': '빛과 불꽃의 광역 피해를 입히고 방어력을 감소시킵니다',
+      
+      'skill.SK_RAPHAEL_SANCTUARY.name': '신성한 성역',
+      'skill.SK_RAPHAEL_SANCTUARY.desc': '모든 아군에게 강력한 신성 보호막을 부여합니다',
+
+      'skill.SK_URIEL_THUNDER.name': '천상의 번개',
+      'skill.SK_URIEL_THUNDER.desc': '광역 번개 피해를 입히고 적들을 기절시킵니다',
+
+      'skill.SK_GABRIEL_TRUMPET.name': '최후의 나팔',
+      'skill.SK_GABRIEL_TRUMPET.desc': '모든 적에게 침묵 효과와 마법 피해를 입힙니다',
+
+      'skill.SK_SERAPHIM_INFERNO.name': '성스러운 인페르노',
+      'skill.SK_SERAPHIM_INFERNO.desc': '지정된 범위 내에 중첩되는 화상 효과를 부여합니다',
+
+      'skill.SK_METATRON_CHRONO.name': '크로노 아카이브',
+      'skill.SK_METATRON_CHRONO.desc': '모든 아군의 스킬 재사용 대기시간을 감소시킵니다',
+
+      'skill.SK_LUCIFER_CATACLYSM.name': '타락한 대재앙',
+      'skill.SK_LUCIFER_CATACLYSM.desc': '생명력 흡수 효과가 있는 거대한 어둠 폭발을 일으킵니다',
+
+      'skill.SK_ASMODEUS_CORRUPTION.name': '부패의 꽃',
+      'skill.SK_ASMODEUS_CORRUPTION.desc': '독 피해를 입히고 적의 방어력을 감소시킵니다',
+
+      'skill.BAAL_STORM.name': '번개의 지배',
+      'skill.BAAL_STORM.desc': '여러 적을 감전시키는 연쇄 번개를 발사합니다',
+
+      'skill.SK_LEVIATHAN_ABYSS.name': '심연의 붕괴',
+      'skill.SK_LEVIATHAN_ABYSS.desc': '방어력을 무시하고 적의 보호막을 파괴합니다',
+
+      'skill.SK_BEELZEBUB_PLAGUE.name': '역병 무리',
+      'skill.SK_BEELZEBUB_PLAGUE.desc': '감염을 퍼뜨리고 적의 치유 효과를 감소시킵니다',
+
+      'skill.SK_ABADDON_EXECUTE.name': '심연의 처형',
+      'skill.SK_ABADDON_EXECUTE.desc': '낮은 체력의 적에게 강력한 물리 피해로 처형을 시도합니다',
+
+      'skill.SK_ENOCH_ASCENSION.name': '승천 프로토콜',
+      'skill.SK_ENOCH_ASCENSION.desc': '중첩되는 버프를 통해 자신의 피해량을 증가시킵니다',
+
+      'skill.SK_SAMAEL_MARK.name': '죽음의 표식',
+      'skill.SK_SAMAEL_MARK.desc': '단일 대상에게 받는 피해를 대폭 증폭시키는 표식을 남깁니다',
+
+      'skill.SK_LILITH_CHAOS.name': '여왕의 유혹',
+      'skill.SK_LILITH_CHAOS.desc': '적들에게 혼란 효과와 무작위 디버프를 부여합니다',
+
+      'skill.SK_AZAZEL_CRITICAL.name': '타락한 뇌광 돌진',
+      'skill.SK_AZAZEL_CRITICAL.desc': '치명타 확률이 증가하는 빠른 연타 콤보를 시전합니다',
+
+      'skill.SK_GAIA_GUARDIAN.name': '대지의 어머니의 포옹',
+      'skill.SK_GAIA_GUARDIAN.desc': '모든 아군이 받는 피해를 감소시킵니다',
+
+      'skill.SK_APOPHIS_VOID.name': '태양을 삼키는 자',
+      'skill.SK_APOPHIS_VOID.desc': '관통력이 높은 어둠의 광선을 발사합니다',
+
       'skill.fireball.title': '화염구',
       'skill.chain_lightning.title': '연쇄 번개',
       'skill.ice_wall.title': '얼음 벽',
@@ -293,7 +602,6 @@ class AppLocalizations {
       'card.util_reroll_2.title': '추가 기회',
       'card.cursed_berserker_1.title': '광전사',
       'card.cursed_no_cooldown.title': '무한의 마력',
-      'card.stat_global_dmg_2.desc': '+10% 모든 공격력',
       'card.stat_global_dmg_2.title': '공격력 강화 II',
       'card.stat_global_cd_2.title': '재사용 대기시간 감소 II',
       'card.stat_wall_hp_2.title': '성벽 보강 II',
@@ -344,6 +652,7 @@ class AppLocalizations {
       'card.util_reroll_2.desc': '다시 뽑기 기회 +2',
       'card.cursed_berserker_1.desc': '+150% 모든 공격력, -75% 성벽 최대 체력',
       'card.cursed_no_cooldown.desc': '-80% 재사용 대기시간, -50% 모든 공격력',
+      'card.stat_global_dmg_2.desc': '+10% 모든 공격력',
       'card.stat_global_cd_2.desc': '-5% 전역 재사용 대기시간',
       'card.stat_wall_hp_2.desc': '+20% 성벽 최대 체력',
       'card.stat_coin_gain_2.desc': '+20% 코인 획득량',
